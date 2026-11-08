@@ -9,6 +9,7 @@ import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { AddInventory, type AddMode } from './AddInventory';
+import { SponsoredSection } from './SponsoredSection';
 import { WriteOffSection } from './WriteOffSection';
 
 const NGO_ID = 'ngo-seva';
@@ -157,10 +158,19 @@ export function ChemistPage({ user }: { user: User }) {
             {qaQueue.map((p) => (
               <Card key={p.id} className="space-y-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-slate-900">{p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
+                    {p.sponsorshipId && <Badge tone="green">Sponsored</Badge>}
+                  </div>
                   <p className="text-xs text-slate-500">
                     Batch {p.items[0]?.batchNo} · expires {p.items[0]?.expiry} · for {p.ngoId ? app.ngos[p.ngoId]?.name : 'NGO'}
                   </p>
+                  {p.sponsorshipId && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      A customer paid for these packs. You are paid {inr(app.sponsorships[p.sponsorshipId]?.storePayout ?? 0)} once the NGO has them; if
+                      you reject them the customer is refunded and you are not paid.
+                    </p>
+                  )}
                 </div>
                 <p className="text-xs text-slate-500">Check the seal, batch and expiry before releasing.</p>
                 <div className="flex flex-wrap gap-2">
@@ -245,6 +255,8 @@ export function ChemistPage({ user }: { user: User }) {
           </table>
         </Card>
       </section>
+
+      <SponsoredSection user={user} />
 
       <WriteOffSection user={user} />
     </div>
