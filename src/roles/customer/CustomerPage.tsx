@@ -1,24 +1,27 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Leaf, Package, ShoppingBag, ShoppingCart, Store, Tag, Wallet } from 'lucide-react';
+import { HeartHandshake, Leaf, Package, ShoppingBag, ShoppingCart, Store, Tag, Wallet } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
-import { ecoListings } from '../../domain/selectors';
+import { courseReminders, ecoListings } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { inr } from '../../components/ui';
 import { useEmbedded } from '../../components/layout';
 import { useApp } from '../../store';
 import { useCart } from './cart';
 import { CartTab } from './CartTab';
+import { CivicTab } from './CivicTab';
 import { DealsTab } from './DealsTab';
 import { OrdersTab } from './OrdersTab';
 import { ShopTab } from './ShopTab';
 
-type TabId = 'shop' | 'deals' | 'cart' | 'orders';
+type TabId = 'shop' | 'deals' | 'cart' | 'orders' | 'civic';
 
-const TABS: { id: TabId; label: string; icon: ComponentType<{ className?: string }> }[] = [
+/** `short` is the label used in the narrow phone navigation bar. */
+const TABS: { id: TabId; label: string; short?: string; icon: ComponentType<{ className?: string }> }[] = [
   { id: 'shop', label: 'Shop', icon: Store },
   { id: 'deals', label: 'Deals', icon: Tag },
   { id: 'cart', label: 'Cart', icon: ShoppingCart },
   { id: 'orders', label: 'Orders', icon: Package },
+  { id: 'civic', label: 'Civic hub', short: 'Civic', icon: HeartHandshake },
 ];
 
 function Stats({ user }: { user: User }) {
@@ -50,7 +53,8 @@ export function CustomerPage({ user }: { user: User }) {
   const openOrders = Object.values(app.orders).filter(
     (o) => o.customerId === user.id && o.status !== 'DELIVERED' && o.status !== 'CANCELLED',
   ).length;
-  const badge: Partial<Record<TabId, number>> = { deals: dealCount, cart: cartCount, orders: openOrders };
+  const reminderCount = courseReminders(app, user.id).length;
+  const badge: Partial<Record<TabId, number>> = { deals: dealCount, cart: cartCount, orders: openOrders, civic: reminderCount };
 
   const content = (
     <AnimatePresence mode="wait">
@@ -59,6 +63,7 @@ export function CustomerPage({ user }: { user: User }) {
         {tab === 'deals' && <DealsTab />}
         {tab === 'cart' && <CartTab user={user} onPlaced={() => setTab('orders')} />}
         {tab === 'orders' && <OrdersTab user={user} />}
+        {tab === 'civic' && <CivicTab user={user} />}
       </motion.div>
     </AnimatePresence>
   );
@@ -82,8 +87,8 @@ export function CustomerPage({ user }: { user: User }) {
 
         <main className="@container flex-1 overflow-y-auto p-4 pb-24 sm:pb-4">{content}</main>
 
-        <nav className="sticky bottom-0 grid grid-cols-4 border-t border-slate-200 bg-white/95 backdrop-blur" aria-label="Customer sections">
-          {TABS.map(({ id, label, icon: Icon }) => {
+        <nav className="sticky bottom-0 grid grid-cols-5 border-t border-slate-200 bg-white/95 backdrop-blur" aria-label="Customer sections">
+          {TABS.map(({ id, label, short, icon: Icon }) => {
             const active = tab === id;
             const count = badge[id] ?? 0;
             return (
@@ -94,7 +99,7 @@ export function CustomerPage({ user }: { user: User }) {
                 className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold transition-colors ${active ? 'text-medical' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <Icon className="size-5" />
-                {label}
+                {short ?? label}
                 {count > 0 && (
                   <span className="absolute right-[28%] top-1.5 grid min-w-4 place-items-center rounded-full bg-blood px-1 text-[10px] font-bold text-white">{count}</span>
                 )}
