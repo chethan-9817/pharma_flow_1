@@ -1,35 +1,39 @@
 import { CalendarClock, ChevronsRight, RotateCcw, Stethoscope, Truck, Shield, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { addDays, daysBetween } from '../domain/clock';
+import { localeFor } from '../i18n';
 import { DEMO_START } from '../seed';
 import { dispatch, pharma, usePharma } from '../store';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { report, toast } from './toast';
 
 export const PRESENTER_ID = 'u-admin';
 const MAX_OFFSET = 730;
 
 const ROLES = [
-  { to: '/customer', label: 'Customer', icon: User },
-  { to: '/chemist', label: 'Chemist', icon: Stethoscope },
-  { to: '/rider', label: 'Rider', icon: Truck },
-  { to: '/admin', label: 'Admin', icon: Shield },
-];
+  { to: '/customer', key: 'customer', icon: User },
+  { to: '/chemist', key: 'chemist', icon: Stethoscope },
+  { to: '/rider', key: 'rider', icon: Truck },
+  { to: '/admin', key: 'admin', icon: Shield },
+] as const;
 
 const JUMPS = [
-  { label: '+1 week', days: 7 },
-  { label: '+1 month', days: 30 },
-  { label: '+5 months', days: 150 },
-];
-
-const fmt = (iso: string) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  { key: 'nav.week', days: 7 },
+  { key: 'nav.month', days: 30 },
+  { key: 'nav.fiveMonths', days: 150 },
+] as const;
 
 export function PresenterBar() {
+  const { t, i18n } = useTranslation();
   const today = usePharma((s) => s.app.today);
   const offset = daysBetween(DEMO_START, today);
   const [draft, setDraft] = useState(offset);
   useEffect(() => setDraft(offset), [offset]);
+
+  const fmt = (iso: string) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString(localeFor(i18n.language), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
   const travel = async (offsetDays: number) => {
     if (offsetDays <= offset) return;
@@ -37,9 +41,9 @@ export function PresenterBar() {
   };
 
   const reset = async () => {
-    if (!window.confirm('Reset all demo data in every open tab?')) return;
+    if (!window.confirm(t('nav.resetConfirm'))) return;
     await pharma.getState().reset();
-    toast('Demo data reset');
+    toast(t('nav.resetDone'));
   };
 
   return (
@@ -50,8 +54,8 @@ export function PresenterBar() {
           <span className="text-base font-bold tracking-tight text-slate-900">PharmaFlow</span>
         </div>
 
-        <nav className="flex gap-1 rounded-xl bg-slate-100 p-1" aria-label="Switch role">
-          {ROLES.map(({ to, label, icon: Icon }) => (
+        <nav className="flex gap-1 rounded-xl bg-slate-100 p-1" aria-label={t('nav.switchRole')}>
+          {ROLES.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -62,7 +66,7 @@ export function PresenterBar() {
               }
             >
               <Icon className="size-4" />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="hidden sm:inline">{t(`nav.${key}`)}</span>
             </NavLink>
           ))}
           <NavLink
@@ -71,15 +75,15 @@ export function PresenterBar() {
               `rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${isActive ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`
             }
           >
-            All 4
+            {t('nav.all4')}
           </NavLink>
         </nav>
 
         <div className="flex min-w-[280px] flex-1 items-center gap-3">
           <CalendarClock className="size-4 shrink-0 text-expiry" />
-          <div className="flex flex-col leading-tight">
+          <div className="flex flex-col whitespace-nowrap leading-tight">
             <span className="text-sm font-semibold text-slate-900">{fmt(today)}</span>
-            <span className="text-[11px] text-slate-500">{offset === 0 ? 'Start of demo' : `Day +${offset}`}</span>
+            <span className="text-[11px] text-slate-500">{offset === 0 ? t('nav.startOfDemo') : t('nav.day', { n: offset })}</span>
           </div>
           <input
             type="range"
@@ -89,29 +93,31 @@ export function PresenterBar() {
             onChange={(e) => setDraft(Number(e.target.value))}
             onPointerUp={() => void travel(draft)}
             onKeyUp={() => void travel(draft)}
-            aria-label="Time travel"
+            aria-label={t('nav.timeTravel')}
             className="h-1.5 min-w-24 flex-1 cursor-pointer accent-medical"
           />
           <div className="hidden gap-1 lg:flex">
             {JUMPS.map((j) => (
               <button
-                key={j.label}
+                key={j.key}
                 onClick={() => void travel(offset + j.days)}
-                className="flex items-center gap-0.5 rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                className="flex items-center gap-0.5 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
               >
                 <ChevronsRight className="size-3" />
-                {j.label}
+                {t(j.key)}
               </button>
             ))}
           </div>
         </div>
+
+        <LanguageSwitcher />
 
         <button
           onClick={() => void reset()}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-rose-50 hover:text-rose-700"
         >
           <RotateCcw className="size-4" />
-          <span className="hidden md:inline">Reset demo</span>
+          <span className="hidden md:inline">{t('nav.resetDemo')}</span>
         </button>
       </div>
     </header>

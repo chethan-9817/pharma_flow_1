@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Inter has no Kannada or Devanagari glyphs, so those scripts fall back to Noto, then to the system's own font. */
+  --font-sans: "Inter", "Noto Sans Kannada", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
   --color-medical: #0284c7;
   --color-medical-dark: #0369a1;
   --color-eco: #10b981;
