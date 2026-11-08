@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CameraOff, Loader2, X } from 'lucide-react';
+import { CameraOff, Keyboard, Loader2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ScannerStartError, startScanner } from '../../lib/scanner';
 import { Button } from '../../components/ui';
@@ -9,12 +9,18 @@ interface Props {
   onClose: () => void;
   /** Called once with the raw text of the first barcode read. */
   onScan: (text: string) => void;
+  /** Closes the camera and moves the user to the "type the barcode" field. */
+  onType: () => void;
 }
 
-export function ScannerDialog({ open, onClose, onScan }: Props) {
+/** After this long without a read, suggest typing the barcode instead. */
+const SLOW_AFTER_MS = 8000;
+
+export function ScannerDialog({ open, onClose, onScan, onType }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<'starting' | 'scanning' | 'error'>('starting');
   const [message, setMessage] = useState('');
+  const [slow, setSlow] = useState(false);
   const handled = useRef(false);
   // Keep the latest callback without restarting the camera when the parent re-renders.
   const onScanRef = useRef(onScan);
@@ -26,6 +32,8 @@ export function ScannerDialog({ open, onClose, onScan }: Props) {
     let cancelled = false;
     handled.current = false;
     setStatus('starting');
+    setSlow(false);
+    const slowTimer = setTimeout(() => setSlow(true), SLOW_AFTER_MS);
 
     startScanner(videoRef.current, (text) => {
       if (handled.current) return;
@@ -45,6 +53,7 @@ export function ScannerDialog({ open, onClose, onScan }: Props) {
 
     return () => {
       cancelled = true;
+      clearTimeout(slowTimer);
       stop?.();
     };
   }, [open]);
@@ -104,9 +113,16 @@ export function ScannerDialog({ open, onClose, onScan }: Props) {
               )}
             </div>
 
-            <div className="flex justify-end px-5 py-4">
-              <Button variant="ghost" onClick={onClose}>
-                {status === 'error' ? 'Use a preset barcode instead' : 'Cancel'}
+            {status === 'scanning' && slow && (
+              <p className="mx-5 mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900" role="status">
+                Still nothing? Hold the strip steady about 15 cm away, add light, or type the barcode instead.
+              </p>
+            )}
+
+            <div className="flex flex-wrap justify-end gap-2 px-5 py-4">
+              {status !== 'error' && <Button variant="ghost" onClick={onClose}>Cancel</Button>}
+              <Button variant={status === 'error' || slow ? 'primary' : 'ghost'} onClick={onType}>
+                <Keyboard className="size-4" /> Type the barcode instead
               </Button>
             </div>
           </motion.div>
