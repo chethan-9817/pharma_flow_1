@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
+    "test:e2e": "playwright test",
     "db:sample": "tsx scripts/sample-db.ts"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.5",
     "@types/canvas-confetti": "^1.9.0",
     "@types/leaflet": "^1.9.22",
