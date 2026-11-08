@@ -4,6 +4,13 @@ import type { LedgerEntry } from '../domain/ledger';
 
 export type Entry = LedgerEntry<DomainEvent>;
 
+/**
+ * Thrown by `append` when the change was refused for a reason that retrying cannot fix, for example the
+ * server's rules said no or the session ended. Its message is shown to the person. Any other error from
+ * `append` means "another tab wrote first": the store catches up and tries again.
+ */
+export class StorageRejected extends Error {}
+
 /** Where the hash-chained event log lives. */
 export interface EventStorage {
   load(): Promise<Entry[]>;

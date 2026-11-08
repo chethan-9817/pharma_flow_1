@@ -4,6 +4,7 @@ import type { DomainEventPayload } from '../domain/events';
 import type { Result } from '../domain/result';
 import type { AppState } from '../domain/state';
 import { DexieStorage, MemoryStorage, type EventStorage } from './persistence';
+import { SERVER_MODE, serverStorage, serverTransport } from './server';
 import { createPharmaStore, type PharmaActions, type PharmaState, type Sessions } from './store';
 import { BroadcastTransport, MemoryBus, type Transport } from './transport';
 
@@ -33,11 +34,14 @@ function makeTransport(): Transport {
   return typeof BroadcastChannel === 'undefined' ? new MemoryBus().join() : new BroadcastTransport();
 }
 
-/** One store per tab. Tabs stay in sync through the shared IndexedDB log and BroadcastChannel. */
+/**
+ * One store per tab. In the demo build, tabs stay in sync through the shared IndexedDB log and BroadcastChannel.
+ * In the server build the same store keeps its log on the server and hears about changes over a WebSocket.
+ */
 export const pharma = createPharmaStore({
   seed: SEED,
-  storage: makeStorage(),
-  transport: makeTransport(),
+  storage: SERVER_MODE ? serverStorage : makeStorage(),
+  transport: SERVER_MODE ? serverTransport : makeTransport(),
   loadSessions,
   saveSessions,
 });

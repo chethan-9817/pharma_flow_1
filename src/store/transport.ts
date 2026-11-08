@@ -1,10 +1,11 @@
 import type { Entry } from './persistence';
 
-export type TransportMessage = { kind: 'entry'; entry: Entry } | { kind: 'reset' };
+/** `resync` tells the store to reload the whole log, for example after a connection to the server was re-made. */
+export type TransportMessage = { kind: 'entry'; entry: Entry } | { kind: 'reset' } | { kind: 'resync' };
 
 /**
  * Moves new log entries between open tabs. Demo mode uses BroadcastChannel;
- * server mode will swap in a WebSocket adapter behind the same interface.
+ * server mode uses a WebSocket adapter (`WebSocketTransport`) behind the same interface.
  */
 export interface Transport {
   publish(message: TransportMessage): void;

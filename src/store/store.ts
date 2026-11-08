@@ -5,7 +5,7 @@ import { applyEvent, reduce } from '../domain/reducer';
 import type { Result } from '../domain/result';
 import { createInitialState, type AppState, type Seed } from '../domain/state';
 import type { Role } from '../domain/types';
-import type { Entry, EventStorage } from './persistence';
+import { StorageRejected, type Entry, type EventStorage } from './persistence';
 import type { Transport, TransportMessage } from './transport';
 
 export type Sessions = Partial<Record<Role, string>>;
@@ -20,6 +20,8 @@ export interface PharmaState {
 
 export interface PharmaActions {
   init(): Promise<void>;
+  /** Loads the log again, for example right after signing in to the server. */
+  reload(): Promise<void>;
   /** Validates the event against the business rules, then appends it to the shared log. */
   dispatch(actorId: string, payload: DomainEventPayload): Promise<Result<AppState>>;
   reset(): Promise<void>;
@@ -61,7 +63,15 @@ export function createPharmaStore(deps: StoreDeps): PharmaStore {
 
   const store = createStore<PharmaState & PharmaActions>((set, get) => {
     async function resync(): Promise<void> {
-      const entries = await storage.load();
+      let entries: Entry[];
+      try {
+        entries = await storage.load();
+      } catch (error) {
+        // The log could not be read (for example the server is unreachable). Keep what is on screen: the
+        // transport asks for a re-sync again when the connection is back.
+        console.error('Could not load the event log.', error);
+        return;
+      }
       try {
         set({ app: reduce(initial(), entries.map((e) => e.event)), chain: entries });
       } catch (error) {
@@ -75,6 +85,10 @@ export function createPharmaStore(deps: StoreDeps): PharmaStore {
     async function receive(message: TransportMessage): Promise<void> {
       if (message.kind === 'reset') {
         set({ app: initial(), chain: [] });
+        return;
+      }
+      if (message.kind === 'resync') {
+        await resync();
         return;
       }
       const { app, chain } = get();
@@ -106,6 +120,10 @@ export function createPharmaStore(deps: StoreDeps): PharmaStore {
         });
       },
 
+      reload() {
+        return serial(resync);
+      },
+
       dispatch(actorId, payload) {
         return serial(async (): Promise<Result<AppState>> => {
           for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -116,7 +134,9 @@ export function createPharmaStore(deps: StoreDeps): PharmaStore {
             const entry = await appendEntry(chain, event);
             try {
               await storage.append(entry);
-            } catch {
+            } catch (error) {
+              // The storage refused the change for a reason that retrying cannot fix: tell the person why.
+              if (error instanceof StorageRejected) return { ok: false, error: error.message };
               // Another tab wrote entry N first. Catch up and validate the event again.
               await resync();
               continue;
