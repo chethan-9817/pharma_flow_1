@@ -15,8 +15,10 @@
   "dependencies": {
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
+    "canvas-confetti": "^1.9.4",
     "dexie": "^4.4.7",
     "framer-motion": "^14.10.1",
+    "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.70.0",
     "qrcode": "^1.5.4",
@@ -24,12 +26,14 @@
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.18.5",
+    "recharts": "^3.10.1",
     "tesseract.js": "^7.0.0",
     "zod": "^4.6.7",
     "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^26.6.6",
     "@types/qrcode": "^1.5.6",
