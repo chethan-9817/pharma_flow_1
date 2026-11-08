@@ -1,0 +1,47 @@
+import { Loader2 } from 'lucide-react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import type { LatLng, Stop } from '../../domain/route';
+import { RouteMapSvg } from './RouteMapSvg';
+
+// Leaflet is only downloaded when a rider actually has a route to show.
+const LeafletRouteMap = lazy(() => import('./LeafletRouteMap'));
+
+interface Props {
+  from: LatLng;
+  stops: Stop[];
+  rider: LatLng;
+  legKey: string;
+}
+
+/**
+ * The rider's dark street map. If the device is offline, or street tiles keep failing,
+ * it quietly switches to the SVG diagram so navigation never shows a blank box.
+ */
+export function RouteMap(props: Props) {
+  const [failed, setFailed] = useState(typeof navigator !== 'undefined' && navigator.onLine === false);
+
+  useEffect(() => {
+    const goOffline = () => setFailed(true);
+    const goOnline = () => setFailed(false);
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => {
+      window.removeEventListener('offline', goOffline);
+      window.removeEventListener('online', goOnline);
+    };
+  }, []);
+
+  if (failed) return <RouteMapSvg {...props} note="Offline map. Street view returns when you are back online" />;
+
+  return (
+    <Suspense
+      fallback={
+        <div className="grid h-64 place-items-center rounded-2xl bg-slate-900 text-slate-400 ring-1 ring-slate-800 sm:h-72">
+          <Loader2 className="size-6 animate-spin" />
+        </div>
+      }
+    >
+      <LeafletRouteMap {...props} onTilesFailed={() => setFailed(true)} />
+    </Suspense>
+  );
+}

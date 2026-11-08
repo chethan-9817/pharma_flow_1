@@ -28,3 +28,46 @@ body {
 button { cursor: pointer; transition: all 0.15s ease; }
 button:active:not(:disabled) { transform: scale(0.97); }
 button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* Rider map markers (Leaflet divIcons) */
+.leaflet-container { font-family: var(--font-sans); }
+/* Dark map: darken the free OpenStreetMap tiles instead of using a keyed dark basemap. */
+.pf-dark-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(88%) saturate(80%);
+}
+/* Leaflet's own stylesheet loads later (with the lazy map), so these selectors are a little more specific. */
+div.leaflet-container .leaflet-control-attribution {
+  background: rgb(15 23 42 / 0.85);
+  color: #94a3b8;
+}
+div.leaflet-container .leaflet-control-attribution a { color: #7dd3fc; }
+.pf-pin span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  border: 2px solid #fff;
+  color: #fff;
+  font: 700 13px var(--font-sans);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+}
+.pf-rider { position: relative; }
+.pf-rider-dot {
+  position: absolute;
+  inset: 5px;
+  border-radius: 9999px;
+  border: 3px solid #0f172a;
+  box-shadow: 0 0 0 2px #fff;
+}
+.pf-rider-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  opacity: 0.6;
+  animation: rider-pulse 1.6s ease-out infinite;
+}
+@keyframes rider-pulse {
+  from { transform: scale(0.6); opacity: 0.7; }
+  to { transform: scale(2.2); opacity: 0; }
+}
