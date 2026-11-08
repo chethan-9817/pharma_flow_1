@@ -3,11 +3,13 @@ import { Leaf, MapPin, Package, Power, Skull, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { isTerminal } from '../../domain/machines/pickup';
 import { RIDER_PAY } from '../../domain/handlers/payouts';
+import { riderRoute } from '../../domain/route';
 import { backhaulSuggestions, openMissions, type Mission } from '../../domain/selectors';
 import type { Order, Pickup, User } from '../../domain/types';
 import { Button, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { dispatch, useApp } from '../../store';
+import { NavigationPanel } from './NavigationPanel';
 
 const KIND = {
   DELIVERY: { label: 'Delivery', color: 'border-sky-500', chip: 'bg-sky-500/15 text-sky-300', icon: Package },
@@ -39,6 +41,7 @@ export function RiderPage({ user }: { user: User }) {
   const [otp, setOtp] = useState('');
   const profile = app.riders[user.id]!;
   const open = openMissions(app);
+  const route = riderRoute(app, user.id);
   const activeOrders = Object.values(app.orders).filter((o) => o.riderId === user.id && (o.status === 'PACKED' || o.status === 'OUT_FOR_DELIVERY'));
   const activePickups = Object.values(app.pickups).filter((p) => p.riderId === user.id && !isTerminal(p.kind, p.status));
 
@@ -89,6 +92,8 @@ export function RiderPage({ user }: { user: User }) {
             </div>
           </div>
         </header>
+
+        {route.stops.length > 0 && <NavigationPanel route={route} />}
 
         {(activeOrders.length > 0 || activePickups.length > 0) && (
           <section className="space-y-3">
