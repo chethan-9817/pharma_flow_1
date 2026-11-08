@@ -9,6 +9,7 @@ import type { Order, Pickup, User } from '../../domain/types';
 import { Button, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { dispatch, useApp } from '../../store';
+import { useEmbedded } from '../../components/layout';
 import { NavigationPanel } from './NavigationPanel';
 
 const KIND = {
@@ -38,6 +39,7 @@ function MissionHeader({ kind, title, where }: { kind: keyof typeof KIND; title:
 
 export function RiderPage({ user }: { user: User }) {
   const app = useApp();
+  const embedded = useEmbedded();
   const [otp, setOtp] = useState('');
   const profile = app.riders[user.id]!;
   const open = openMissions(app);
@@ -56,8 +58,9 @@ export function RiderPage({ user }: { user: User }) {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-lg space-y-5 p-4">
-        <header className="space-y-4 rounded-2xl bg-slate-900 p-4 ring-1 ring-slate-800">
+      {/* Compact single column in the "All 4" panes; two columns (missions left, big map right) on a laptop. */}
+      <div className={embedded ? 'mx-auto max-w-lg space-y-5 p-4' : 'mx-auto max-w-6xl space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0'}>
+        <header className={`space-y-4 rounded-2xl bg-slate-900 p-4 ring-1 ring-slate-800 ${embedded ? '' : 'lg:col-span-2'}`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-400">Rider</p>
@@ -93,7 +96,13 @@ export function RiderPage({ user }: { user: User }) {
           </div>
         </header>
 
-        {route.stops.length > 0 && <NavigationPanel route={route} />}
+        {route.stops.length > 0 && (
+          <div className={embedded ? '' : 'lg:col-start-2 lg:row-start-2 lg:sticky lg:top-20'}>
+            <NavigationPanel route={route} tall={!embedded} />
+          </div>
+        )}
+
+        <div className={`space-y-5 ${embedded ? '' : route.stops.length > 0 ? 'lg:col-start-1 lg:row-start-2' : 'lg:col-span-2'}`}>
 
         {(activeOrders.length > 0 || activePickups.length > 0) && (
           <section className="space-y-3">
@@ -174,6 +183,7 @@ export function RiderPage({ user }: { user: User }) {
             );
           })}
         </section>
+        </div>
       </div>
     </div>
   );

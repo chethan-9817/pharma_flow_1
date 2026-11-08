@@ -11,6 +11,8 @@ interface Props {
   stops: Stop[];
   rider: LatLng;
   legKey: string;
+  /** Taller map for the laptop layout. */
+  tall?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ export function RouteMap(props: Props) {
   return (
     <Suspense
       fallback={
-        <div className="grid h-64 place-items-center rounded-2xl bg-slate-900 text-slate-400 ring-1 ring-slate-800 sm:h-72">
+        <div className={`grid place-items-center rounded-2xl bg-slate-900 text-slate-400 ring-1 ring-slate-800 ${props.tall ? 'h-96 lg:h-[30rem]' : 'h-64 sm:h-72'}`}>
           <Loader2 className="size-6 animate-spin" />
         </div>
       }

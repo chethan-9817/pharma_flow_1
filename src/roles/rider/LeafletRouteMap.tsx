@@ -11,6 +11,7 @@ interface Props {
   rider: LatLng;
   /** Changes when the leg changes, so the map re-centres on the new route. */
   legKey: string;
+  tall?: boolean;
   /** Called when street tiles keep failing (for example, no internet). */
   onTilesFailed: () => void;
 }
@@ -49,7 +50,7 @@ function FitRoute({ points, trigger }: { points: LatLng[]; trigger: string }) {
   return null;
 }
 
-export default function LeafletRouteMap({ from, stops, rider, legKey, onTilesFailed }: Props) {
+export default function LeafletRouteMap({ from, stops, rider, legKey, tall, onTilesFailed }: Props) {
   const errors = useRef(0);
   const route = useMemo(() => [from, ...stops].map((p) => [p.lat, p.lng] as [number, number]), [from, stops]);
 
@@ -61,7 +62,7 @@ export default function LeafletRouteMap({ from, stops, rider, legKey, onTilesFai
         scrollWheelZoom={false}
         zoomControl
         attributionControl
-        className="h-64 w-full sm:h-72"
+        className={tall ? 'h-96 w-full lg:h-[30rem]' : 'h-64 w-full sm:h-72'}
         style={{ background: '#0f172a' }}
       >
         <TileLayer

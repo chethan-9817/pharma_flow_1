@@ -11,7 +11,7 @@ const mins = (n: number) => (n < 1 ? '<1 min' : `${n} min`);
  * Dark map with the whole multi-stop route, the next stop, distance and ETA,
  * a Call button for the person at the next stop, and a link to open it in a maps app.
  */
-export function NavigationPanel({ route }: { route: Route }) {
+export function NavigationPanel({ route, tall }: { route: Route; tall?: boolean }) {
   const { stops, from, moving } = route;
   const stats = routeStats(from, stops);
   const next = stops[0]!;
@@ -34,7 +34,7 @@ export function NavigationPanel({ route }: { route: Route }) {
         </span>
       </div>
 
-      <RouteMap from={from} stops={stops} rider={rider} legKey={legKey} />
+      <RouteMap from={from} stops={stops} rider={rider} legKey={legKey} tall={tall} />
 
       <div className="rounded-xl bg-slate-800 p-3">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
