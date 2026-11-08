@@ -54,3 +54,31 @@ describe('camera scan results', () => {
     expect(parseScan('12345').ok).toBe(false);
   });
 });
+
+describe('typed barcodes', () => {
+  it('ignores spaces and hyphens in digits copied from under a barcode', () => {
+    expect(parseScan('8901 2345 00011')).toEqual({ ok: true, value: { gtin: '08901234500011' } });
+    expect(parseScan('890-1234-500011')).toEqual({ ok: true, value: { gtin: '08901234500011' } });
+    expect(parseScan('  8901234500011\n')).toEqual({ ok: true, value: { gtin: '08901234500011' } });
+  });
+  it('explains a wrong digit count', () => {
+    const r = parseScan('890123450001');
+    expect(r.ok).toBe(true); // 12 digits is a valid UPC-A
+    const short = parseScan('89012345');
+    expect(short.ok).toBe(true); // 8 digits is a valid EAN-8
+    const bad = parseScan('8901234500');
+    expect(bad).toEqual({ ok: false, error: 'A barcode number has 8, 12, 13 or 14 digits, but this has 10' });
+  });
+  it('still reads an all-digit GS1 string that carries a GTIN and expiry', () => {
+    expect(parseScan('010890123450001117270600')).toEqual({
+      ok: true,
+      value: { gtin: '08901234500011', expiry: '2027-06-30' },
+    });
+  });
+  it('accepts a typed GS1 string with parentheses', () => {
+    expect(parseScan(' (01)08901234500011 (17)270600 (10)DL27A01 ')).toEqual({
+      ok: true,
+      value: { gtin: '08901234500011', expiry: '2027-06-30', batch: 'DL27A01' },
+    });
+  });
+});
