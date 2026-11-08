@@ -5,7 +5,7 @@
 PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
 
 > 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> 🚧 Status: **domain core, sync layer and first versions of all four role screens are built and tested** (see [Roadmap](#%EF%B8%8F-roadmap)).
+> 🚧 Status: **all four role screens are built and tested end to end.** Still to do: server mode, PWA, languages and Playwright (see [Roadmap](#%EF%B8%8F-roadmap)).
 >
 > 📖 More docs: [ARCHITECTURE.md](ARCHITECTURE.md) (how the code is organised and why) · [WORKFLOW.md](WORKFLOW.md) (every business flow and the demo script).
 
@@ -356,17 +356,18 @@ Pharma-flow/
 │   │   ├── checkout.ts      # Cart quote, FEFO batch picking, order planning
 │   │   ├── selectors.ts     # Inventory, Eco-Sale, KPIs, missions, backhaul
 │   │   ├── route.ts         # Rider stops, distance, ETA and position
+│   │   ├── impact.ts        # Impact timeline, activity and stock health for the admin charts
 │   │   ├── rules/           # expiry, ecoSale, donation, prescription, rxText, generic, rewards, gst, gs1
 │   │   ├── machines/        # order.ts, pickup.ts (state machines)
 │   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts)
 │   ├── store/               # Zustand store, Dexie + in-memory storage, BroadcastChannel transport
 │   ├── roles/
-│   │   ├── customer/        # Shop, Deals, Cart, Orders tabs, Rx form with OCR
-│   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, demo barcodes
+│   │   ├── customer/        # Shop, Deals, Cart, Orders (tracker, scratch cards), Civic hub, Rx form with OCR
+│   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, write-off receipts, demo barcodes
 │   │   ├── rider/           # Mission radar, lifecycle and the navigation map
-│   │   └── admin/           # KYC queue, KPIs, audit trail
-│   ├── components/          # PresenterBar, RoleGate, toast, UI primitives
-│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), image.ts, id.ts
+│   │   └── admin/           # KYC queue, KPIs, charts, blood confirmations, audit trail
+│   ├── components/          # PresenterBar, RoleGate, VerifyPage, layout hook, toast, UI primitives
+│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), certificatePdf.ts (jsPDF), confetti.ts, image.ts, id.ts
 │   ├── seed/                # Medicines, stores, NGOs, blood banks, users, preset barcodes
 │   ├── App.tsx · main.tsx · index.css
 ├── scripts/
@@ -412,7 +413,7 @@ It starts the app in the background (no extra window), waits until it is ready a
 | `pharmaflow dev` | Run the dev server in the current window (Ctrl+C to stop) |
 | `pharmaflow stop` | Stop the background app |
 | `pharmaflow status` | Say whether it is running |
-| `pharmaflow test` | Run the 166 domain and sync tests |
+| `pharmaflow test` | Run the 187 domain and sync tests |
 | `pharmaflow db` | Build and print the sample SQLite database |
 | `pharmaflow build` | Typecheck and create a production build |
 | `pharmaflow -NoBrowser` | Start without opening the browser |
@@ -447,6 +448,7 @@ Use the **1-tap demo login** buttons; no sign-up is needed.
 | **Camera barcode scanning** | Camera permission + `http://localhost` | No download. Browsers only allow the camera on `localhost` or HTTPS, so a plain `http://192.168…` address will not work. Open `/demo-barcodes` on a phone or print it, then point the chemist camera at a QR code. **If the camera cannot read a strip, type the barcode** into the "Can't scan? Type the barcode" box |
 | **Prescription OCR** (Tesseract.js) | Internet **once** | The first "Read with OCR" downloads about 10 MB of English language data, then the browser caches it. Press it once on wifi before the demo. If OCR is unavailable, the form falls back to typing the details |
 | **Rider map** (Leaflet) | Internet for street tiles | Tiles come from the free OpenStreetMap servers, so no API key. Offline, or if tiles keep failing, it switches by itself to a simple route diagram with the same stops, ETA and Call button |
+| **PDF certificates, charts, scratch cards** | Nothing | Built in the browser. A certificate's QR code opens `/verify?code=…`, which checks the code against the data in the same browser |
 | Inter font | Internet (optional) | Loaded from Google Fonts. Without internet the browser uses a system font |
 
 ### Sample database
@@ -459,17 +461,17 @@ Use the **1-tap demo login** buttons; no sign-up is needed.
 
 All of this happens **live across 4 tabs without a page refresh**. A step-by-step presenter script with timings is in [WORKFLOW.md](WORKFLOW.md#demo-script).
 
+> **How to show it.** Open a role **on its own** (the Customer, Chemist, Rider or Admin tab) for the roomy **laptop layout**: the customer gets a sidebar and a multi-column shop, and the rider gets the missions beside a large map. Use **All 4** for the whole loop at once: those panes keep the compact **phone-style** layout so four of them fit side by side.
+
 1. **Chemist** scans a batch of Dolo 650 and one of Augmentin (camera on a demo QR code, a preset, or type the barcode) → confirms batch and expiry → Dolo lands in **SAFE**.
 2. Presenter drags the **Time-Travel slider** +5 months → the batch moves to **LOCKOUT** (amber).
 3. **Chemist** clicks **Put on Eco-Sale** → the batch **instantly appears** in the Customer Deals tab at 50% off.
 4. **Customer** adds Eco-Sale Dolo + **Augmentin** → checkout is **locked: prescription required** → uploads an Rx → OCR fills in the fields.
 5. **Chemist** reviews and **approves the Rx** → **Pack & Summon Rider**.
 6. **Rider** sees a 🔵 mission → the **dark map** shows the route with distance, ETA and a **Call** button → Accept → Arrived → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
-7. **Customer** gets a **scratch card** → reveals it → reward.
-8. **Customer** donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate**.
+7. **Customer** gets a **scratch card** → scratches it with the mouse or a finger → confetti and a reward.
+8. **Customer** opens the **Civic hub** and donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate** as a PDF with a QR code that opens the verify page.
 9. **Admin** sees the KPIs update and clicks **Verify Ledger Integrity** → ✅ chain intact.
-
-> Steps 7 (canvas scratch card and confetti) and 8 (customer donate screen and PDF certificate) are still being built. See the roadmap.
 
 ---
 
@@ -477,12 +479,12 @@ All of this happens **live across 4 tabs without a page refresh**. A step-by-ste
 
 - [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
 - [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
-- [ ] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate *(built: camera, typed-barcode and GS1 scanning with a confirm step, an **Add inventory** section (scan, type the barcode, or choose the medicine), expiry ledger, Eco-Sale / Donate / Dispose, packing desk with Rx review, QA desk. Pending: write-off certificate PDF)*
-- [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(built: all except the canvas scratch card and "Sponsor batch for NGO")*
+- [x] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate *(camera, typed-barcode and GS1 scanning with a confirm step; an **Add inventory** section (scan, type the barcode, or choose the medicine); expiry ledger; Eco-Sale / Donate / Dispose; packing desk with Rx review; QA desk; write-off receipt PDFs with the GST ITC reversal)*
+- [x] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(all built, plus a live order tracker with a progress stepper, map and ETA. The "Sponsor batch for NGO (₹99)" button is not built: the README does not define how a sponsored batch is priced, paid or received, so it needs a decision first)*
 - [x] **5. Rider:** mission radar, lifecycle buttons, map, backhaul *(dark map with numbered multi-stop route, distance, ETA and Call; offline route diagram; radar; lifecycle with OTP; backhaul; earnings)*
-- [ ] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(built: all rules, events, rewards and certificates in the domain. Pending: customer screens, PDF certificates, reminder)*
-- [ ] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(built: KYC queue, KPI cards, audit trail with ledger verification. Pending: charts)*
-- [ ] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(built: PowerShell launcher, sample SQLite database)*
+- [x] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(donate and Yellow-Bag forms with live eligibility feedback; blood booking; pickup tracking; certificate PDFs with a QR code and a verify page; course-completion reminder; canvas scratch cards with confetti)*
+- [x] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(KYC queue, KPI cards, three charts, blood donation confirmations, audit trail with ledger verification)*
+- [ ] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(built: PowerShell launcher and the `pharmaflow` command, sample SQLite database. Still to do: server mode, PWA, languages, Playwright)*
 
 ---
 
@@ -578,6 +580,11 @@ then tell me how to run/check it. If a rule is unclear, ASK.
 
 **2026-11-08**
 
+- Added the **Civic hub** for customers: donate unused medicines, dispose of expired ones through a Yellow-Bag pickup, book a blood donation, track pickups, and a reminder when a medicine course has finished.
+- Added a real **canvas scratch card** with confetti, **certificate PDFs with a QR code** and a verify page, and **write-off receipt PDFs** for chemists with the GST ITC reversal.
+- Added **admin charts** (stock health, money recovered, platform activity) and blood donation confirmations.
+- Added a **live order tracker** for customers: progress stepper, map, moving rider and ETA.
+- **Layouts:** a role opened on its own now uses a roomy **laptop layout** (customer sidebar and multi-column shop, rider map beside the missions). The "All 4" view keeps the compact phone-style panes.
 - Added the rider **navigation map**: dark OpenStreetMap view with a numbered multi-stop route, distance and ETA, a Call button, an Open in Maps link and an offline route diagram. Tiles use the free OpenStreetMap servers (CARTO's dark basemap now needs an API key).
 - Added an **Add inventory** section for chemists (scan, type the barcode, or choose the medicine) with buttons in the shop header and the expiry ledger.
 - Fixed a cart re-render loop on the customer screen.
