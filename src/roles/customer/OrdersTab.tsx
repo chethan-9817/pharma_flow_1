@@ -1,4 +1,4 @@
-import { Gift, Package, Sparkles } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useState } from 'react';
 import { requiresRx } from '../../domain/rules/prescription';
 import type { Order, User } from '../../domain/types';
@@ -7,6 +7,7 @@ import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { RxForm, draftToPrescription, emptyDraft, type RxDraft } from './RxForm';
+import { ScratchCardView } from './ScratchCardView';
 
 const STATUS_LABEL: Record<string, string> = {
   PLACED: 'Order placed',
@@ -48,22 +49,10 @@ export function OrdersTab({ user }: { user: User }) {
       {cards.length > 0 && (
         <section>
           <SectionTitle>Scratch cards</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-4 @lg:grid-cols-2 @4xl:grid-cols-3">
             {cards.map((c) => (
-              <Card key={c.id} className="space-y-2 text-center">
-                {c.revealed ? (
-                  <>
-                    <Sparkles className="mx-auto size-6 text-expiry" />
-                    <p className="text-sm font-semibold text-slate-900">{c.rewardCredit > 0 ? `${inr(c.rewardCredit)} MedWallet` : `${c.rewardKarma} karma`}</p>
-                  </>
-                ) : (
-                  <>
-                    <Gift className="mx-auto size-6 text-eco" />
-                    <Button size="sm" variant="eco" block onClick={async () => report(await dispatch(user.id, { type: 'SCRATCH_CARD_REVEALED', cardId: c.id }), 'Reward added')}>
-                      Reveal
-                    </Button>
-                  </>
-                )}
+              <Card key={c.id} className="p-4">
+                <ScratchCardView card={c} userId={user.id} />
               </Card>
             ))}
           </div>
@@ -73,7 +62,7 @@ export function OrdersTab({ user }: { user: User }) {
       <section>
         <SectionTitle>My orders</SectionTitle>
         {orders.length === 0 && <p className="text-sm text-slate-500">No orders yet.</p>}
-        <div className="space-y-3">
+        <div className="grid items-start gap-3 @3xl:grid-cols-2">
           {orders.map((o) => {
             const rejected = o.status === 'PLACED' && o.rxStatus === 'REJECTED';
             const open = o.status !== 'DELIVERED' && o.status !== 'CANCELLED';
