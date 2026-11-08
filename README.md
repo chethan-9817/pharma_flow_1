@@ -599,6 +599,43 @@ All of this happens **live across 4 tabs without a page refresh**. A step-by-ste
 | Sorensen et al. (2024, Denmark) | Barcode scanning cuts expiry-check time by 59% | GS1 scan-to-ingest + expiry ledger |
 | PharmaSwap; NCSL (2025) | Near-expiry and repository programmes fail on manual paperwork | Unified digital Eco-Sale + NGO intake |
 
+### 🔬 Deep-dive: 2 reverse-logistics papers → 5 features
+
+#### Paper 1 — *A Multiobjective Mathematical Model of Reverse Logistics for Inventory Management with Environmental Impacts* (Forkan, Rizvi & Chowdhury, 2021, arXiv:2101.09541)
+
+- Returned (repaired/recovered) items have **their own demand**, separate from new stock.
+- The model minimises **holding cost**, **greenhouse-gas emissions** and **energy** together, under **storage-space limits**.
+- Because these goals conflict, it gives a set of best trade-offs (a **Pareto front**) instead of a single answer.
+- Key finding: when returns arrive faster than their demand, returned stock **piles up and holding cost rises**.
+
+#### Paper 2 — *Design of the Reverse Logistics System for Medical Waste Recycling, Part I* (Xue, Dong, Liu, Liao & Li; 1st prize, YUNFENG CUP, China)
+
+- 3 modules: **Classification & Monitoring** (weighing, RFID, GPS tracking for government, hospitals and logistics companies), **Temporary Storage & Disposal Site Selection** (linear programming + **K-means clustering**), and **Route Optimisation** (transport cost + risk cost, AHP weights, genetic algorithm).
+- Small clinics produce too little waste to collect individually, so they're grouped around larger **temporary storage sites** within a distance limit *L*.
+- Real Dalian city data: daily working time **−58.4%** (1194 → 497 min), daily cost **−20.8%**.
+
+#### Takeaways → what PharmaFlow implements, how, and why
+
+| # | Takeaway | How PharmaFlow implements it | Why |
+|---|---|---|---|
+| 1 | **Returns need their own demand stream** (Paper 1) | Near-expiry stock is modelled separately; Eco-Sale demand forecast per medicine; NGO pickups are **paced** to what partner NGOs can absorb; the QA desk shows backlog and holding cost | Stops donated/returned stock from piling up at the chemist or QA desk |
+| 2 | **Optimise cost *and* environment** (Paper 1) | Every batch action (Eco-Sale / NGO / CBWTF) shows 3 scores: **₹ recovered · kg CO₂ · km travelled**; admin **Cheapest ↔ Greenest** slider; shelf-capacity limit per store | Decisions become measurable; admin eco-KPIs are real numbers |
+| 3 | **Hub-and-spoke collection** (Paper 2) | Selected chemists become **Green Hubs**; homes and small stores are clustered to the nearest hub with **K-means** (within *L* km); riders drop Yellow Bags at the hub; the CBWTF van makes **one bulk pickup** | Fewer trips and less working time (paper: −58.4%) |
+| 4 | **End-to-end traceability** (Paper 2) | **QR tag** on every Yellow Bag; weight logged at pickup **and** at the hub; a mismatch triggers an admin alert; every step goes into the hash-chained ledger | Expired medicine can't quietly leak back into the market |
+| 5 | **Routes minimise cost *and* risk** (Paper 2) | Rider route score = distance + hazard; bio-hazard bags go to a hub fast; **backhaul** combines deliveries and pickups in one trip; time-window pickup slots | Safer riders, less fuel, faster collection |
+
+New domain rules these add (implemented in `/src/domain`):
+
+```
+greenHub.assign(home)      -> nearest hub by K-means cluster, only if distance <= L km
+pickup.paceLimit(ngo)      -> max NGO pickups/day = that NGO's declared intake capacity
+batchAction.scores(action) -> { rupeesRecovered, kgCO2, kmTravelled }
+yellowBag.verify(bag)      -> alert if |hubWeight - pickupWeight| > 5%
+route.score(path)          -> w1 * distance + w2 * hazardExposure   (weights set by AHP)
+```
+
+> 🎥 A 2-minute narrated explainer of these takeaways is in `media/PharmaFlow_Research_Takeaways.mp4`.
+
 ---
 
 ## 🤖 Working on This Repo with an AI Assistant
