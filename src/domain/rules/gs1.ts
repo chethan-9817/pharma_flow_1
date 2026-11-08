@@ -34,7 +34,8 @@ export function parseGs1Date(yymmdd: string): IsoDate | null {
  * Extracts AI 01 (GTIN), 10 (batch) and 17 (expiry, YYMMDD).
  */
 export function parseGs1(input: string): Result<Gs1Data> {
-  const text = input.trim();
+  // Scanners may prefix a symbology identifier such as ]C1 (GS1-128) or ]d2 (GS1 DataMatrix).
+  const text = input.trim().replace(/^\][A-Za-z]\d/, '');
   if (!text) return { ok: false, error: 'Empty barcode' };
 
   const fields = new Map<string, string>();
@@ -80,4 +81,15 @@ export function parseGs1(input: string): Result<Gs1Data> {
     data.expiry = expiry;
   }
   return { ok: true, value: data };
+}
+
+/**
+ * Reads whatever a camera scanner returns: a full GS1 element string, or a plain
+ * retail barcode (EAN-8/EAN-13/UPC/GTIN-14) that carries the GTIN only, so batch
+ * and expiry have to be typed in.
+ */
+export function parseScan(input: string): Result<Gs1Data> {
+  const text = input.trim().replace(/^\][A-Za-z]\d/, '');
+  if (/^\d{8}$|^\d{12,14}$/.test(text)) return { ok: true, value: { gtin: text.padStart(14, '0') } };
+  return parseGs1(text);
 }
