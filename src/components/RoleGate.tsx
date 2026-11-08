@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { Role, User } from '../domain/types';
 import { pharma, usePharma } from '../store';
+import { useEmbedded } from './layout';
 import { Button, Card } from './ui';
 
 const ROLE_COPY: Record<Role, string> = {
@@ -16,6 +17,7 @@ const ROLE_COPY: Record<Role, string> = {
  * then renders the role's screen with the signed-in user.
  */
 export function RoleGate({ role, children, dark }: { role: Role; children: (user: User) => ReactNode; dark?: boolean }) {
+  const embedded = useEmbedded();
   const ready = usePharma((s) => s.ready);
   const users = usePharma((s) => s.app.users);
   const userId = usePharma((s) => s.sessions[role]);
@@ -58,7 +60,8 @@ export function RoleGate({ role, children, dark }: { role: Role; children: (user
       {children(user)}
       <button
         onClick={() => pharma.getState().logout(role)}
-        className={`fixed bottom-4 right-4 z-30 flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium shadow-md ring-1 ${
+        // In the compact panes the pill sits above the phone-style tab bar so it never covers a tab.
+        className={`fixed ${embedded ? 'bottom-20 right-3' : 'bottom-4 right-4'} z-30 flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium shadow-md ring-1 ${
           dark ? 'bg-slate-800 text-slate-300 ring-slate-700 hover:bg-slate-700' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
         }`}
       >
