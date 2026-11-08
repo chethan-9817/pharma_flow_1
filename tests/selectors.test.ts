@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { backhaulSuggestions, bucketCounts, courseReminders, distanceKm, ecoListings, kpis, openMissions, storeInventory } from '../src/domain/selectors';
+import { backhaulSuggestions, bucketCounts, courseReminders, distanceKm, ecoListings, kpis, openMissions, storeInventory, storeWriteOffs } from '../src/domain/selectors';
 import { ADMIN, CHEMIST, CUSTOMER, RIDER, STORE, Sim } from './helpers';
 
 describe('selectors', () => {
@@ -113,5 +113,50 @@ describe('course reminders', () => {
     sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-20' });
     expect(courseReminders(sim.state, 'u-ravi')).toEqual([]);
     expect(courseReminders(new Sim().state, CUSTOMER)).toEqual([]);
+  });
+});
+
+describe('store write-offs', () => {
+  const storePickup = (id: string, batchId: string, med: string, batchNo: string, expiry: string, qty: number, kind: 'DONATION' | 'DISPOSAL') => ({
+    id,
+    kind,
+    sourceStoreId: STORE,
+    ...(kind === 'DONATION' ? { qaStoreId: STORE, ngoId: 'ngo-seva' } : {}),
+    batchId,
+    items: [{ medicineId: med, batchNo, expiry, qty, sealed: true, openedLiquid: false }],
+    status: 'SCHEDULED' as const,
+    address: 'Sri Ganesh Medicals',
+    lat: 12.8698,
+    lng: 74.843,
+    scheduledAt: '2026-11-08',
+  });
+
+  it('lists finished donations with the GST ITC reversal and ignores unfinished ones', () => {
+    const sim = new Sim();
+    sim.must(CHEMIST, { type: 'PICKUP_SCHEDULED', pickup: storePickup('p1', 'b-shelcal-1', 'med-shelcal500', 'SH26J11', '2027-08-30', 50, 'DONATION') });
+    expect(storeWriteOffs(sim.state, STORE)).toEqual([]);
+    sim.must(RIDER, { type: 'RIDER_SHIFT_CHANGED', riderId: RIDER, online: true });
+    sim.must(RIDER, { type: 'PICKUP_ACCEPTED', pickupId: 'p1', riderId: RIDER });
+    sim.must(RIDER, { type: 'PICKUP_ARRIVED', pickupId: 'p1' });
+    sim.must(RIDER, { type: 'PICKUP_COLLECTED', pickupId: 'p1' });
+    sim.must(CHEMIST, { type: 'PICKUP_QA_VERIFIED', pickupId: 'p1' });
+    sim.must(RIDER, { type: 'PICKUP_DELIVERED_TO_NGO', pickupId: 'p1' });
+    const [w] = storeWriteOffs(sim.state, STORE);
+    expect(w!.certificate).toMatchObject({ reason: 'NGO_DONATION', recipient: 'Seva NGO Clinic', totalCostValue: 4690, totalItcReversal: 562.8 });
+    expect(w!.certificate.title).toBe('Inventory Write-Off & NGO Donation Receipt');
+    expect(storeWriteOffs(sim.state, 'store-carstreet')).toEqual([]);
+  });
+
+  it('writes a disposed batch off to the CBWTF', () => {
+    const sim = new Sim();
+    sim.must(CHEMIST, { type: 'PICKUP_SCHEDULED', pickup: storePickup('p2', 'b-becosules-1', 'med-becosules', 'BC25K12', '2026-11-01', 18, 'DISPOSAL') });
+    sim.must(RIDER, { type: 'RIDER_SHIFT_CHANGED', riderId: RIDER, online: true });
+    sim.must(RIDER, { type: 'PICKUP_ACCEPTED', pickupId: 'p2', riderId: RIDER });
+    sim.must(RIDER, { type: 'PICKUP_ARRIVED', pickupId: 'p2' });
+    sim.must(RIDER, { type: 'PICKUP_COLLECTED', pickupId: 'p2' });
+    sim.must(RIDER, { type: 'PICKUP_INCINERATED', pickupId: 'p2' });
+    const [w] = storeWriteOffs(sim.state, STORE);
+    expect(w!.certificate.reason).toBe('BIO_DISPOSAL');
+    expect(w!.certificate.recipient).toBe(sim.state.cbwtf.name);
   });
 });
