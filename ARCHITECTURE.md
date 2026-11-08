@@ -186,6 +186,7 @@ Two modules sit on top of the rules:
 
 - `checkout.ts` quotes a cart (first-expiry-first-out batch picking, Eco-Sale pricing, stock checks) and plans an order.
 - `selectors.ts` derives everything the screens show: store inventory with buckets, Eco-Sale listings, impact KPIs, open rider missions and backhaul suggestions.
+- `route.ts` turns a rider's active orders and pickups into an ordered list of stops (store or pickup point, customer, chemist QA, NGO, CBWTF), the rider's current position, and distance and ETA at 25 km/h. It is pure and tested; the map only draws what it returns.
 
 The reducer **re-checks every rule** even when the UI already checked. For example, `ORDER_PLACED` recomputes prices from the batches, re-validates the prescription and re-checks stock, so a stale or tampered client cannot slip an invalid order into the log.
 
@@ -196,7 +197,7 @@ The reducer **re-checks every rule** even when the UI already checked. For examp
 | Group | Fields |
 |---|---|
 | Clock | `today` |
-| Reference data (seed) | `medicines`, `stores`, `ngos`, `bloodBanks`, `users` |
+| Reference data (seed) | `medicines`, `stores`, `ngos`, `bloodBanks`, `users`, `cbwtf` (the incineration plant) |
 | Transactions | `batches`, `orders`, `pickups`, `prescriptions`, `h1Register`, `scratchCards`, `bloodBookings` |
 | Balances | `karma`, `wallet` (per user) |
 | Outputs | `certificates`, `riders` (online flag, earnings, incentives, trips) |
@@ -224,8 +225,8 @@ Going back means **Reset demo data**, which clears the log.
 | `toast` | Shows rule errors and confirmations |
 | `ui.tsx` | Button, Card, Badge, Stat primitives with the design tokens |
 | `roles/customer` | Phone-style app with Shop, Deals, Cart and Orders tabs. Cart state is local to the tab (not part of the event log) |
-| `roles/chemist` | Dashboard: expiry ledger, scanner, packing desk, QA desk |
-| `roles/rider` | Dark mission radar with large lifecycle buttons |
+| `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk |
+| `roles/rider` | Dark mission radar with large lifecycle buttons, plus the navigation panel and map |
 | `roles/admin` | KYC queue, KPI cards, audit trail |
 
 Styling is Tailwind CSS v4 with design tokens in `src/index.css` (medical blue, emerald, amber, crimson). Framer Motion is used for short, subtle transitions only.
@@ -255,14 +256,17 @@ Details that were learned the hard way and are worth keeping:
 
 ## Libraries that load on demand
 
-Two heavy libraries are imported dynamically, so they cost nothing until used:
+Three heavy libraries are imported dynamically, so they cost nothing until used:
 
 | Library | File | Loaded when | Network |
 |---|---|---|---|
 | **ZXing** (`@zxing/browser`) | `src/lib/scanner.ts` | The chemist opens the camera scanner | None. Needs the camera and a secure context (`localhost` or HTTPS) |
+| **Leaflet** (`leaflet`, `react-leaflet` v4) | `src/roles/rider/RouteMap.tsx` | A rider has a route to show (its own lazy chunk of about 150 kB) | Street tiles come from the free OpenStreetMap servers. Offline, or after repeated tile errors, `RouteMapSvg` takes over |
 | **Tesseract.js** | `src/lib/ocr.ts` | The customer presses "Read with OCR" | Downloads about 10 MB of English language data on first use, then the browser caches it |
 
-Both fail gracefully: the scanner dialog explains camera problems and points to preset barcodes, and the Rx form falls back to typing. Prescription photos are shrunk (`src/lib/image.ts`) before they enter the event log.
+The map darkens OpenStreetMap tiles with a CSS filter (`.pf-dark-tiles`) because CARTO's dark basemap now answers with an "API KEY REQUIRED" watermark, and the project must work with no keys. The rider's moving dot is a local animation (`useRiderPosition`) and is never written to the event log.
+
+All three fail gracefully: the scanner dialog explains camera problems and offers typing the barcode (or a preset), the map falls back to a route diagram, and the Rx form falls back to typing. Prescription photos are shrunk (`src/lib/image.ts`) before they enter the event log.
 
 ## Sample database and server mode
 
@@ -280,7 +284,7 @@ The `events` table is the source of truth; every other table is a projection of 
 
 ## Testing
 
-Vitest runs 153 tests in 16 files, in about a second.
+Vitest runs 166 tests in 17 files, in about a second.
 
 | Area | What is covered |
 |---|---|
@@ -311,5 +315,7 @@ The browser flows (camera scan, OCR, prescription checkout, cross-tab delivery) 
 - **One browser profile.** Tabs sync only within the same browser profile and origin.
 - **Drug schedules are demo data.** Check them against the latest CDSCO and Drugs & Cosmetics Rules before any real use.
 - **GST and costs are assumptions.** The write-off certificate uses a 12% default rate and a cost of 70% of MRP, both configurable.
+- **Map tiles use the public OpenStreetMap servers.** That is fine for a demo and light use. A production app should use its own tile provider or host tiles itself, following the OSM tile usage policy.
+- **The rider position is simulated.** There is no GPS: the dot glides between stops for display only.
 - **Camera needs a secure context.** Use `http://localhost`, not a LAN IP over plain HTTP.
 - **Prescription OCR is a suggestion engine.** A pharmacist always makes the final decision.
