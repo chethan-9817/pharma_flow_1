@@ -84,12 +84,18 @@ export function parseGs1(input: string): Result<Gs1Data> {
 }
 
 /**
- * Reads whatever a camera scanner returns: a full GS1 element string, or a plain
- * retail barcode (EAN-8/EAN-13/UPC/GTIN-14) that carries the GTIN only, so batch
- * and expiry have to be typed in.
+ * Reads whatever a camera scanner returns or a person types: a full GS1 element string,
+ * or a plain retail barcode (EAN-8/EAN-13/UPC/GTIN-14) that carries the GTIN only, so
+ * batch and expiry have to be typed in. Spaces and hyphens in a typed number are ignored.
  */
 export function parseScan(input: string): Result<Gs1Data> {
   const text = input.trim().replace(/^\][A-Za-z]\d/, '');
-  if (/^\d{8}$|^\d{12,14}$/.test(text)) return { ok: true, value: { gtin: text.padStart(14, '0') } };
-  return parseGs1(text);
+  // Digits copied from under a barcode often have spaces or hyphens: "8901 2345 00011".
+  const digits = text.replace(/[\s-]/g, '');
+  if (/^\d{8}$|^\d{12,14}$/.test(digits)) return { ok: true, value: { gtin: digits.padStart(14, '0') } };
+  const gs1 = parseGs1(text);
+  if (!gs1.ok && /^\d+$/.test(digits)) {
+    return { ok: false, error: `A barcode number has 8, 12, 13 or 14 digits, but this has ${digits.length}` };
+  }
+  return gs1;
 }
