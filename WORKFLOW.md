@@ -15,7 +15,7 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 9. [Disposing of expired medicines](#7-disposing-of-expired-medicines)
 10. [Pharmacy KYC](#8-pharmacy-kyc)
 11. [Blood donation](#9-blood-donation)
-12. [Rewards](#10-rewards)
+12. [Rewards and certificates](#10-rewards-and-certificates)
 13. [Time travel](#11-time-travel)
 14. [Demo script](#demo-script)
 15. [Developer workflow](#developer-workflow)
@@ -45,12 +45,16 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 | Rider delivery with OTP | ✅ | ✅ |
 | Rider navigation map, ETA and Call | ✅ | ✅ dark street map, offline route diagram |
 | Chemist donates or disposes a batch | ✅ | ✅ |
-| Customer donates or disposes | ✅ | ⏳ Civic Hub screens still to build |
-| Backhaul pickup suggestion | ✅ | ✅ appears when a customer-scheduled pickup is nearby, so it needs the Civic Hub screens to be seen |
+| Customer donates or disposes (Civic hub) | ✅ | ✅ |
+| Backhaul pickup suggestion | ✅ | ✅ appears when a customer-scheduled pickup is within about 600 m of a delivery |
 | Pharmacy KYC | ✅ | ✅ |
-| Blood booking and confirmation | ✅ | ⏳ customer booking screen; admin confirmation screen |
-| Scratch cards | ✅ | ✅ Reveal button; ⏳ canvas scratch and confetti |
-| Certificates | ✅ records and codes | ⏳ PDF with QR |
+| Blood booking and confirmation | ✅ | ✅ customer booking in the Civic hub; admin confirmation |
+| Scratch cards | ✅ | ✅ canvas scratch with confetti, and a Reveal button |
+| Certificates | ✅ | ✅ PDF with a QR code, plus a verify page |
+| Write-off receipts for chemists | ✅ | ✅ PDF with the GST ITC reversal |
+| Live order tracker for customers | ✅ | ✅ stepper, map, moving rider and ETA |
+| Admin charts | ✅ | ✅ stock health, money recovered, platform activity |
+| "Sponsor batch for NGO (₹99)" | ⏳ rules not defined | ⏳ needs a decision first |
 
 ---
 
@@ -140,6 +144,7 @@ stateDiagram-v2
 - Stock is **reserved** when the order is placed and put back if the order is cancelled.
 - Cancelling also refunds any MedWallet credit used.
 - Payment is on delivery. MedWallet credit is applied at checkout.
+- **Live tracking:** under *Orders*, an open order shows a 4-step progress bar (Placed, Packed, On the way, Delivered). Once a rider accepts it, a map shows the pharmacy, your home and the rider, with an ETA. The rider's movement is a simulation, not GPS.
 
 ## 4. Buying with a prescription
 
@@ -230,7 +235,7 @@ stateDiagram-v2
 **Who starts it:**
 
 - A **chemist** donates a whole batch (the *Donate* button). The chemist's own store runs QA.
-- A **customer** donates leftover strips (domain ready; Civic Hub screen to come). A chosen chemist runs QA.
+- A **customer** donates leftover strips from **Civic hub → Donate unused medicines**: choose the medicine, type the batch and expiry, tick sealed, pick the NGO and the pharmacy that checks the strips. The form warns live ("no registered doctor or pharmacist", "needs more than 30 days") and only enables the button when the rules pass. A **course-completion reminder** ("Finished your 5-day course of Dolo 650? Donate the unopened tablets left…") appears on the Civic hub once the course length has passed on the simulated clock, with a button that pre-fills the form.
 
 **Outcomes:**
 
@@ -276,14 +281,14 @@ sequenceDiagram
     participant U as Customer
     participant A as PharmaFlow
     participant Ad as Admin
-    U->>A: Book an appointment (today or later)
-    Ad->>A: Confirm the donation happened
+    U->>A: Civic hub: choose blood bank, group and date (today or later)
+    Ad->>A: Blood donation bookings: Confirm donation
     A-->>U: +500 karma, Blood Donor certificate, badge
 ```
 
-India's policy is voluntary, unpaid blood donation, so the reward has **no money value**: no cashback, no scratch card, no wallet credit.
+India's policy is voluntary, unpaid blood donation, so the reward has **no money value**: no cashback, no scratch card, no wallet credit. The blood bank cards show each bank's **urgent blood groups**.
 
-## 10. Rewards
+## 10. Rewards and certificates
 
 | Action | Reward |
 |---|---|
@@ -292,7 +297,11 @@ India's policy is voluntary, unpaid blood donation, so the reward has **no money
 | Safe disposal (customer) | +150 karma, Green Citizen certificate |
 | Blood donation | +500 karma, Blood Donor certificate, badge |
 
-Scratch cards give either karma or **MedWallet** credit. The reward is fixed by the card id, so replaying the log always gives the same result. MedWallet is closed-loop store credit: it can be spent at checkout and can never be cashed out.
+**Scratch cards** are real: drag a mouse or finger across the silver coating. Once more than 40% is clear, the reward is revealed and confetti plays. A *Can't scratch? Reveal* button covers keyboard users. Cards give either karma or **MedWallet** credit, and the reward is fixed by the card id, so replaying the log always gives the same result. MedWallet is closed-loop store credit: it can be spent at checkout and can never be cashed out.
+
+**Certificates** are listed under *Civic hub → My certificates* with a **PDF** button. Each PDF has the holder's name, the date, a verification code and a **QR code** that opens `/verify?code=…`. That page shows whether the code is valid and who it was awarded to. In demo mode it checks the data stored in the same browser.
+
+**Chemist write-off receipts.** When a donation reaches an NGO, or expired stock is incinerated, the chemist's dashboard lists an *Inventory Write-Off & NGO Donation Receipt* with a **PDF** button. It shows each batch, its estimated cost value and the **GST ITC reversal** (CGST Sec 17(5)(h), 12% by default). It is never called an 80G receipt.
 
 ## 11. Time travel
 
@@ -328,6 +337,11 @@ About 8 to 10 minutes. Everything happens live across tabs with no refresh.
 
 Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider), Admin.
 
+### Laptop view or All 4
+
+- **One role on its own** (the role tabs in the top bar) gives the roomy **laptop layout**: the customer has a sidebar and a multi-column shop and cart, the rider has the missions on the left and a large map on the right.
+- **All 4** shows the compact **phone-style panes** side by side, so the whole loop is visible at once. Use it for step-by-step storytelling; switch to a single role to show one screen at full size.
+
 ### The walkthrough
 
 | # | Where | Do | Say / expected result |
@@ -339,11 +353,13 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | 5 | Customer | Upload the prescription photo → **Read with OCR** → check fields → **Place order** | OCR fills doctor, reg. no., date, patient. "OCR only suggests; the pharmacist decides." Try placing it empty first to show the block |
 | 6 | Chemist | Order packing desk → **Approve Rx** → **Pack & summon rider** | Order moves to *Packed* |
 | 7 | Rider | **Offline → Online** → **Accept mission** (the map appears: point out the route, ETA and Call button) → **Arrived** → **Collected** → type the OTP shown in the customer's Orders tab → **Confirm handover** | ₹40 earnings, 1 trip |
-| 8 | Customer | **Orders** tab → **Reveal** the scratch card | Karma or MedWallet credit appears |
-| 9 | Chemist | **Donate** on a batch with a safe expiry → Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The *Returned-medicine QA desk* shows the pickup; this covers the reverse flow end to end |
-| 10 | Admin | Check the KPIs → **Verify ledger integrity** | "✅ Chain intact: N events verified" |
+| 8 | Customer | **Orders** tab → scratch the card with the mouse until about half is clear | Confetti, and karma or MedWallet credit appears |
+| 9 | Customer | **Civic hub** → fill **Donate unused medicines** (for example Dolo 650, a batch number, an expiry more than 30 days away) → **Schedule free pickup**. Then Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The pickup tracker follows each step. The customer gets +200 karma and an NGO Donor certificate: press **PDF** and show the QR code |
+| 10 | Browser | Scan the certificate's QR code, or open `/verify?code=…` | "Certificate is valid", with the holder's name |
+| 11 | Customer, Admin | **Civic hub** → **Book appointment** for blood; then Admin → **Confirm donation** | +500 karma, a Blood Donor certificate and a badge, and no wallet credit |
+| 12 | Admin | Show the **charts** and KPIs, then **Verify ledger integrity** | The money line has stepped up; "✅ Chain intact: N events verified" |
 
-> The customer-side donate screen, the canvas scratch card and the PDF certificate are still being built, so step 9 uses the chemist's donation. See [Flow status at a glance](#flow-status-at-a-glance).
+> Optional: after delivering an order, press **+1 week** in the top bar. The customer's Civic hub shows the course-completion reminder.
 
 ### Good questions to expect
 
@@ -361,7 +377,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 166 tests, about one second
+pharmaflow test      # 187 tests, about one second
 npm run typecheck    # strict TypeScript
 npm run build        # typecheck + production build
 npm run db:sample    # rebuild the sample database
