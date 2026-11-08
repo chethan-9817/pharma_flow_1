@@ -1,4 +1,5 @@
 import { FileText } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import { storeWriteOffs } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { Badge, Button, Card, SectionTitle, inr } from '../../components/ui';
@@ -11,6 +12,7 @@ import { useApp } from '../../store';
  * It records the GST input-tax-credit reversal (CGST Sec 17(5)(h)). It is not an 80G receipt.
  */
 export function WriteOffSection({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const store = app.stores[user.storeId!]!;
   const items = storeWriteOffs(app, store.id);
@@ -26,19 +28,15 @@ export function WriteOffSection({ user }: { user: User }) {
         reference: `WO-${item.pickup.id}`,
       });
     } catch {
-      toast('Could not create the PDF. Please try again.', 'error');
+      toast(t('customer.activity.pdfFailed'), 'error');
     }
   };
 
   return (
     <section>
-      <SectionTitle>Write-off receipts</SectionTitle>
+      <SectionTitle>{t('chemist.writeOff.title')}</SectionTitle>
       <div className="grid gap-3 @container md:grid-cols-2">
-        {items.length === 0 && (
-          <Card className="text-sm text-slate-500 md:col-span-2">
-            When a donation reaches an NGO or expired stock is incinerated, its receipt with the GST ITC reversal appears here as a PDF.
-          </Card>
-        )}
+        {items.length === 0 && <Card className="text-sm text-slate-500 md:col-span-2">{t('chemist.writeOff.empty')}</Card>}
         {items.map(({ pickup, certificate }, i) => (
           <Card key={pickup.id} className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-50 text-medical">
@@ -48,16 +46,20 @@ export function WriteOffSection({ user }: { user: User }) {
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate font-semibold text-slate-900">{certificate.lines.map((l) => `${l.brand} ×${l.qty}`).join(', ')}</p>
                 <Badge tone={certificate.reason === 'NGO_DONATION' ? 'green' : 'orange'}>
-                  {certificate.reason === 'NGO_DONATION' ? 'NGO donation' : 'Bio-disposal'}
+                  {certificate.reason === 'NGO_DONATION' ? t('chemist.writeOff.ngoDonation') : t('chemist.writeOff.bioDisposal')}
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500">To {certificate.recipient}</p>
+              <p className="text-xs text-slate-500">{t('chemist.writeOff.to', { recipient: certificate.recipient })}</p>
               <p className="text-xs text-slate-600">
-                Cost value {inr(certificate.totalCostValue)} · <b>ITC reversal {inr(certificate.totalItcReversal)}</b> at {certificate.gstRatePct}%
+                <Trans
+                  i18nKey="chemist.writeOff.cost"
+                  values={{ cost: inr(certificate.totalCostValue), itc: inr(certificate.totalItcReversal), rate: certificate.gstRatePct }}
+                  components={{ b: <b /> }}
+                />
               </p>
             </div>
             <Button size="sm" variant="ghost" onClick={() => void download(i)}>
-              PDF
+              {t('customer.activity.pdf')}
             </Button>
           </Card>
         ))}

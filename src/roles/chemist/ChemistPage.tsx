@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { FileCheck, Gift, PackageCheck, PackagePlus, ShieldCheck, Tag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
 import type { User } from '../../domain/types';
@@ -15,6 +16,7 @@ import { WriteOffSection } from './WriteOffSection';
 const NGO_ID = 'ngo-seva';
 
 export function ChemistPage({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const storeId = user.storeId!;
   const store = app.stores[storeId]!;
@@ -33,19 +35,19 @@ export function ChemistPage({ user }: { user: User }) {
   const qaQueue = Object.values(app.pickups).filter((p) => p.qaStoreId === storeId && p.status === 'COLLECTED');
 
   const rejectRx = async (orderId: string) => {
-    const reason = window.prompt('Reason for rejecting the prescription', 'Unreadable prescription');
-    if (reason) report(await dispatch(user.id, { type: 'RX_REJECTED', orderId, reason }), 'Prescription rejected. The customer can re-upload');
+    const reason = window.prompt(t('chemist.rxRejectPrompt'), t('chemist.rxRejectDefault'));
+    if (reason) report(await dispatch(user.id, { type: 'RX_REJECTED', orderId, reason }), t('chemist.rxRejectedToast'));
   };
 
   const rejectQa = async (pickupId: string) => {
-    const note = window.prompt('Why are these medicines rejected?', 'Seal broken');
-    if (note) report(await dispatch(user.id, { type: 'PICKUP_QA_REJECTED', pickupId, note }), 'Rejected. A rider will take it to the CBWTF');
+    const note = window.prompt(t('chemist.qaRejectPrompt'), t('chemist.qaRejectDefault'));
+    if (note) report(await dispatch(user.id, { type: 'PICKUP_QA_REJECTED', pickupId, note }), t('chemist.qaRejectedToast'));
   };
 
   const ecoSale = async (v: BatchView) =>
     report(
       await dispatch(user.id, { type: 'ECO_SALE_LISTED', batchId: v.batch.id, discountPct: suggestedDiscount(v.daysLeft) }),
-      `${v.medicine.brand} is live in the Eco-Sale store`,
+      t('chemist.ecoLive', { brand: v.medicine.brand }),
     );
 
   const schedulePickup = async (v: BatchView, kind: 'DONATION' | 'DISPOSAL') => {
@@ -69,7 +71,7 @@ export function ChemistPage({ user }: { user: User }) {
         scheduledAt: app.today,
       },
     });
-    report(result, kind === 'DONATION' ? `Rider summoned to donate to ${ngo.name}` : 'Yellow-Bag pickup scheduled for the CBWTF');
+    report(result, kind === 'DONATION' ? t('chemist.riderSummoned', { ngo: ngo.name }) : t('chemist.yellowBagScheduled'));
   };
 
   return (
@@ -78,35 +80,35 @@ export function ChemistPage({ user }: { user: User }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold">{store.name}</h1>
-            <p className="text-sm text-sky-100">{store.area} · Licence {store.drugLicence}</p>
+            <p className="text-sm text-sky-100">{store.area} · {t('chemist.licence')} {store.drugLicence}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? 'KYC approved' : 'Awaiting KYC'}</Badge>
+            <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? t('chemist.kycApproved') : t('chemist.awaitingKyc')}</Badge>
             <button
               onClick={() => openAddInventory()}
               className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3.5 text-sm font-semibold text-medical-dark shadow-sm hover:bg-sky-50"
             >
-              <PackagePlus className="size-4" /> Add inventory
+              <PackagePlus className="size-4" /> {t('chemist.addInventory')}
             </button>
           </div>
         </div>
-        <p className="mt-3 text-sm font-medium">₹0 licence · ₹0 add-ons · ₹0 AMC — saved ₹35,000/yr vs legacy ERPs</p>
+        <p className="mt-3 text-sm font-medium">{t('chemist.tagline')}</p>
       </motion.section>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Safe" value={counts.SAFE} hint="> 180 days" tone="green" />
-        <Stat label="Lockout" value={counts.LOCKOUT} hint="30–180 days" tone="amber" />
-        <Stat label="Critical" value={counts.CRITICAL} hint="1–29 days" tone="orange" />
-        <Stat label="Expired" value={counts.EXPIRED} hint="Bio-hazard" tone="red" />
+        <Stat label={t('chemist.safe')} value={counts.SAFE} hint={t('chemist.days180')} tone="green" />
+        <Stat label={t('chemist.lockout')} value={counts.LOCKOUT} hint={t('chemist.days30to180')} tone="amber" />
+        <Stat label={t('chemist.critical')} value={counts.CRITICAL} hint={t('chemist.days1to29')} tone="orange" />
+        <Stat label={t('chemist.expired')} value={counts.EXPIRED} hint={t('chemist.bioHazard')} tone="red" />
       </div>
 
       <AddInventory user={user} mode={addMode} onModeChange={setAddMode} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <SectionTitle>Order packing desk</SectionTitle>
+          <SectionTitle>{t('chemist.packingDesk')}</SectionTitle>
           <div className="space-y-3">
-            {orders.length === 0 && <Card className="text-sm text-slate-500">No orders waiting. New customer orders appear here live.</Card>}
+            {orders.length === 0 && <Card className="text-sm text-slate-500">{t('chemist.noOrders')}</Card>}
             {orders.map((o) => {
               const rx = o.prescriptionId ? app.prescriptions[o.prescriptionId] : undefined;
               const canPack = o.status === 'RX_APPROVED' || (o.status === 'PLACED' && o.rxStatus === 'NOT_REQUIRED');
@@ -117,31 +119,31 @@ export function ChemistPage({ user }: { user: User }) {
                       <p className="font-semibold text-slate-900">{o.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
                       <p className="text-xs text-slate-500">{app.users[o.customerId]?.name} · {inr(o.total)}</p>
                     </div>
-                    {o.rxStatus === 'NOT_REQUIRED' && <Badge tone="green">OTC</Badge>}
-                    {o.rxStatus === 'PENDING' && <Badge tone="amber">Rx to review</Badge>}
-                    {o.rxStatus === 'APPROVED' && <Badge tone="green">Rx approved</Badge>}
-                    {o.rxStatus === 'REJECTED' && <Badge tone="red">Rx rejected</Badge>}
+                    {o.rxStatus === 'NOT_REQUIRED' && <Badge tone="green">{t('chemist.otc')}</Badge>}
+                    {o.rxStatus === 'PENDING' && <Badge tone="amber">{t('chemist.rxToReview')}</Badge>}
+                    {o.rxStatus === 'APPROVED' && <Badge tone="green">{t('chemist.rxApproved')}</Badge>}
+                    {o.rxStatus === 'REJECTED' && <Badge tone="red">{t('chemist.rxRejectedBadge')}</Badge>}
                   </div>
                   {rx && (
                     <dl className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs">
-                      <div><dt className="text-slate-500">Doctor</dt><dd className="font-semibold">{rx.doctorName}</dd></div>
-                      <div><dt className="text-slate-500">Reg. no</dt><dd className="font-mono font-semibold">{rx.registrationNo}</dd></div>
-                      <div><dt className="text-slate-500">Patient</dt><dd className="font-semibold">{rx.patientName}</dd></div>
-                      <div><dt className="text-slate-500">Date</dt><dd className="font-semibold">{rx.date}</dd></div>
+                      <div><dt className="text-slate-500">{t('chemist.doctor')}</dt><dd className="font-semibold">{rx.doctorName}</dd></div>
+                      <div><dt className="text-slate-500">{t('chemist.regNo')}</dt><dd className="font-mono font-semibold">{rx.registrationNo}</dd></div>
+                      <div><dt className="text-slate-500">{t('chemist.patient')}</dt><dd className="font-semibold">{rx.patientName}</dd></div>
+                      <div><dt className="text-slate-500">{t('chemist.date')}</dt><dd className="font-semibold">{rx.date}</dd></div>
                     </dl>
                   )}
                   <div className="flex flex-wrap gap-2">
                     {o.rxStatus === 'PENDING' && (
                       <>
-                        <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'RX_APPROVED', orderId: o.id }), 'Prescription approved')}>
-                          <FileCheck className="size-4" /> Approve Rx
+                        <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'RX_APPROVED', orderId: o.id }), t('chemist.rxApprovedToast'))}>
+                          <FileCheck className="size-4" /> {t('chemist.approveRx')}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => void rejectRx(o.id)}>Reject Rx</Button>
+                        <Button size="sm" variant="ghost" onClick={() => void rejectRx(o.id)}>{t('chemist.rejectRx')}</Button>
                       </>
                     )}
                     {canPack && (
-                      <Button size="sm" onClick={async () => report(await dispatch(user.id, { type: 'ORDER_PACKED', orderId: o.id }), 'Packed. Riders can see the mission')}>
-                        <PackageCheck className="size-4" /> Pack &amp; summon rider
+                      <Button size="sm" onClick={async () => report(await dispatch(user.id, { type: 'ORDER_PACKED', orderId: o.id }), t('chemist.packed'))}>
+                        <PackageCheck className="size-4" /> {t('chemist.pack')}
                       </Button>
                     )}
                   </div>
@@ -152,32 +154,29 @@ export function ChemistPage({ user }: { user: User }) {
         </section>
 
         <section>
-          <SectionTitle>Returned-medicine QA desk</SectionTitle>
+          <SectionTitle>{t('chemist.qaDesk')}</SectionTitle>
           <div className="space-y-3">
-            {qaQueue.length === 0 && <Card className="text-sm text-slate-500">Nothing to inspect. Donated strips arrive here after a rider collects them.</Card>}
+            {qaQueue.length === 0 && <Card className="text-sm text-slate-500">{t('chemist.noQa')}</Card>}
             {qaQueue.map((p) => (
               <Card key={p.id} className="space-y-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-900">{p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
-                    {p.sponsorshipId && <Badge tone="green">Sponsored</Badge>}
+                    {p.sponsorshipId && <Badge tone="green">{t('chemist.sponsoredBadge')}</Badge>}
                   </div>
                   <p className="text-xs text-slate-500">
-                    Batch {p.items[0]?.batchNo} · expires {p.items[0]?.expiry} · for {p.ngoId ? app.ngos[p.ngoId]?.name : 'NGO'}
+                    {t('chemist.batchLine', { batch: p.items[0]?.batchNo, expiry: p.items[0]?.expiry, ngo: p.ngoId ? app.ngos[p.ngoId]?.name : 'NGO' })}
                   </p>
                   {p.sponsorshipId && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      A customer paid for these packs. You are paid {inr(app.sponsorships[p.sponsorshipId]?.storePayout ?? 0)} once the NGO has them; if
-                      you reject them the customer is refunded and you are not paid.
-                    </p>
+                    <p className="mt-1 text-xs text-slate-500">{t('chemist.sponsoredNote', { amount: inr(app.sponsorships[p.sponsorshipId]?.storePayout ?? 0) })}</p>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">Check the seal, batch and expiry before releasing.</p>
+                <p className="text-xs text-slate-500">{t('chemist.checkSeal')}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'PICKUP_QA_VERIFIED', pickupId: p.id }), 'QA verified. Released to NGO')}>
-                    <ShieldCheck className="size-4" /> QA verified, release to NGO
+                  <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'PICKUP_QA_VERIFIED', pickupId: p.id }), t('chemist.qaVerifiedToast'))}>
+                    <ShieldCheck className="size-4" /> {t('chemist.qaVerified')}
                   </Button>
-                  <Button size="sm" variant="danger" onClick={() => void rejectQa(p.id)}>Reject, send to bio-disposal</Button>
+                  <Button size="sm" variant="danger" onClick={() => void rejectQa(p.id)}>{t('chemist.qaReject')}</Button>
                 </div>
               </Card>
             ))}
@@ -189,22 +188,22 @@ export function ChemistPage({ user }: { user: User }) {
         <SectionTitle
           action={
             <Button size="sm" variant="eco" onClick={() => openAddInventory('pick')}>
-              <PackagePlus className="size-4" /> Add inventory
+              <PackagePlus className="size-4" /> {t('chemist.addInventory')}
             </Button>
           }
         >
-          Expiry ledger
+          {t('chemist.ledger')}
         </SectionTitle>
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3">Medicine</th>
-                <th className="px-4 py-3">Batch</th>
-                <th className="px-4 py-3 text-right">Qty</th>
-                <th className="px-4 py-3">Expiry</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-3">{t('chemist.col.medicine')}</th>
+                <th className="px-4 py-3">{t('chemist.col.batch')}</th>
+                <th className="px-4 py-3 text-right">{t('chemist.col.qty')}</th>
+                <th className="px-4 py-3">{t('chemist.col.expiry')}</th>
+                <th className="px-4 py-3">{t('chemist.col.status')}</th>
+                <th className="px-4 py-3 text-right">{t('chemist.col.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -212,20 +211,20 @@ export function ChemistPage({ user }: { user: User }) {
                 <tr key={v.batch.id} className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-3">
                     <div className="font-semibold text-slate-900">{v.medicine.brand}</div>
-                    <div className="text-xs text-slate-500">{v.medicine.schedule === 'OTC' ? 'OTC' : `Schedule ${v.medicine.schedule}`}</div>
+                    <div className="text-xs text-slate-500">{v.medicine.schedule === 'OTC' ? t('chemist.otcLabel') : t('chemist.scheduleLabel', { schedule: v.medicine.schedule })}</div>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{v.batch.batchNo}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{v.batch.qty}</td>
                   <td className="px-4 py-3">
                     <div className="tabular-nums">{v.batch.expiry}</div>
-                    <div className="text-xs text-slate-500">{v.daysLeft > 0 ? `${v.daysLeft} days left` : `${-v.daysLeft} days ago`}</div>
+                    <div className="text-xs text-slate-500">{v.daysLeft > 0 ? t('chemist.daysLeft', { count: v.daysLeft }) : t('chemist.daysAgo', { count: -v.daysLeft })}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       <BucketBadge bucket={v.bucket} />
-                      {v.batch.status === 'ECO_SALE' && <Badge tone="blue">Eco-Sale {v.batch.ecoDiscountPct}% off</Badge>}
-                      {v.batch.status === 'DONATION_PENDING' && <Badge tone="green">Donation pickup</Badge>}
-                      {v.batch.status === 'DISPOSAL_PENDING' && <Badge tone="orange">Yellow-Bag pickup</Badge>}
+                      {v.batch.status === 'ECO_SALE' && <Badge tone="blue">{t('chemist.ecoBadge', { pct: v.batch.ecoDiscountPct })}</Badge>}
+                      {v.batch.status === 'DONATION_PENDING' && <Badge tone="green">{t('chemist.donationPickup')}</Badge>}
+                      {v.batch.status === 'DISPOSAL_PENDING' && <Badge tone="orange">{t('chemist.yellowBagPickup')}</Badge>}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -234,16 +233,16 @@ export function ChemistPage({ user }: { user: User }) {
                         {v.bucket !== 'EXPIRED' && (
                           <>
                             <Button size="sm" variant="amber" onClick={() => void ecoSale(v)}>
-                              <Tag className="size-3.5" /> Eco-Sale
+                              <Tag className="size-3.5" /> {t('chemist.ecoSale')}
                             </Button>
                             <Button size="sm" variant="eco" onClick={() => void schedulePickup(v, 'DONATION')}>
-                              <Gift className="size-3.5" /> Donate
+                              <Gift className="size-3.5" /> {t('chemist.donate')}
                             </Button>
                           </>
                         )}
                         {v.bucket === 'EXPIRED' && (
                           <Button size="sm" variant="danger" onClick={() => void schedulePickup(v, 'DISPOSAL')}>
-                            <Trash2 className="size-3.5" /> Dispose
+                            <Trash2 className="size-3.5" /> {t('chemist.dispose')}
                           </Button>
                         )}
                       </div>

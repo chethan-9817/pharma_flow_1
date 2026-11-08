@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ExpiryBucket } from '../domain/rules/expiry';
-import { BUCKET_LABEL } from '../domain/rules/expiry';
 
 const cx = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -67,8 +67,15 @@ export function Badge({ tone = 'slate', children, className }: { tone?: Tone; ch
 
 const BUCKET_TONE: Record<ExpiryBucket, Tone> = { SAFE: 'green', LOCKOUT: 'amber', CRITICAL: 'orange', EXPIRED: 'red' };
 
+/** The translated name of an expiry bucket: Safe, Lockout, Critical or Expired. */
+export function useBucketLabel(): (bucket: ExpiryBucket) => string {
+  const { t } = useTranslation();
+  return (bucket) => t(`chemist.${bucket.toLowerCase()}`);
+}
+
 export function BucketBadge({ bucket }: { bucket: ExpiryBucket }) {
-  return <Badge tone={BUCKET_TONE[bucket]}>{BUCKET_LABEL[bucket]}</Badge>;
+  const label = useBucketLabel();
+  return <Badge tone={BUCKET_TONE[bucket]}>{label(bucket)}</Badge>;
 }
 
 export function Stat({ label, value, hint, tone = 'slate' }: { label: string; value: ReactNode; hint?: string; tone?: Tone }) {

@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { activityByFamily, impactTimeline, stockByBucket } from '../../domain/impact';
-import { BUCKET_LABEL, type ExpiryBucket } from '../../domain/rules/expiry';
+import { ACTIVITY_FAMILIES, activityByFamily, impactTimeline, stockByBucket } from '../../domain/impact';
+import { type ExpiryBucket } from '../../domain/rules/expiry';
 import type { AppState } from '../../domain/state';
-import { Card, SectionTitle } from '../../components/ui';
+import { Card, SectionTitle, useBucketLabel } from '../../components/ui';
 import { SEED } from '../../seed';
 import type { Entry } from '../../store/persistence';
 
@@ -17,21 +18,25 @@ const rupee = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDi
  * stock health is read from the current state, and the other two replay the log.
  */
 export default function AdminCharts({ app, chain }: { app: AppState; chain: Entry[] }) {
+  const { t } = useTranslation();
+  const bucketLabel = useBucketLabel();
   const stock = stockByBucket(app);
-  const stockData = (Object.keys(stock) as ExpiryBucket[]).map((b) => ({ bucket: b, name: BUCKET_LABEL[b], value: stock[b] }));
+  const stockData = (Object.keys(stock) as ExpiryBucket[]).map((b) => ({ bucket: b, name: bucketLabel(b), value: stock[b] }));
   const totalUnits = stockData.reduce((n, d) => n + d.value, 0);
 
   const events = useMemo(() => chain.map((e) => e.event), [chain]);
   const timeline = useMemo(() => impactTimeline(SEED, events), [events]);
   const activity = useMemo(() => activityByFamily(events), [events]);
+  // The area names come from the domain in English; the chart shows them in the chosen language when a key exists.
+  const activityRows = activity.map((a) => ({ ...a, label: ACTIVITY_FAMILIES.includes(a.family) ? t(`admin.charts.family.${a.family}`) : a.family }));
 
   return (
     <section className="@container space-y-3">
-      <SectionTitle>Impact at a glance</SectionTitle>
+      <SectionTitle>{t('admin.charts.title')}</SectionTitle>
       <div className="grid gap-4 @3xl:grid-cols-3">
         <Card className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-900">Stock health</h3>
-          <p className="text-xs text-slate-500">Units on shelves, by expiry bucket</p>
+          <h3 className="text-sm font-semibold text-slate-900">{t('admin.charts.stockHealth')}</h3>
+          <p className="text-xs text-slate-500">{t('admin.charts.stockHint')}</p>
           <div className="relative h-52">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -40,13 +45,13 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
                     <Cell key={d.bucket} fill={BUCKET_COLOR[d.bucket]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => [`${v} units`, '']} />
+                <Tooltip formatter={(v) => [`${v} ${t('admin.charts.units')}`, '']} />
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
               <div>
                 <p className="text-2xl font-bold tabular-nums text-slate-900">{totalUnits}</p>
-                <p className="text-[11px] text-slate-500">units</p>
+                <p className="text-[11px] text-slate-500">{t('admin.charts.units')}</p>
               </div>
             </div>
           </div>
@@ -62,35 +67,35 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
         </Card>
 
         <Card className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-900">Money recovered</h3>
-          <p className="text-xs text-slate-500">Cumulative, as actions happen</p>
+          <h3 className="text-sm font-semibold text-slate-900">{t('admin.charts.money')}</h3>
+          <p className="text-xs text-slate-500">{t('admin.charts.moneyHint')}</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={timeline} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="step" type="number" domain={[0, 'dataMax']} allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} />
                 <YAxis tickFormatter={rupee} tick={AXIS} tickLine={false} axisLine={false} width={56} />
-                <Tooltip formatter={(v) => rupee(Number(v))} labelFormatter={(l) => `After event #${l}`} />
+                <Tooltip formatter={(v) => rupee(Number(v))} labelFormatter={(l) => t('admin.charts.afterEvent', { n: l })} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="stepAfter" dataKey="ecoRevenue" name="Eco-Sale revenue" stroke="#0284C7" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="stepAfter" dataKey="ngoValue" name="Medicines to NGOs" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="stepAfter" dataKey="ngoFund" name="NGO fund" stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ecoRevenue" name={t('admin.charts.ecoLine')} stroke="#0284C7" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ngoValue" name={t('admin.charts.ngoLine')} stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ngoFund" name={t('admin.charts.fundLine')} stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          {timeline.length < 3 && <p className="text-xs text-slate-500">Sell an Eco-Sale item or complete a donation and the line steps up.</p>}
+          {timeline.length < 3 && <p className="text-xs text-slate-500">{t('admin.charts.moneyEmpty')}</p>}
         </Card>
 
         <Card className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-900">Platform activity</h3>
-          <p className="text-xs text-slate-500">Events in the audit ledger, by area</p>
+          <h3 className="text-sm font-semibold text-slate-900">{t('admin.charts.activity')}</h3>
+          <p className="text-xs text-slate-500">{t('admin.charts.activityHint')}</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={activity} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
+              <BarChart data={activityRows} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} />
-                <YAxis type="category" dataKey="family" tick={AXIS} tickLine={false} axisLine={false} width={86} />
-                <Tooltip formatter={(v) => [`${v} events`, '']} cursor={{ fill: '#f1f5f9' }} />
+                <YAxis type="category" dataKey="label" tick={AXIS} tickLine={false} axisLine={false} width={86} />
+                <Tooltip formatter={(v) => [t('admin.charts.eventsCount', { count: Number(v) }), '']} cursor={{ fill: '#f1f5f9' }} />
                 <Bar dataKey="count" fill="#0284C7" radius={[0, 6, 6, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
