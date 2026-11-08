@@ -192,6 +192,8 @@ export const PickupSchema = z.object({
   riderId: z.string().optional(),
   riderArrived: z.boolean().optional(),
   batchId: z.string().optional(),
+  /** Set when a customer sponsored these packs for the NGO. The pickup then starts at the store. */
+  sponsorshipId: z.string().optional(),
   address: z.string(),
   lat: z.number(),
   lng: z.number(),
@@ -199,6 +201,36 @@ export const PickupSchema = z.object({
   qaNote: z.string().optional(),
 });
 export type Pickup = z.infer<typeof PickupSchema>;
+
+export const SponsorshipStatusSchema = z.enum(['PLACED', 'DELIVERED', 'REFUNDED']);
+export type SponsorshipStatus = z.infer<typeof SponsorshipStatusSchema>;
+
+/**
+ * A customer pays a flat amount to put packs from a store's Eco-Sale batch into an NGO's hands.
+ * The store is paid its Eco-Sale price, and whatever is left tops up the NGO fund.
+ */
+export const SponsorshipSchema = z.object({
+  id: z.string(),
+  customerId: z.string(),
+  storeId: z.string(),
+  batchId: z.string(),
+  medicineId: z.string(),
+  ngoId: z.string(),
+  qty: z.number().int().positive(),
+  /** Eco-Sale price of one pack. */
+  unitPrice: z.number().nonnegative(),
+  /** What the customer pays. */
+  amount: z.number().positive(),
+  /** Paid to the store once the NGO has the packs. */
+  storePayout: z.number().nonnegative(),
+  /** Added to the NGO fund once the NGO has the packs. */
+  fundTopUp: z.number().nonnegative(),
+  status: SponsorshipStatusSchema,
+  /** The rider mission that carries the packs from the store to the NGO. */
+  pickupId: z.string(),
+  placedAt: IsoDateSchema,
+});
+export type Sponsorship = z.infer<typeof SponsorshipSchema>;
 
 export const H1EntrySchema = z.object({
   id: z.string(),
