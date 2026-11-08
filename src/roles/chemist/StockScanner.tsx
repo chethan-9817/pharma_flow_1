@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Camera, CheckCircle2, ExternalLink, ScanLine } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { Camera, CheckCircle2, ExternalLink, Keyboard, ScanLine } from 'lucide-react';
+import { useCallback, useRef, useState, type FormEvent } from 'react';
 import { parseScan } from '../../domain/rules/gs1';
 import type { Batch, User } from '../../domain/types';
 import { Badge, Button, Card, SectionTitle } from '../../components/ui';
@@ -27,15 +27,18 @@ export function StockScanner({ user }: { user: User }) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [preset, setPreset] = useState(0);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [typed, setTyped] = useState('');
+  const [typedError, setTypedError] = useState<string | null>(null);
+  const typedRef = useRef<HTMLInputElement>(null);
   const storeId = user.storeId!;
 
-  /** Turns raw barcode text into a form the chemist can confirm. */
+  /** Turns raw barcode text into a form the chemist can confirm. Returns an error message, or null on success. */
   const load = useCallback(
-    (text: string) => {
+    (text: string): string | null => {
       const parsed = parseScan(text);
-      if (!parsed.ok) return toast(`Could not read that barcode: ${parsed.error}`, 'error');
+      if (!parsed.ok) return `Could not read that barcode: ${parsed.error}`;
       const medicine = Object.values(app.medicines).find((m) => m.gtin === parsed.value.gtin);
-      if (!medicine) return toast(`GTIN ${parsed.value.gtin} is not in the catalog`, 'error');
+      if (!medicine) return `Barcode ${parsed.value.gtin} is not in the catalog`;
       setPending({
         medicineId: medicine.id,
         batchNo: parsed.value.batch ?? '',
@@ -43,7 +46,8 @@ export function StockScanner({ user }: { user: User }) {
         qty: 50,
         fromBarcode: { batch: Boolean(parsed.value.batch), expiry: Boolean(parsed.value.expiry) },
       });
-      toast(`Scanned ${medicine.brand}`);
+      toast(`Found ${medicine.brand}`);
+      return null;
     },
     [app.medicines],
   );
@@ -51,10 +55,25 @@ export function StockScanner({ user }: { user: User }) {
   const onCameraScan = useCallback(
     (text: string) => {
       setCameraOpen(false);
-      load(text);
+      const error = load(text);
+      if (error) toast(error, 'error');
     },
     [load],
   );
+
+  const lookupTyped = (e: FormEvent) => {
+    e.preventDefault();
+    if (!typed.trim()) return setTypedError('Type the number printed under the barcode');
+    const error = load(typed);
+    setTypedError(error);
+    if (!error) setTyped('');
+  };
+
+  /** Camera could not read the strip (or is missing): move the chemist to the typing field. */
+  const switchToTyping = useCallback(() => {
+    setCameraOpen(false);
+    setTimeout(() => typedRef.current?.focus(), 150);
+  }, []);
 
   const confirm = async () => {
     if (!pending) return;
@@ -106,11 +125,49 @@ export function StockScanner({ user }: { user: User }) {
             </option>
           ))}
         </select>
-        <Button variant="ghost" onClick={() => load(BARCODE_PRESETS[preset]!.code)}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            const error = load(BARCODE_PRESETS[preset]!.code);
+            if (error) toast(error, 'error');
+          }}
+        >
           <ScanLine className="size-4" /> Use preset
         </Button>
       </div>
       <p className="font-mono text-xs text-slate-500">{BARCODE_PRESETS[preset]!.code}</p>
+
+      <form onSubmit={lookupTyped} className="space-y-1.5 rounded-2xl bg-slate-50 p-3">
+        <label htmlFor="typed-barcode" className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+          <Keyboard className="size-3.5" /> Can&apos;t scan? Type the barcode
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="typed-barcode"
+            ref={typedRef}
+            value={typed}
+            onChange={(e) => {
+              setTyped(e.target.value);
+              setTypedError(null);
+            }}
+            inputMode="text"
+            autoComplete="off"
+            placeholder="e.g. 8901234500011"
+            aria-invalid={typedError ? true : undefined}
+            className={`${input} font-mono`}
+          />
+          <Button type="submit" variant="ghost">
+            Look up
+          </Button>
+        </div>
+        {typedError ? (
+          <p className="text-xs font-medium text-blood" role="alert">{typedError}</p>
+        ) : (
+          <p className="text-xs text-slate-500">
+            Type the digits under the barcode, or a GS1 code like <span className="font-mono">(01)…(17)…(10)…</span> to fill batch and expiry too.
+          </p>
+        )}
+      </form>
 
       {pending && medicine && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 rounded-2xl bg-sky-50/70 p-4 ring-1 ring-sky-100">
@@ -147,7 +204,7 @@ export function StockScanner({ user }: { user: User }) {
         </motion.div>
       )}
 
-      <ScannerDialog open={cameraOpen} onClose={() => setCameraOpen(false)} onScan={onCameraScan} />
+      <ScannerDialog open={cameraOpen} onClose={() => setCameraOpen(false)} onScan={onCameraScan} onType={switchToTyping} />
     </Card>
   );
 }
