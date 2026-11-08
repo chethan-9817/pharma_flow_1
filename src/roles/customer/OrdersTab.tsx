@@ -1,6 +1,7 @@
 import { Package } from 'lucide-react';
 import { useState } from 'react';
 import { requiresRx } from '../../domain/rules/prescription';
+import { orderFundShare } from '../../domain/selectors';
 import type { Order, User } from '../../domain/types';
 import { Badge, Button, Card, SectionTitle, inr } from '../../components/ui';
 import { report } from '../../components/toast';
@@ -84,6 +85,11 @@ export function OrdersTab({ user }: { user: User }) {
                   {o.status === 'DELIVERED' && <Badge tone="green">Done</Badge>}
                 </div>
                 {open && !rejected && <TrackOrder order={o} />}
+                {o.status === 'DELIVERED' && orderFundShare(app, o.id) > 0 && (
+                  <p className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs text-emerald-800">
+                    {inr(orderFundShare(app, o.id))} from this order went into the NGO fund, which only buys medicines for NGOs.
+                  </p>
+                )}
                 {rejected && (
                   <div className="space-y-3">
                     <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">Reason: {o.rxRejectReason}. Upload a clearer or correct prescription.</p>
