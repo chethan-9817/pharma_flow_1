@@ -171,7 +171,7 @@ describe('the event log API', () => {
     const s = await makeServer();
     const token = await tokenFor(s, CHEMIST);
     const first = await entryFor(s, CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-okacet-1', discountPct: 50 });
-    const stale = await entryFor(s, CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-limcee-1', discountPct: 50 });
+    const stale = await entryFor(s, CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-dolo-1', discountPct: 50 });
     expect((await post(s, token, first)).status).toBe(201);
     const res = await post(s, token, stale); // built on the same chain tip, so it is now one behind
     expect(res.status).toBe(409);
@@ -221,7 +221,7 @@ describe('the event log API', () => {
     const s = await makeServer();
     const token = await tokenFor(s, CHEMIST);
     const entries = await Promise.all(
-      ['b-okacet-1', 'b-limcee-1', 'b-pand-1'].map((batchId) => entryFor(s, CHEMIST, { type: 'ECO_SALE_LISTED', batchId, discountPct: 50 })),
+      ['b-okacet-1', 'b-dolo-1', 'b-pand-1'].map((batchId) => entryFor(s, CHEMIST, { type: 'ECO_SALE_LISTED', batchId, discountPct: 50 })),
     );
     const statuses = (await Promise.all(entries.map((e) => post(s, token, e)))).map((r) => r.status).sort();
     expect(statuses).toEqual([201, 409, 409]);

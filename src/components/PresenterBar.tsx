@@ -42,8 +42,13 @@ export function PresenterBar() {
 
   const reset = async () => {
     if (!window.confirm(t('nav.resetConfirm'))) return;
-    await pharma.getState().reset();
-    toast(t('nav.resetDone'));
+    try {
+      await pharma.getState().reset();
+      toast(t('nav.resetDone'));
+    } catch (error) {
+      // In server mode only a signed-in admin may reset, and the server may refuse.
+      toast(error instanceof Error ? error.message : String(error), 'error');
+    }
   };
 
   return (

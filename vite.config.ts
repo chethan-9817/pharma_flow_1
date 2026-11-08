@@ -65,6 +65,14 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  // Server mode (npm run dev:server): the page comes from Vite, the API and the live socket from `npm run server`.
+  // The demo build never calls these paths, so the proxy costs nothing there.
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8787',
+      '/ws': { target: 'ws://localhost:8787', ws: true },
+    },
+  },
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
