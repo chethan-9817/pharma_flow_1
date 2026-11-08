@@ -1,15 +1,15 @@
-# 💊 PharmaFlow — pharma_flow_1
+﻿# ðŸ’Š PharmaFlow â€” pharma_flow_1
 
 **Medicine reverse logistics, near-expiry liquidation and civic health on one platform.**
 
-PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
+PharmaFlow replaces the one-way "buy â†’ use â†’ throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
 
-> 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> 🚧 Status: **steps 1–2 done; role screens (steps 3–7) have a working first version with more to come** (see [Roadmap](#-roadmap)).
+> ðŸŽ“ Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
+> ðŸš§ Status: **steps 1â€“2 done; role screens (steps 3â€“7) have a working first version with more to come** (see [Roadmap](#-roadmap)).
 
 ---
 
-## 📑 Table of Contents
+## ðŸ“‘ Table of Contents
 
 1. [The Problem](#-the-problem)
 2. [The Solution](#-the-solution)
@@ -29,7 +29,7 @@ PharmaFlow replaces the one-way "buy → use → throw away" medicine supply cha
 
 ---
 
-## 🔥 The Problem
+## ðŸ”¥ The Problem
 
 ### 1. Local chemists are losing money
 
@@ -37,20 +37,20 @@ These findings come from field visits and interviews with independent chemists:
 
 | Pain point | Real-world impact |
 |---|---|
-| Legacy ERP licence (Marg, C-Square, PharmaSoft) | ₹10,000 – ₹12,000 upfront |
-| Paywalled add-ons (barcode, expiry alerts, multi-terminal) | ₹14,000 – ₹15,000 extra |
-| Annual Maintenance Charge (AMC) | ~₹8,000 every year → **~₹35,000 in year one** |
+| Legacy ERP licence (Marg, C-Square, PharmaSoft) | â‚¹10,000 â€“ â‚¹12,000 upfront |
+| Paywalled add-ons (barcode, expiry alerts, multi-terminal) | â‚¹14,000 â€“ â‚¹15,000 extra |
+| Annual Maintenance Charge (AMC) | ~â‚¹8,000 every year â†’ **~â‚¹35,000 in year one** |
 | Distributor 6-month return cutoff | Stock still safe to use is forced off the shelf early |
 | 50% refund penalty | Half the money is lost even on returns made in time |
-| Under 6 months left → return rejected | **100% write-off** |
-| Refund paid as a credit note | Takes 60–90 days; no cash in hand |
+| Under 6 months left â†’ return rejected | **100% write-off** |
+| Refund paid as a credit note | Takes 60â€“90 days; no cash in hand |
 | ERP vendors tied to distributors | Software pushes chemists to *buy more*, not to clear stock |
 | No customer-facing channel | Near-expiry stock can't be sold to local buyers |
 | No disposal pathway | Expired stock is written off on paper, not disposed of legally |
 
 ### 2. Households throw medicines away illegally
 
-- Under the **Bio-Medical Waste Management Rules, 2016**, expired medicines are hazardous waste. They must go to a state-authorised **CBWTF** (Common Bio-Medical Waste Treatment Facility) for high-temperature incineration (1000–1200 °C) or encapsulation.
+- Under the **Bio-Medical Waste Management Rules, 2016**, expired medicines are hazardous waste. They must go to a state-authorised **CBWTF** (Common Bio-Medical Waste Treatment Facility) for high-temperature incineration (1000â€“1200 Â°C) or encapsulation.
 - In reality, **~73% of people throw leftover strips in the dustbin** and **~20% flush them** down sinks or toilets.
 - Antibiotics and painkillers then leak into soil and groundwater and help breed **antimicrobial-resistant (AMR) "superbugs"**.
 
@@ -60,21 +60,21 @@ Crores worth of **safe, unexpired** medicines sit unused in home cabinets and on
 
 ---
 
-## 💡 The Solution
+## ðŸ’¡ The Solution
 
 | Problem | PharmaFlow feature |
 |---|---|
-| Expensive ERPs | **Free ERP for chemists**: ₹0 licence, ₹0 add-ons, ₹0 AMC |
-| Distributor refuses returns | **Eco-Sale store**: chemists sell near-expiry stock to local customers at 40–60% off and get paid in cash immediately |
-| Unused medicines at home | **Free doorstep pickup** → pharmacist QA check → **verified NGO clinic** |
-| Expired medicines in the dustbin | **Yellow-Bag pickup** → **CBWTF incineration** with a disposal certificate |
+| Expensive ERPs | **Free ERP for chemists**: â‚¹0 licence, â‚¹0 add-ons, â‚¹0 AMC |
+| Distributor refuses returns | **Eco-Sale store**: chemists sell near-expiry stock to local customers at 40â€“60% off and get paid in cash immediately |
+| Unused medicines at home | **Free doorstep pickup** â†’ pharmacist QA check â†’ **verified NGO clinic** |
+| Expired medicines in the dustbin | **Yellow-Bag pickup** â†’ **CBWTF incineration** with a disposal certificate |
 | People don't take part | **Gamification**: Eco-Karma points, scratch cards, certificates |
 | Blood shortages | **Blood bank connect**: live urgent requirements + appointment booking |
 | No trust or traceability | **Tamper-evident audit ledger** for every action |
 
 ---
 
-## 🔄 How Medicine Flows Through PharmaFlow
+## ðŸ”„ How Medicine Flows Through PharmaFlow
 
 ```mermaid
 flowchart LR
@@ -95,9 +95,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    S["🟢 SAFE<br/>&gt; 180 days"] --> L["🟡 LOCKOUT<br/>30 – 180 days<br/>(distributor penalises/refuses)"]
-    L --> K["🟠 CRITICAL<br/>1 – 29 days"]
-    K --> E["🔴 EXPIRED<br/>bio-hazard"]
+    S["ðŸŸ¢ SAFE<br/>&gt; 180 days"] --> L["ðŸŸ¡ LOCKOUT<br/>30 â€“ 180 days<br/>(distributor penalises/refuses)"]
+    L --> K["ðŸŸ  CRITICAL<br/>1 â€“ 29 days"]
+    K --> E["ðŸ”´ EXPIRED<br/>bio-hazard"]
     L -.->|Eco-Sale or NGO| X((Rescued))
     K -.->|NGO if eligible| X
     E -.->|Yellow-Bag| Y((Incinerated legally))
@@ -105,56 +105,56 @@ flowchart LR
 
 ---
 
-## 👥 The 4 Roles & Their Features
+## ðŸ‘¥ The 4 Roles & Their Features
 
-### 1️⃣ Customer App (mobile-style, white clinical theme)
+### 1ï¸âƒ£ Customer App (mobile-style, white clinical theme)
 
 | Feature | Details |
 |---|---|
 | **Medicine catalog** | 12+ everyday Indian medicines (Dolo 650, Augmentin 625 Duo, Pan-D, Okacet, Azithral 500, Shelcal 500, Becosules, Benadryl Syrup, Electral ORS, Volini Gel, Limcee, Accu-Chek strips) with salt, pack size, manufacturer and MRP |
-| **Cheaper generic switcher** | Shows a variant with the **same salt and same strength**, priced against **Jan Aushadhi (PMBJP)**. Example: Pan-D ₹190 → Pantoprazole + Domperidone generic ₹68 (save ₹122) |
+| **Cheaper generic switcher** | Shows a variant with the **same salt and same strength**, priced against **Jan Aushadhi (PMBJP)**. Example: Pan-D â‚¹190 â†’ Pantoprazole + Domperidone generic â‚¹68 (save â‚¹122) |
 | **Prescription upload** | Required for Rx-only drugs. See [Prescription Rules](#-prescription-rules-rx-only-drugs) |
-| **Eco-Sale store** | Near-expiry stock at 40–60% off with an amber countdown badge, e.g. *"Expires in 38 days • fits a 5-day course • 50% OFF"*. Two buttons: **Buy for myself** or **Sponsor batch for NGO (₹99)** |
-| **Civic Impact Hub** | **A.** Donate unused medicines to an NGO · **B.** Safe disposal of expired medicines · **C.** Donate blood |
+| **Eco-Sale store** | Near-expiry stock at 40â€“60% off with an amber countdown badge, e.g. *"Expires in 38 days â€¢ fits a 5-day course â€¢ 50% OFF"*. Two buttons: **Buy for myself** or **Sponsor batch for NGO (â‚¹99)** |
+| **Civic Impact Hub** | **A.** Donate unused medicines to an NGO Â· **B.** Safe disposal of expired medicines Â· **C.** Donate blood |
 | **Course-completion reminder** | *"Finished your 5-day course of Dolo 650? Donate the 10 unopened tablets left to Seva NGO Clinic and earn karma."* |
 | **Live GPS tracker** | Map with store, home, NGO and CBWTF plant, plus an animated rider and a 4-step progress stepper |
-| **Rewards wallet** | Eco-Karma points, MedWallet store credit and real `<canvas>` scratch cards (scratch >40% → confetti + reward) |
+| **Rewards wallet** | Eco-Karma points, MedWallet store credit and real `<canvas>` scratch cards (scratch >40% â†’ confetti + reward) |
 | **Certificates** | NGO Donor, Green Citizen (safe disposal) and Blood Donor certificates as PDF with a QR verification code |
 
-### 2️⃣ Chemist Dashboard (zero-AMC ERP)
+### 2ï¸âƒ£ Chemist Dashboard (zero-AMC ERP)
 
 | Feature | Details |
 |---|---|
-| **Savings header** | "₹0 licence • ₹0 add-ons • ₹0 AMC — saved ₹35,000/yr vs legacy ERPs" |
-| **Profit calculator** | Distributor return (50% credit note, ₹0 under 6 months) vs PharmaFlow Eco-Sale (50–70% in cash) |
+| **Savings header** | "â‚¹0 licence â€¢ â‚¹0 add-ons â€¢ â‚¹0 AMC â€” saved â‚¹35,000/yr vs legacy ERPs" |
+| **Profit calculator** | Distributor return (50% credit note, â‚¹0 under 6 months) vs PharmaFlow Eco-Sale (50â€“70% in cash) |
 | **Barcode scan-to-ingest** | Camera scanning with **GS1 parsing**: GTIN (01), **batch (10)** and **expiry (17)** are filled in automatically, and brand, salt, generic and MRP come from the catalog. Preset barcodes work when there's no camera |
 | **Expiry ledger** | Colour-coded buckets: Safe / Lockout / Critical / Expired |
-| **3 one-click actions per batch** | **Put on Eco-Sale** · **Donate to NGO** · **Schedule CBWTF disposal** |
+| **3 one-click actions per batch** | **Put on Eco-Sale** Â· **Donate to NGO** Â· **Schedule CBWTF disposal** |
 | **Write-off certificate** | *Inventory Write-Off & NGO Donation Receipt* that includes the **GST ITC reversal** amount (CGST Sec 17(5)(h)) |
 | **Order packing desk** | Review orders and **approve or reject prescriptions** before **Pack & Summon Rider** |
-| **Returned-medicine QA desk** | Inspect seal, batch and expiry of donated strips → **QA Verified – Release to NGO** or **Reject – send to Bio-Disposal** |
+| **Returned-medicine QA desk** | Inspect seal, batch and expiry of donated strips â†’ **QA Verified â€“ Release to NGO** or **Reject â€“ send to Bio-Disposal** |
 
-### 3️⃣ Rider App (dark mode, built for outdoor use)
+### 3ï¸âƒ£ Rider App (dark mode, built for outdoor use)
 
 | Feature | Details |
 |---|---|
 | **Shift header** | Online/offline toggle, today's earnings, green incentives, trips completed |
-| **3-colour mission radar** | 🔵 Forward delivery · 🟢 NGO reverse pickup · 🟠 Yellow-Bag bio-hazard pickup |
+| **3-colour mission radar** | ðŸ”µ Forward delivery Â· ðŸŸ¢ NGO reverse pickup Â· ðŸŸ  Yellow-Bag bio-hazard pickup |
 | **Navigation** | Dark map, multi-stop route, distance, ETA, call button |
-| **Lifecycle buttons** | Large buttons: Accept → Arrived → Collected → Confirm Handover (OTP) |
+| **Lifecycle buttons** | Large buttons: Accept â†’ Arrived â†’ Collected â†’ Confirm Handover (OTP) |
 | **Backhaul optimisation** | After a delivery, suggests any pending pickup at the same address or street, so a return is collected on the same trip at no extra fuel cost |
 
-### 4️⃣ Admin & Regulatory Portal
+### 4ï¸âƒ£ Admin & Regulatory Portal
 
 | Feature | Details |
 |---|---|
-| **Pharmacy KYC** | New stores start as `PENDING_KYC`. Admin reviews the Drug Licence (e.g. `KA-MNG-2026-8841`) and GSTIN → **Approve** / **Reject** |
-| **Impact KPIs** | ₹ dead stock recovered, kg of hazardous waste diverted, ₹ of medicines sent to NGOs, blood donations booked |
+| **Pharmacy KYC** | New stores start as `PENDING_KYC`. Admin reviews the Drug Licence (e.g. `KA-MNG-2026-8841`) and GSTIN â†’ **Approve** / **Reject** |
+| **Impact KPIs** | â‚¹ dead stock recovered, kg of hazardous waste diverted, â‚¹ of medicines sent to NGOs, blood donations booked |
 | **Audit trail** | Every event in a **SHA-256 hash-chained ledger** + **Verify Ledger Integrity** button |
 
 ---
 
-## 📋 Prescription Rules (Rx-Only Drugs)
+## ðŸ“‹ Prescription Rules (Rx-Only Drugs)
 
 Some medicines **cannot be bought without a valid prescription** from a registered doctor. PharmaFlow enforces this in code; the UI alone isn't trusted.
 
@@ -162,12 +162,12 @@ Some medicines **cannot be bought without a valid prescription** from a register
 
 | Category | Examples in our catalog | Prescription needed? | What PharmaFlow does |
 |---|---|---|---|
-| **OTC / general** | Dolo 650, Shelcal 500, Becosules, Electral ORS, Volini Gel, Limcee, Accu-Chek strips | ❌ No | Add to cart and check out directly |
-| **Schedule H** (Rx-only) | Pan-D (Pantoprazole + Domperidone), Augmentin 625 Duo, Azithral 500 | ✅ Yes | Rx upload required, chemist must approve before packing |
-| **Schedule H1** (stricter: certain antibiotics, anti-TB and habit-forming drugs) | *(none in the demo catalog yet; the rule engine supports it)* | ✅ Yes + register entry | Rx required, and every sale is logged in an **H1 register** (patient, doctor, drug, quantity) kept for 3 years |
-| **Schedule X / NDPS** (narcotics, psychotropics) | — | 🚫 Not sold | **Blocked on the platform** completely: cannot be sold, donated or listed |
+| **OTC / general** | Dolo 650, Shelcal 500, Becosules, Electral ORS, Volini Gel, Limcee, Accu-Chek strips | âŒ No | Add to cart and check out directly |
+| **Schedule H** (Rx-only) | Pan-D (Pantoprazole + Domperidone), Augmentin 625 Duo, Azithral 500 | âœ… Yes | Rx upload required, chemist must approve before packing |
+| **Schedule H1** (stricter: certain antibiotics, anti-TB and habit-forming drugs) | *(none in the demo catalog yet; the rule engine supports it)* | âœ… Yes + register entry | Rx required, and every sale is logged in an **H1 register** (patient, doctor, drug, quantity) kept for 3 years |
+| **Schedule X / NDPS** (narcotics, psychotropics) | â€” | ðŸš« Not sold | **Blocked on the platform** completely: cannot be sold, donated or listed |
 
-> ⚠️ Drug classifications in the seed data are for demo purposes. Check them against the latest CDSCO / Drugs & Cosmetics Rules schedules before any real deployment.
+> âš ï¸ Drug classifications in the seed data are for demo purposes. Check them against the latest CDSCO / Drugs & Cosmetics Rules schedules before any real deployment.
 
 ### Prescription flow
 
@@ -206,34 +206,34 @@ sequenceDiagram
 
 ---
 
-## 📏 Business & Safety Rules
+## ðŸ“ Business & Safety Rules
 
 All rules live in `/src/domain` as pure, unit-tested functions.
 
 | Rule | Value |
 |---|---|
-| Expiry buckets | SAFE > 180 d · LOCKOUT 30–180 d · CRITICAL 1–29 d · EXPIRED ≤ 0 d |
-| Eco-Sale discount | 40% – 60% |
-| Eco-Sale eligibility | `days_left ≥ course_days + 15` (the patient must finish the course before the medicine expires) |
+| Expiry buckets | SAFE > 180 d Â· LOCKOUT 30â€“180 d Â· CRITICAL 1â€“29 d Â· EXPIRED â‰¤ 0 d |
+| Eco-Sale discount | 40% â€“ 60% |
+| Eco-Sale eligibility | `days_left â‰¥ course_days + 15` (the patient must finish the course before the medicine expires) |
 | NGO donation eligibility | Sealed/unopened, `days_left > 30`, **not** cold-chain (e.g. insulin), **not** Schedule X/NDPS, **not** opened liquids |
 | Donated medicines | **Must pass chemist QA** before NGO handover; rejected items go to bio-disposal |
-| Expired medicines | Only allowed route: Yellow-Bag → CBWTF incineration |
-| Rewards | Donation +200 karma + 1 scratch card · Safe disposal +150 karma · Orders earn scratch cards |
+| Expired medicines | Only allowed route: Yellow-Bag â†’ CBWTF incineration |
+| Rewards | Donation +200 karma + 1 scratch card Â· Safe disposal +150 karma Â· Orders earn scratch cards |
 | Blood donation rewards | +500 karma, certificate and badge **only**: no cashback or anything with money value |
 | MedWallet | **Closed-loop store credit**, never converted to cash |
 
 ### Order & pickup lifecycles (state machines; invalid jumps are rejected)
 
 ```
-Forward order:   PLACED → [RX_APPROVED] → PACKED → OUT_FOR_DELIVERY → DELIVERED
-Reverse pickup:  SCHEDULED → COLLECTED → QA_VERIFIED → DELIVERED_TO_NGO
-                                       ↘ QA_REJECTED → INCINERATED
-Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
+Forward order:   PLACED â†’ [RX_APPROVED] â†’ PACKED â†’ OUT_FOR_DELIVERY â†’ DELIVERED
+Reverse pickup:  SCHEDULED â†’ COLLECTED â†’ QA_VERIFIED â†’ DELIVERED_TO_NGO
+                                       â†˜ QA_REJECTED â†’ INCINERATED
+Bio-disposal:    SCHEDULED â†’ COLLECTED (sealed Yellow Bag) â†’ INCINERATED
 ```
 
 ---
 
-## ⚖️ Legal & Compliance Notes
+## âš–ï¸ Legal & Compliance Notes
 
 | Area | How PharmaFlow handles it |
 |---|---|
@@ -242,7 +242,7 @@ Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
 | **Solid Waste Management Rules 2016** | Household medicines are treated as domestic hazardous waste; the app explains this to users |
 | **Medicine redistribution** | India has no explicit framework for re-dispensing household returns, so it runs as a **pharmacist-gated pilot** limited to sealed strips |
 | **Income Tax (80G)** | In-kind (goods) donations **don't qualify** for 80G. We issue an inventory write-off record + NGO receipt instead |
-| **GST — CGST Sec 17(5)(h)** | Input tax credit on goods written off, destroyed or given away must be reversed; the certificate calculates it |
+| **GST â€” CGST Sec 17(5)(h)** | Input tax credit on goods written off, destroyed or given away must be reversed; the certificate calculates it |
 | **Blood donation** | India's policy is voluntary and unpaid, so there are no money-value rewards |
 | **RBI prepaid wallet rules** | MedWallet is closed-loop store credit (no cash-out) |
 
@@ -250,7 +250,7 @@ Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
 
 ---
 
-## 🏗️ Technical Architecture
+## ðŸ—ï¸ Technical Architecture
 
 ### The core idea: everything is an event
 
@@ -265,7 +265,7 @@ flowchart TB
     LOG --> DB[(Dexie / IndexedDB)]
     ST <-->|Transport adapter| T{Mode}
     T -->|Demo mode| BC[BroadcastChannel<br/>cross-tab sync]
-    T -->|Server mode| WS[WebSocket ↔ Hono API ↔ SQLite]
+    T -->|Server mode| WS[WebSocket â†” Hono API â†” SQLite]
     LOG --> KPI[Admin KPIs]
     LOG --> AUD[Audit Trail]
 ```
@@ -299,7 +299,7 @@ Why this design:
 
 ---
 
-## 🧰 Tech Stack
+## ðŸ§° Tech Stack
 
 | Layer | Choice |
 |---|---|
@@ -317,9 +317,9 @@ Why this design:
 | Certificates | **jsPDF + qrcode** |
 | Charts | **Recharts** |
 | Server (later) | **Hono / Fastify + better-sqlite3 + Drizzle ORM + ws** |
-| PWA / i18n | **vite-plugin-pwa**, **react-i18next** (English, ಕನ್ನಡ, हिन्दी) |
+| PWA / i18n | **vite-plugin-pwa**, **react-i18next** (English, à²•à²¨à³à²¨à²¡, à¤¹à¤¿à¤¨à¥à¤¦à¥€) |
 | Testing | **Vitest** (domain rules) + **Playwright** (multi-tab sync) |
-| Hosting | Vercel / Netlify (demo) · Render / Railway (server) |
+| Hosting | Vercel / Netlify (demo) Â· Render / Railway (server) |
 
 ### Design tokens
 
@@ -334,33 +334,33 @@ Why this design:
 
 ---
 
-## 📁 Folder Structure
+## ðŸ“ Folder Structure
 
 ```
 pharma_flow_1/
-├── src/
-│   ├── domain/          # Pure TS: types, Zod schemas, events, reducer, rules, state machines
-│   │   ├── events.ts
-│   │   ├── reducer.ts
-│   │   ├── rules/       # expiry.ts, ecoSale.ts, donation.ts, prescription.ts, rewards.ts, gst.ts
-│   │   └── machines/    # order.ts, pickup.ts
-│   ├── store/           # Zustand store, Dexie persistence, transport (BroadcastChannel / WS)
-│   ├── roles/
-│   │   ├── customer/
-│   │   ├── chemist/
-│   │   ├── rider/
-│   │   └── admin/
-│   ├── components/      # Shared UI (PresenterBar, ScratchCard, Map, Stepper, CertificatePDF…)
-│   ├── seed/            # Demo medicines, stores, NGOs, blood banks, users
-│   └── main.tsx
-├── server/              # (later) Hono API + SQLite
-├── tests/               # Vitest + Playwright
-└── README.md            # Full project documentation + AI brief
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ domain/          # Pure TS: types, Zod schemas, events, reducer, rules, state machines
+â”‚   â”‚   â”œâ”€â”€ events.ts
+â”‚   â”‚   â”œâ”€â”€ reducer.ts
+â”‚   â”‚   â”œâ”€â”€ rules/       # expiry.ts, ecoSale.ts, donation.ts, prescription.ts, rewards.ts, gst.ts
+â”‚   â”‚   â””â”€â”€ machines/    # order.ts, pickup.ts
+â”‚   â”œâ”€â”€ store/           # Zustand store, Dexie persistence, transport (BroadcastChannel / WS)
+â”‚   â”œâ”€â”€ roles/
+â”‚   â”‚   â”œâ”€â”€ customer/
+â”‚   â”‚   â”œâ”€â”€ chemist/
+â”‚   â”‚   â”œâ”€â”€ rider/
+â”‚   â”‚   â””â”€â”€ admin/
+â”‚   â”œâ”€â”€ components/      # Shared UI (PresenterBar, ScratchCard, Map, Stepper, CertificatePDFâ€¦)
+â”‚   â”œâ”€â”€ seed/            # Demo medicines, stores, NGOs, blood banks, users
+â”‚   â””â”€â”€ main.tsx
+â”œâ”€â”€ server/              # (later) Hono API + SQLite
+â”œâ”€â”€ tests/               # Vitest + Playwright
+â””â”€â”€ README.md            # Full project documentation + AI brief
 ```
 
 ---
 
-## 🚀 Getting Started
+## ðŸš€ Getting Started
 
 > Run these commands from a fresh clone. Run `npm test` for the domain rule tests.
 
@@ -378,34 +378,34 @@ Then open, **each in its own tab**:
 - `http://localhost:5173/rider`
 - `http://localhost:5173/admin`
 
-…or `http://localhost:5173/presenter` to see all four side by side.
+â€¦or `http://localhost:5173/presenter` to see all four side by side.
 
 Use the **1-tap demo login** buttons; no sign-up is needed.
 
 ---
 
-## 🎬 Demo Walkthrough (for Evaluators)
+## ðŸŽ¬ Demo Walkthrough (for Evaluators)
 
 All of this happens **live across 4 tabs without a page refresh**:
 
-1. **Chemist** scans a batch of Dolo 650 → it lands in **SAFE**.
-2. Presenter drags the **Time-Travel slider** +5 months → the batch moves to **LOCKOUT** (amber).
-3. **Chemist** clicks **Put on Eco-Sale** → the batch **instantly appears** in the Customer Eco-Sale tab at 50% off.
-4. **Customer** adds Eco-Sale Dolo + **Augmentin** → checkout is **locked: prescription required** → uploads an Rx → OCR fills in the fields.
-5. **Chemist** reviews and **approves the Rx** → **Pack & Summon Rider**.
-6. **Rider** sees a 🔵 mission → Accept → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
-7. **Customer** gets a **scratch card** → scratches → confetti + reward.
-8. **Customer** donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate** PDF with QR.
-9. **Admin** sees the KPIs update and clicks **Verify Ledger Integrity** → ✅ chain intact.
+1. **Chemist** scans a batch of Dolo 650 â†’ it lands in **SAFE**.
+2. Presenter drags the **Time-Travel slider** +5 months â†’ the batch moves to **LOCKOUT** (amber).
+3. **Chemist** clicks **Put on Eco-Sale** â†’ the batch **instantly appears** in the Customer Eco-Sale tab at 50% off.
+4. **Customer** adds Eco-Sale Dolo + **Augmentin** â†’ checkout is **locked: prescription required** â†’ uploads an Rx â†’ OCR fills in the fields.
+5. **Chemist** reviews and **approves the Rx** â†’ **Pack & Summon Rider**.
+6. **Rider** sees a ðŸ”µ mission â†’ Accept â†’ Collected â†’ Delivered (OTP). The **backhaul** prompt shows a pending ðŸŸ¢ donation pickup next door.
+7. **Customer** gets a **scratch card** â†’ scratches â†’ confetti + reward.
+8. **Customer** donates leftover strips â†’ **Rider** collects â†’ **Chemist QA** verifies â†’ handed over to the NGO â†’ **Donor certificate** PDF with QR.
+9. **Admin** sees the KPIs update and clicks **Verify Ledger Integrity** â†’ âœ… chain intact.
 
 ---
 
-## 🗺️ Roadmap
+## ðŸ—ºï¸ Roadmap
 
 - [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
 - [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
-- [ ] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate
-- [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card
+- [ ] **3. Chemist:** scan â†’ expiry ledger â†’ Eco-Sale / Donate / Dispose â†’ write-off certificate
+- [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(built: all except the canvas scratch card and "Sponsor batch for NGO")*
 - [ ] **5. Rider:** mission radar, lifecycle buttons, map, backhaul
 - [ ] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder
 - [ ] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail
@@ -413,7 +413,7 @@ All of this happens **live across 4 tabs without a page refresh**:
 
 ---
 
-## 📚 Research Basis
+## ðŸ“š Research Basis
 
 | Source | Finding | Feature |
 |---|---|---|
@@ -425,7 +425,7 @@ All of this happens **live across 4 tabs without a page refresh**:
 
 ---
 
-## 🤖 Working on This Repo with an AI Assistant
+## ðŸ¤– Working on This Repo with an AI Assistant
 
 If you use an AI coding assistant on this project, paste the brief below as your first message. It keeps the AI aligned with every decision in this README. This README is the single source of truth for the project.
 
@@ -433,7 +433,7 @@ If you use an AI coding assistant on this project, paste the brief below as your
 <summary><b>Click to expand the AI project brief</b></summary>
 
 ```markdown
-# PROJECT BRIEF — PharmaFlow (read fully before writing any code)
+# PROJECT BRIEF â€” PharmaFlow (read fully before writing any code)
 
 ## 1. What you are building
 A web app closing the medicine loop in Mangaluru, India, connecting 4 roles:
@@ -499,8 +499,8 @@ then tell me how to run/check it. If a rule is unclear, ASK.
 
 ---
 
-## 👤 Author
+## ðŸ‘¤ Author
 
-**Chethan** — [@chethan-9817](https://github.com/chethan-9817)
+**Chethan** â€” [@chethan-9817](https://github.com/chethan-9817)
 
 *This project is all about medicine reverse logistics: making sure every strip of medicine ends up helping someone or being destroyed safely, never in a dustbin or a drain.*
