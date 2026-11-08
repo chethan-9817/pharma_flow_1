@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-rou
 import { PresenterBar } from './components/PresenterBar';
 import { RoleGate } from './components/RoleGate';
 import { Toaster } from './components/toast';
+import { VerifyPage } from './components/VerifyPage';
 import { AdminPage } from './roles/admin/AdminPage';
 import { ChemistPage } from './roles/chemist/ChemistPage';
 import { DemoBarcodes } from './roles/chemist/DemoBarcodes';
@@ -33,7 +34,7 @@ export default function App() {
   // Embedded panes (inside /presenter) hide the bar; the presenter bar above controls them all.
   const [params] = useSearchParams();
   const { pathname } = useLocation();
-  const embedded = params.get('embed') === '1' || pathname === '/demo-barcodes';
+  const embedded = params.get('embed') === '1' || pathname === '/demo-barcodes' || pathname === '/verify';
 
   return (
     <>
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/admin" element={<RoleGate role="admin">{(u) => <AdminPage user={u} />}</RoleGate>} />
         <Route path="/presenter" element={<Presenter />} />
         <Route path="/demo-barcodes" element={<DemoBarcodes />} />
+        <Route path="/verify" element={<VerifyPage />} />
         <Route path="*" element={<Navigate to="/presenter" replace />} />
       </Routes>
       <Toaster />
