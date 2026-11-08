@@ -1,4 +1,4 @@
-import { daysLeft } from './clock';
+import { addDays, daysBetween, daysLeft, type IsoDate } from './clock';
 import { ecoPrice, checkEcoSaleEligible } from './rules/ecoSale';
 import { bucketForDaysLeft, type ExpiryBucket } from './rules/expiry';
 import type { AppState } from './state';
@@ -135,4 +135,34 @@ export function backhaulSuggestions(s: AppState, order: Order, radiusKm = 0.6): 
   return Object.values(s.pickups)
     .filter((p) => p.status === 'SCHEDULED' && !p.riderId && distanceKm(here, p) <= radiusKm)
     .sort((a, b) => distanceKm(here, a) - distanceKm(here, b));
+}
+
+export interface CourseReminder {
+  orderId: string;
+  medicineId: string;
+  /** The day the course ended, counted from the order date. */
+  endedOn: IsoDate;
+  courseDays: number;
+}
+
+/**
+ * "Finished your 5-day course of Dolo 650? Donate the unopened tablets left to an NGO."
+ * A reminder appears for each delivered, non-cold-chain medicine once its course length has
+ * passed on the simulated clock, so time travel makes reminders show up during a demo.
+ */
+export function courseReminders(s: AppState, userId: string): CourseReminder[] {
+  const out: CourseReminder[] = [];
+  for (const o of Object.values(s.orders)) {
+    if (o.customerId !== userId || o.status !== 'DELIVERED') continue;
+    const seen = new Set<string>();
+    for (const item of o.items) {
+      const m = s.medicines[item.medicineId];
+      if (!m || m.coldChain || m.schedule === 'X' || seen.has(m.id)) continue;
+      seen.add(m.id);
+      if (daysBetween(o.placedAt, s.today) >= m.courseDays) {
+        out.push({ orderId: o.id, medicineId: m.id, endedOn: addDays(o.placedAt, m.courseDays), courseDays: m.courseDays });
+      }
+    }
+  }
+  return out.sort((a, b) => b.endedOn.localeCompare(a.endedOn));
 }
