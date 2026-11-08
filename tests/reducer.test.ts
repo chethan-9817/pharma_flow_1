@@ -323,4 +323,13 @@ describe('time travel', () => {
     sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-12-01' });
     expect(sim.mustFail(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-20' })).toMatch(/forward/);
   });
+
+  it('is the admin presenter\'s tool: no other role can move the clock', () => {
+    const sim = new Sim();
+    for (const actor of [CUSTOMER, CHEMIST, RIDER]) {
+      expect(sim.mustFail(actor, { type: 'TIME_TRAVELLED', to: '2026-12-01' })).toMatch(/Only a admin/);
+    }
+    expect(sim.mustFail('nobody', { type: 'TIME_TRAVELLED', to: '2026-12-01' })).toMatch(/Unknown user/);
+    expect(sim.state.today).toBe('2026-11-08');
+  });
 });

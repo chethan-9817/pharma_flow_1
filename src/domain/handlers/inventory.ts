@@ -88,6 +88,9 @@ export function riderShiftChanged(s: AppState, e: Ev<'RIDER_SHIFT_CHANGED'>): St
 }
 
 export function timeTravelled(s: AppState, e: Ev<'TIME_TRAVELLED'>): Step {
+  // The simulated clock is the presenter's tool. With real logins, a customer must not be able to move it.
+  const bad = failed(requireRole(s, e.actorId, 'admin'));
+  if (bad) return bad;
   if (daysBetween(s.today, e.to) <= 0) return err('Time can only move forward. Use Reset demo data to go back');
   return done({ ...s, today: e.to });
 }
