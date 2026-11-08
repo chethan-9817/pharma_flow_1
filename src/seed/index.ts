@@ -3,7 +3,7 @@ import { addDays } from '../domain/clock';
 import type { Seed } from '../domain/state';
 import { BatchSchema, BloodBankSchema, MedicineSchema, NgoSchema, StoreSchema, UserSchema } from '../domain/types';
 import { MEDICINES } from './medicines';
-import { BLOOD_BANKS, NGOS, STORES, USERS } from './parties';
+import { BLOOD_BANKS, CBWTF, NGOS, STORES, USERS } from './parties';
 
 /** The demo starts on this simulated date. The presenter can time-travel forward. */
 export const DEMO_START = '2026-11-08';
@@ -52,6 +52,7 @@ export function validateSeed(seed: Seed): Seed {
 
 export const SEED: Seed = validateSeed({
   today: DEMO_START,
+  cbwtf: CBWTF,
   medicines: MEDICINES,
   stores: STORES,
   ngos: NGOS,
@@ -61,5 +62,4 @@ export const SEED: Seed = validateSeed({
   wallet: {},
 });
 
-export { MEDICINES, STORES, NGOS, BLOOD_BANKS, USERS };
-export { CBWTF } from './parties';
+export { MEDICINES, STORES, NGOS, BLOOD_BANKS, USERS, CBWTF };

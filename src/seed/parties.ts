@@ -54,6 +54,7 @@ export const BLOOD_BANKS: BloodBank[] = [
   { id: 'bb-fathermuller', name: 'Father Muller Blood Bank', area: 'Kankanady', urgentGroups: ['A-', 'AB-'] },
 ];
 
+/** Phone numbers are made-up demo numbers. They only power the rider's "Call" button. */
 export const USERS: User[] = [
   {
     id: 'u-asha',
@@ -62,6 +63,7 @@ export const USERS: User[] = [
     address: '12, Kadri Hills, Mangaluru',
     lat: 12.883,
     lng: 74.856,
+    phone: '+91 90000 10001',
   },
   {
     id: 'u-ravi',
@@ -70,8 +72,9 @@ export const USERS: User[] = [
     address: '4th Cross, Bejai, Mangaluru',
     lat: 12.8872,
     lng: 74.8369,
+    phone: '+91 90000 10002',
   },
-  { id: 'u-chemist', role: 'chemist', name: 'Ganesh Prabhu', storeId: 'store-ganesh' },
-  { id: 'u-rider', role: 'rider', name: 'Kiran Poojary' },
+  { id: 'u-chemist', role: 'chemist', name: 'Ganesh Prabhu', storeId: 'store-ganesh', phone: '+91 90000 20001' },
+  { id: 'u-rider', role: 'rider', name: 'Kiran Poojary', phone: '+91 90000 30001' },
   { id: 'u-admin', role: 'admin', name: 'PharmaFlow Admin' },
 ];
