@@ -5,7 +5,7 @@
 PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
 
 > 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> 🚧 Status: **all four role screens are built and tested end to end.** Still to do: server mode, PWA, languages and Playwright (see [Roadmap](#%EF%B8%8F-roadmap)).
+> ✅ Status: **all four role screens, server mode, the installable PWA, three languages and the Playwright tests are built and tested** (275 unit tests, 14 browser tests). What is still only a design: spending the NGO fund on cheap bulk medicines for NGOs (see [TODO.md](TODO.md)).
 >
 > 📖 More docs: [ARCHITECTURE.md](ARCHITECTURE.md) (how the code is organised and why) · [WORKFLOW.md](WORKFLOW.md) (every business flow and the demo script).
 
@@ -25,6 +25,7 @@ PharmaFlow replaces the one-way "buy → use → throw away" medicine supply cha
 9. [Tech Stack](#-tech-stack)
 10. [Folder Structure](#-folder-structure)
 11. [Getting Started](#-getting-started)
+    - [Languages](#languages) · [Install it as an app (PWA)](#install-it-as-an-app-pwa) · [Server mode](#%EF%B8%8F-server-mode)
 12. [Demo Walkthrough (for Evaluators)](#-demo-walkthrough-for-evaluators)
 13. [Roadmap](#-roadmap)
 14. [Research Basis](#-research-basis)
@@ -330,19 +331,25 @@ Why this design:
 | Mode | Storage | Sync | Setup |
 |---|---|---|---|
 | **Demo (default)** | IndexedDB (Dexie) | BroadcastChannel between tabs | None: `npm run dev` |
-| **Server (later)** | SQLite (better-sqlite3 + Drizzle) | WebSockets (`ws`) | Node.js only |
+| **Server** | SQLite file on the server (`node:sqlite`) | WebSocket pushed from the server | Node.js only: `pharmaflow server` or `npm run server` |
 
-### Planned REST API (server mode)
+Both modes run the **same events and the same reducer**. Server mode swaps only the two interfaces behind the store (`EventStorage` and `Transport`), so no screen changed. See [Server mode](#%EF%B8%8F-server-mode).
+
+### Server API
+
+The server is a small [Hono](https://hono.dev) app. Instead of one route per feature (inventory, orders, donations…), there is one **event endpoint**, because every action is already an event that the shared reducer validates.
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /api/auth/login`, `/register` | Email + password (bcrypt, JWT in httpOnly cookie) |
-| `/api/inventory` | Batches, scans, expiry buckets |
-| `/api/orders` | Forward orders + prescription approval |
-| `/api/donations` | NGO donations, QA, bio-disposal |
-| `/api/blood-drives` | Blood requirements + bookings |
-| `/api/admin` | KYC, KPIs, ledger verification |
-| `/api/events` | Event stream / replay |
+| `POST /api/login` | Password (bcrypt) → JWT. Also sets an HttpOnly cookie. Failed logins are rate limited |
+| `GET /api/events?after=N` | The hash-chained log (needs login) |
+| `POST /api/events` | Append one entry. The server re-checks it with the **same reducer** as the browser and answers `403` (wrong user), `409` (someone wrote first, so the browser re-syncs and retries) or `422` (a rule says no) |
+| `POST /api/reset` | Admin only: "Reset demo" |
+| `GET /api/verify/:code` | Public: is this certificate code real? (what the QR code opens) |
+| `GET /api/health` | Public: is the server up |
+| `WebSocket /ws` | After a first `{type:"auth", token}` message, the server pushes every stored entry to every signed-in browser |
+
+Not built: per-feature REST routes, self-service registration (the demo users are fixed), email verification and password reset.
 
 ---
 
@@ -363,9 +370,9 @@ Why this design:
 | Scratch cards | HTML5 `<canvas>` (`destination-out`) + **canvas-confetti** |
 | Certificates | **jsPDF + qrcode** |
 | Charts | **Recharts** |
-| Server (later) | **Hono / Fastify + better-sqlite3 + Drizzle ORM + ws** |
-| PWA / i18n | **vite-plugin-pwa**, **react-i18next** (English, ಕನ್ನಡ, हिन्दी) |
-| Testing | **Vitest** (domain rules) + **Playwright** (multi-tab sync) |
+| Server | **Hono + `node:sqlite` + ws + bcryptjs + JWT** (`node:sqlite` is built into Node 22+, so nothing needs compiling; this replaces the planned better-sqlite3 + Drizzle) |
+| PWA / i18n | **vite-plugin-pwa** (Workbox), **react-i18next** (English, ಕನ್ನಡ, हिन्दी) |
+| Testing | **Vitest** (domain rules, server, sync) + **Playwright** (four-tab demo, languages, PWA, server mode) |
 | Sample database | **node:sqlite** (built into Node 22+), schema in `scripts/schema.sql` |
 | Hosting | Vercel / Netlify (demo) · Render / Railway (server) |
 
@@ -403,24 +410,29 @@ Pharma-flow/
 │   │   ├── machines/        # order.ts, pickup.ts (state machines)
 │   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts, sponsor, fund)
 │   ├── store/               # Zustand store, Dexie + in-memory storage, BroadcastChannel transport
+│   │   └── server/          # Server mode in the browser: ServerStorage, WebSocketTransport, login tokens
+│   ├── i18n/                # en.json, kn.json, hi.json and the language setup
 │   ├── roles/
 │   │   ├── customer/        # Shop, Deals (with Sponsor), Cart, Orders (tracker, scratch cards), Civic hub, Rx form with OCR
 │   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, sponsored packs, write-off receipts, demo barcodes
 │   │   ├── rider/           # Mission radar, lifecycle and the navigation map
 │   │   └── admin/           # KYC queue, KPIs, charts, NGO fund, blood confirmations, audit trail
-│   ├── components/          # PresenterBar, RoleGate, VerifyPage, layout hook, toast, UI primitives
-│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), certificatePdf.ts (jsPDF), confetti.ts, image.ts, id.ts
+│   ├── components/          # PresenterBar, RoleGate, ServerLogin, LanguageSwitcher, VerifyPage, layout hook, toast, UI primitives
+│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), certificatePdf.ts (jsPDF), serverAuth.ts, confetti.ts, image.ts, id.ts
 │   ├── seed/                # Medicines, stores, NGOs, blood banks, users, preset barcodes
 │   ├── App.tsx · main.tsx · index.css
+├── server/                  # Server mode: Hono API (app.ts), event log (log.ts), logins (auth.ts), WebSocket (ws.ts), SQLite (db.ts)
+├── public/icons/            # PWA icons (made by scripts/make-icons.mjs)
 ├── scripts/
-│   ├── schema.sql           # Sample SQLite schema (preview of server mode)
+│   ├── schema.sql           # Sample SQLite schema (the server's events table has the same columns)
 │   ├── install-command.ps1  # Adds or removes the `pharmaflow` command on your user Path
+│   ├── make-icons.mjs       # Draws the PWA icons with no image library
 │   └── sample-db.ts         # Runs a full scenario and writes data/pharmaflow-sample.db
-├── tests/                   # Vitest: rules, machines, reducer, store sync, walkthrough
-├── e2e/                     # Playwright: the walkthrough and the sponsor flow across four browser tabs
-├── playwright.config.ts     # Playwright setup (uses your installed Chrome)
-├── data/                    # Generated sample database (git-ignored)
-├── pharmaflow.cmd           # The `pharmaflow` command (start, stop, status, test, db, build)
+├── tests/                   # Vitest: rules, machines, reducer, store sync, server, translations, walkthrough
+├── e2e/                     # Playwright: four-tab walkthrough, sponsor flow, languages, PWA, server mode
+├── playwright*.config.ts    # Playwright setups: demo (default), PWA (production build), server (real server)
+├── data/                    # Generated databases and logs (git-ignored)
+├── pharmaflow.cmd           # The `pharmaflow` command (start, stop, status, test, db, build, server)
 ├── Start PharmaFlow.cmd     # Double-click launcher
 ├── run.ps1                  # PowerShell launcher used by both
 ├── ARCHITECTURE.md          # How the code is organised and why
@@ -457,12 +469,15 @@ It starts the app in the background (no extra window), waits until it is ready a
 | `pharmaflow dev` | Run the dev server in the current window (Ctrl+C to stop) |
 | `pharmaflow stop` | Stop the background app |
 | `pharmaflow status` | Say whether it is running |
-| `pharmaflow test` | Run the 221 domain and sync tests |
+| `pharmaflow test` | Run the 275 unit tests (domain, server, sync, translations) |
 | `pharmaflow db` | Build and print the sample SQLite database |
 | `pharmaflow build` | Typecheck and create a production build |
+| `pharmaflow server` | Run **server mode** in the current window: real logins, data kept on the server (see [Server mode](#%EF%B8%8F-server-mode)) |
 | `pharmaflow -NoBrowser` | Start without opening the browser |
 
 Without installing the command you can run the same things from the project folder with `.\pharmaflow.cmd` or `.\run.ps1` (for example `.\run.ps1 -Stop`). `npm run dev`, `npm test`, `npm run build` and `npm run db:sample` also work. The background server writes its log to `data/dev-server.log`; open it if the app does not start.
+
+Browser tests (they use the Chrome you already have, no download): `npm run test:e2e` (four-tab demo and languages), `npm run test:e2e:pwa` (builds the app, checks installability and offline use) and `npm run test:e2e:server` (builds and starts the real server).
 
 ### Any shell
 
@@ -493,11 +508,50 @@ Use the **1-tap demo login** buttons; no sign-up is needed.
 | **Prescription OCR** (Tesseract.js) | Internet **once** | The first "Read with OCR" downloads about 10 MB of English language data, then the browser caches it. Press it once on wifi before the demo. If OCR is unavailable, the form falls back to typing the details |
 | **Rider map** (Leaflet) | Internet for street tiles | Tiles come from the free OpenStreetMap servers, so no API key. Offline, or if tiles keep failing, it switches by itself to a simple route diagram with the same stops, ETA and Call button |
 | **PDF certificates, charts, scratch cards** | Nothing | Built in the browser. A certificate's QR code opens `/verify?code=…`, which checks the code against the data in the same browser |
-| Inter font | Internet (optional) | Loaded from Google Fonts. Without internet the browser uses a system font |
+| Inter font | Internet (optional) | Loaded from Google Fonts, with Noto Sans for Kannada and Hindi. Without internet the browser uses a system font |
+
+### Languages
+
+The picker in the top bar switches between **English, ಕನ್ನಡ (Kannada) and हिन्दी (Hindi)**. The choice is remembered, and the **All 4** panes follow it. The whole customer app, the chemist dashboard (ledger, packing and QA desks, sponsored packs, receipts), the rider screen, the admin portal, the certificate verify page and the sign-in screens are translated.
+
+Not translated, on purpose: medicine names and other data, the PDF certificates and receipts, the messages that the business rules produce (they come from `src/domain`, which has no UI language, so a rule's "why not" message stays in English), and a few parts that are still English: the chemist's **Add inventory** card and the camera scanner, the customer's **prescription form** (Rx upload and OCR), the rider's navigation panel and map, and the printable demo barcodes page. The Kannada and Hindi text was written without a native-speaker review, so please have someone read it before you show it to an audience.
+
+A test (`tests/i18n.test.ts`) keeps the three files in step: same keys and placeholders, no empty text, no key that a screen asks for but is missing, and no leftover key.
+
+### Install it as an app (PWA)
+
+The production build (`npm run build`, then `npm run preview`) is an **installable app with an offline shell**: Chrome and Edge offer **Install** in the address bar. Once the page has loaded online, every page of the app opens with no network, your demo data is still there (it is in IndexedDB), and rider map tiles you have already seen are cached. Only first-time OCR and the maps of unseen areas need internet. The service worker is built only by `vite build`, so `npm run dev` is unaffected.
 
 ### Sample database
 
 `npm run db:sample` runs a full scenario through the real rules (scan, time travel, Eco-Sale, prescription order, delivery, donation, disposal, blood booking, KYC) and writes `data/pharmaflow-sample.db`. It prints the tables and the hash-chained `events` log. Open the file in any SQLite viewer. See [ARCHITECTURE.md](ARCHITECTURE.md#sample-database-and-server-mode) for how it maps to server mode.
+
+---
+
+## 🖥️ Server mode
+
+The default demo keeps everything in one browser. **Server mode keeps the data on a server**, so different computers and phones share it, and people sign in with a real password.
+
+```powershell
+pharmaflow server            # or: npm run build:server, then npm run server
+```
+
+Open `http://localhost:8787/presenter`. Each role now asks for a password (the **demo users all share `pharmaflow`**; the login screen shows it only while it is still the password). The first start builds the server version of the app, which takes a few seconds.
+
+| What | How it works |
+|---|---|
+| Data | One SQLite file, `data/pharmaflow.db` (override with `PHARMAFLOW_DB`). The `events` table is the hash-chained log, the same one the browser keeps in demo mode. Delete the file to start over |
+| Rules | The server runs the **same reducer** as the browser on every event, so it never stores anything a rule would reject. A customer cannot list stock, move time, or act as someone else, whatever their browser sends |
+| Logins | bcrypt password hashes in `credentials`, a 12-hour JWT per user (also sent as an HttpOnly cookie), failed logins rate limited, cookie-authenticated changes must come from the same site |
+| Live sync | After sign-in each browser opens a WebSocket (`/ws`) and the server pushes every new entry to all of them. If the connection drops, the browser reconnects and reloads the log |
+| Same screens | Only the storage and the transport behind the store change (`ServerStorage`, `WebSocketTransport`). The role screens, the reducer and the rules are unchanged |
+| Certificates | The QR code opens `/verify?code=…`, which asks the server, so anyone can check a certificate without signing in |
+
+Settings (environment variables): `PORT` (8787), `HOST` (`localhost`; use `0.0.0.0` to reach it from other devices), `PHARMAFLOW_DB`, `PHARMAFLOW_DEMO_PASSWORD` (the password given to each demo user the first time the database is made), `PHARMAFLOW_JWT_SECRET` (otherwise a key is made once and kept in the database) and `PHARMAFLOW_SECURE_COOKIE=1` behind HTTPS.
+
+**Developing with it:** run `npm run server` (the API) in one window and `npm run dev:server` (Vite on port 5173, proxying `/api` and `/ws`) in another. In server mode, the presenter bar's **time travel and Reset demo need the admin to be signed in** in some tab of that browser.
+
+This is a demo-grade server. Not built: registering new accounts, password reset, per-role views of the log (a signed-in user can read every event, including prescriptions), HTTPS (put it behind a proxy that does TLS), and spending the NGO fund. See [TODO.md](TODO.md).
 
 ---
 
@@ -529,7 +583,9 @@ All of this happens **live across 4 tabs without a page refresh**. A step-by-ste
 - [x] **5. Rider:** mission radar, lifecycle buttons, map, backhaul *(dark map with numbered multi-stop route, distance, ETA and Call; offline route diagram; radar; lifecycle with OTP; backhaul; earnings)*
 - [x] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(donate and Yellow-Bag forms with live eligibility feedback; blood booking; pickup tracking; certificate PDFs with a QR code and a verify page; course-completion reminder; canvas scratch cards with confetti)*
 - [x] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(KYC queue, KPI cards, three charts, blood donation confirmations, audit trail with ledger verification)*
-- [ ] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(built: PowerShell launcher and the `pharmaflow` command, sample SQLite database. Still to do: server mode, PWA, languages, Playwright)*
+- [x] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(all built: PowerShell launcher and the `pharmaflow` command, sample SQLite database, [server mode](#%EF%B8%8F-server-mode) with logins and live sync, the installable offline PWA, English / Kannada / Hindi, and Playwright tests for the four-tab walkthrough, the sponsor flow, languages, the PWA and server mode)*
+
+**Ideas that are designed but not built:** an NGO login with a *needs list*, a chemist *NGO price* opt-in, and bulk buying from distributors at a cheaper rate, paid from the NGO fund. See [TODO.md](TODO.md).
 
 ---
 
@@ -566,7 +622,7 @@ College PBL demo. Must run with ZERO setup: `npm install && npm run dev`. No clo
 ## 2. Fixed decisions (do not change or re-debate)
 TypeScript, React 18, Vite, React Router 7, Tailwind, shadcn/ui, Lucide, Framer Motion,
 Zustand, Dexie, Zod. Event-sourced core: every action is a typed event; state = reduce(events).
-Sync via BroadcastChannel (demo mode). Server mode (Hono + SQLite + ws) LATER, same events/reducer.
+Sync via BroadcastChannel (demo mode). Server mode (Hono + node:sqlite + ws, in /server) is built and uses the same events/reducer.
 Routes: /customer /chemist /rider /admin /presenter.
 Libs: @zxing/browser, Tesseract.js, react-leaflet, jsPDF + qrcode, Recharts, canvas-confetti.
 Folders: src/domain (pure TS) | src/store | src/roles/<role> | src/components | src/seed.
@@ -625,6 +681,11 @@ then tell me how to run/check it. If a rule is unclear, ASK.
 
 **2026-11-08**
 
+- Added **server mode** (`pharmaflow server`): a Hono API with bcrypt passwords and JWT logins, a SQLite hash-chained event log that checks every event with the same reducer as the browser, live push over a WebSocket, and a public certificate check. The browser swaps only `EventStorage` and `Transport`, so no screen changed. Time travel is now admin-only in the rules.
+- Added **English, Kannada and Hindi** with a language picker in the top bar. The whole customer app, the chemist, rider and admin screens and the verify page are translated; a test keeps the three files in step.
+- Made the app an **installable PWA** with an offline shell (Workbox service worker, generated icons, cached map tiles), checked by a Playwright test against the production build.
+- Added Playwright tests for the four-tab walkthrough, the languages, the PWA and server mode (`npm run test:e2e`, `test:e2e:pwa`, `test:e2e:server`).
+- Replaced the planned better-sqlite3 + Drizzle with Node's built-in `node:sqlite` for the server, so nothing needs compiling.
 - Added **Sponsor batch for NGO (₹99)** on Eco-Sale deals. The packs come out of the store's own batch, the store's chemist checks them, the store is paid its Eco-Sale price, the change tops up a new **NGO fund**, and the sponsor earns +200 karma, a scratch card and an NGO Donor certificate. A failed check refunds the sponsor as MedWallet credit. OTC medicines only.
 - Added the **NGO fund**: sponsor change plus 2% of the platform's 10% fee on delivered orders. It shows on the Admin dashboard and chart, and customers see their order's share.
 - Added **Playwright** multi-tab tests (`npm run test:e2e`) for the walkthrough and the sponsor flow.
