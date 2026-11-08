@@ -24,20 +24,30 @@ function sellEcoOkacet(sim: Sim) {
 
 describe('impactTimeline', () => {
   it('starts at zero on the first day even with no events', () => {
-    expect(impactTimeline(SEED, [])).toEqual([{ date: SEED.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 }]);
+    expect(impactTimeline(SEED, [])).toEqual([{ step: 0, date: SEED.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 }]);
   });
 
-  it('builds cumulative points per simulated day', () => {
+  it('records a point whenever a number changes, even within a single day', () => {
+    const sim = new Sim();
+    sellEcoOkacet(sim); // 8 events; revenue changes on the 8th, the delivery
+    sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-09' }); // 9th: no number changes
+    sim.must(CUSTOMER, { type: 'BLOOD_BOOKED', booking: { id: 'bk1', userId: CUSTOMER, bloodBankId: 'bb-wenlock', date: '2026-11-09', bloodGroup: 'O+', status: 'BOOKED' } }); // 10th
+    sim.must(ADMIN, { type: 'BLOOD_DONATION_CONFIRMED', bookingId: 'bk1' }); // 11th: blood donation counted
+
+    const points = impactTimeline(SEED, sim.log);
+    expect(points.map((p) => p.step)).toEqual([0, 8, 11]);
+    expect(points[0]).toMatchObject({ ecoRevenue: 0, bloodDonations: 0, date: '2026-11-08' });
+    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0, date: '2026-11-08' });
+    expect(points[2]).toMatchObject({ ecoRevenue: 23, bloodDonations: 1, date: '2026-11-09' });
+  });
+
+  it('extends the line to the newest event when nothing changed after the last point', () => {
     const sim = new Sim();
     sellEcoOkacet(sim);
     sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-09' });
-    sim.must(CUSTOMER, { type: 'BLOOD_BOOKED', booking: { id: 'bk1', userId: CUSTOMER, bloodBankId: 'bb-wenlock', date: '2026-11-09', bloodGroup: 'O+', status: 'BOOKED' } });
-    sim.must(ADMIN, { type: 'BLOOD_DONATION_CONFIRMED', bookingId: 'bk1' });
-
     const points = impactTimeline(SEED, sim.log);
-    expect(points.map((p) => p.date)).toEqual(['2026-11-08', '2026-11-09']);
-    expect(points[0]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0 });
-    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 1 });
+    expect(points.map((p) => p.step)).toEqual([0, 8, 9]);
+    expect(points[2]).toMatchObject({ ecoRevenue: 23, date: '2026-11-09' });
   });
 });
 
