@@ -9,6 +9,8 @@ const PORT = 5199;
  */
 export default defineConfig({
   testDir: './e2e',
+  // The PWA test needs the production build: see playwright.pwa.config.ts
+  testIgnore: '**/pwa.spec.ts',
   timeout: 90_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
