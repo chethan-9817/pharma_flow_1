@@ -13,9 +13,12 @@
     "db:sample": "tsx scripts/sample-db.ts"
   },
   "dependencies": {
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "dexie": "^4.4.7",
     "framer-motion": "^14.10.1",
     "lucide-react": "^1.70.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.5",
@@ -26,6 +29,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^26.6.6",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^6.2.1",
