@@ -38,11 +38,12 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 
 | Flow | Rules and events | Screens |
 |---|---|---|
-| Scan to ingest | ✅ | ✅ camera, typed barcode, presets and confirm step |
+| Add inventory (scan, type or choose medicine) | ✅ | ✅ |
 | Eco-Sale | ✅ | ✅ |
 | OTC order | ✅ | ✅ |
 | Prescription order and OCR | ✅ | ✅ |
 | Rider delivery with OTP | ✅ | ✅ |
+| Rider navigation map, ETA and Call | ✅ | ✅ dark street map, offline route diagram |
 | Chemist donates or disposes a batch | ✅ | ✅ |
 | Customer donates or disposes | ✅ | ⏳ Civic Hub screens still to build |
 | Backhaul pickup suggestion | ✅ | ✅ appears when a customer-scheduled pickup is nearby, so it needs the Civic Hub screens to be seen |
@@ -53,13 +54,14 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 
 ---
 
-## 1. Stock arrives: scan to ingest
+## 1. Stock arrives: add inventory
 
-**Actor:** Chemist. **Screen:** Chemist → *Scan to ingest*.
+**Actor:** Chemist. **Screen:** Chemist → *Add inventory* (also reachable from the **Add inventory** buttons in the shop header and above the expiry ledger). Choose a tab: **Scan barcode**, **Type barcode** or **Choose medicine**.
 
 ```mermaid
 flowchart LR
     A["Scan with camera,<br/>pick a preset<br/>or type the barcode"] --> B["parseScan"]
+    M["Choose medicine<br/>(no barcode)"] --> E
     B -->|"GS1 code"| C["GTIN + batch + expiry"]
     B -->|"plain EAN-13"| D["GTIN only"]
     B -->|"unreadable"| X["Error toast"]
@@ -75,6 +77,7 @@ Notes:
 
 - GS1 codes carry the product code (GTIN), batch (AI 10) and expiry (AI 17, `YYMMDD`; day `00` means end of month). A plain retail barcode carries only the GTIN, so the chemist types the batch and expiry.
 - A GTIN that is not in the catalog is rejected with its number shown.
+- **No barcode at all?** Use the **Choose medicine** tab: pick the medicine from the catalog, then type the batch number and expiry printed on the strip.
 - **If the camera cannot read the strip, or there is no camera, type it.** Put the digits under the barcode into **Can't scan? Type the barcode** and press **Look up**. Spaces and hyphens are ignored, and a wrong digit count gets a clear message. A GS1 string such as `(01)08901234500011(17)270600(10)DL27A01` also works and fills batch and expiry. The camera dialog offers "Type the barcode instead" when it fails and after a few seconds without a read.
 - Stock cannot be added by a store that is still `PENDING_KYC`.
 
@@ -195,6 +198,8 @@ flowchart LR
     F -->|"disposal"| I["Hand to CBWTF"]
 ```
 
+- **Navigation:** as soon as a rider has a mission, a dark street map shows every stop in order (store or pickup point, then the customer, QA store, NGO or CBWTF plant) as numbered pins, with the rider as a pulsing yellow dot. Below it: the next stop, distance, ETA (at about 25 km/h), a **Call** button (a made-up demo number) and an **Open in Maps** link. After a backhaul pickup is added the route simply grows. The dot glides toward the next stop while the rider is travelling and waits when the rider has arrived.
+- **Offline:** if the device loses internet, or street tiles keep failing, the map switches to a plain route diagram with the same stops and ETA, and returns when the connection is back.
 - A rider must be **online** to accept. A rider cannot go offline with an active mission.
 - Only the assigned rider can progress a mission.
 - A wrong OTP is rejected and the order stays out for delivery.
@@ -315,6 +320,7 @@ About 8 to 10 minutes. Everything happens live across tabs with no refresh.
 | App is running | Type `pharmaflow` in any terminal. It starts the app and opens `http://localhost:5173/presenter` (or double-click `Start PharmaFlow.cmd`) |
 | **Use `localhost`** | The camera is blocked on plain-HTTP LAN addresses |
 | Warm up OCR **once** | In a Customer tab, add Augmentin to the cart, upload any photo and press **Read with OCR**. This downloads about 10 MB and caches it |
+| Rider map | Needs internet for street tiles. If wifi drops it falls back to a route diagram, so the demo keeps going |
 | Camera permission | Press **Scan with camera** once and click Allow |
 | QR codes ready | Open `http://localhost:5173/demo-barcodes` on a phone (or print it) |
 | Clean slate | Press **Reset demo** in the presenter bar |
@@ -332,7 +338,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | 4 | Customer | Add Eco-Sale Dolo (Deals) and **Augmentin** (Shop) → open **Cart** | Checkout shows **Prescription required** |
 | 5 | Customer | Upload the prescription photo → **Read with OCR** → check fields → **Place order** | OCR fills doctor, reg. no., date, patient. "OCR only suggests; the pharmacist decides." Try placing it empty first to show the block |
 | 6 | Chemist | Order packing desk → **Approve Rx** → **Pack & summon rider** | Order moves to *Packed* |
-| 7 | Rider | **Offline → Online** → **Accept mission** → **Arrived** → **Collected** → type the OTP shown in the customer's Orders tab → **Confirm handover** | ₹40 earnings, 1 trip |
+| 7 | Rider | **Offline → Online** → **Accept mission** (the map appears: point out the route, ETA and Call button) → **Arrived** → **Collected** → type the OTP shown in the customer's Orders tab → **Confirm handover** | ₹40 earnings, 1 trip |
 | 8 | Customer | **Orders** tab → **Reveal** the scratch card | Karma or MedWallet credit appears |
 | 9 | Chemist | **Donate** on a batch with a safe expiry → Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The *Returned-medicine QA desk* shows the pickup; this covers the reverse flow end to end |
 | 10 | Admin | Check the KPIs → **Verify ledger integrity** | "✅ Chain intact: N events verified" |
@@ -355,7 +361,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 153 tests, about one second
+pharmaflow test      # 166 tests, about one second
 npm run typecheck    # strict TypeScript
 npm run build        # typecheck + production build
 npm run db:sample    # rebuild the sample database
@@ -389,6 +395,8 @@ npm run db:sample    # rebuild the sample database
 | Everything looks stuck or odd | Press **Reset demo** in the presenter bar |
 | PowerShell blocks `run.ps1` | Use `pharmaflow` (it bypasses the policy for its own script), or run `powershell -ExecutionPolicy Bypass -File .\run.ps1` |
 | `pharmaflow` is not recognised | Open a **new** terminal window after installing, or run `scripts\install-command.ps1` again |
+| Rider map shows a diagram instead of streets | The device is offline or the OpenStreetMap tiles are blocked. Reconnect and it returns by itself |
+| No barcode on the strip | Use the **Choose medicine** tab in Add inventory |
 | The app does not start | Open `data\dev-server.log` in the project folder to see why |
 | `npm install` is slow in OneDrive | Pause OneDrive sync while installing, or run `npm install` once and leave it |
 | Port 5173 already in use | Run `pharmaflow stop` if it is PharmaFlow. If another program owns the port, close that program first |
