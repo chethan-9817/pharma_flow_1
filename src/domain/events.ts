@@ -2,7 +2,7 @@ import type { IsoDate } from './clock';
 import type {
   BloodBooking,
 } from './state';
-import type { Batch, Order, Pickup, Prescription, Store } from './types';
+import type { Batch, Order, Pickup, Prescription, Sponsorship, Store } from './types';
 
 /**
  * Every action in PharmaFlow is an immutable, typed domain event.
@@ -46,6 +46,8 @@ export type DomainEventPayload =
   | { type: 'ORDER_ARRIVED'; orderId: string }
   | { type: 'ORDER_OUT_FOR_DELIVERY'; orderId: string }
   | { type: 'ORDER_DELIVERED'; orderId: string; otp: string }
+  // Sponsor a batch for an NGO (the packs then travel as a pickup that starts at the store)
+  | { type: 'SPONSORSHIP_PLACED'; sponsorship: Sponsorship }
   // Rewards
   | { type: 'SCRATCH_CARD_REVEALED'; cardId: string }
   // Blood

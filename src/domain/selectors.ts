@@ -1,9 +1,10 @@
 import { addDays, daysBetween, daysLeft, type IsoDate } from './clock';
 import { ecoPrice, checkEcoSaleEligible } from './rules/ecoSale';
 import { bucketForDaysLeft, type ExpiryBucket } from './rules/expiry';
+import type { FundEntryKind } from './rules/fund';
 import { buildWriteOffCertificate, type WriteOffCertificate } from './rules/gst';
-import type { AppState } from './state';
-import type { Batch, Medicine, Order, Pickup } from './types';
+import type { AppState, NgoFund } from './state';
+import type { Batch, Medicine, Order, Pickup, Sponsorship } from './types';
 
 export interface BatchView {
   batch: Batch;
@@ -168,6 +169,90 @@ export function courseReminders(s: AppState, userId: string): CourseReminder[] {
   return out.sort((a, b) => b.endedOn.localeCompare(a.endedOn));
 }
 
+export interface SponsorshipView {
+  sponsorship: Sponsorship;
+  medicine: Medicine;
+  storeName: string;
+  ngoName: string;
+  pickup: Pickup | undefined;
+}
+
+function viewSponsorship(s: AppState, sponsorship: Sponsorship): SponsorshipView {
+  return {
+    sponsorship,
+    medicine: s.medicines[sponsorship.medicineId]!,
+    storeName: s.stores[sponsorship.storeId]?.name ?? sponsorship.storeId,
+    ngoName: s.ngos[sponsorship.ngoId]?.name ?? 'an NGO',
+    pickup: s.pickups[sponsorship.pickupId],
+  };
+}
+
+/** A customer's sponsorships, newest first. */
+export function customerSponsorships(s: AppState, userId: string): SponsorshipView[] {
+  return Object.values(s.sponsorships)
+    .filter((sp) => sp.customerId === userId)
+    .map((sp) => viewSponsorship(s, sp))
+    .reverse();
+}
+
+export interface StoreSponsorships {
+  items: SponsorshipView[];
+  /** Packs the store has handed over for NGOs (delivered sponsorships only). */
+  packsDelivered: number;
+  /** What the store has been paid for those packs. */
+  paidOut: number;
+  /** Money the store will be paid once the NGO has the packs. */
+  pending: number;
+}
+
+/** Sponsorships that draw on a store's stock, with what the store has earned and is still owed. */
+export function storeSponsorships(s: AppState, storeId: string): StoreSponsorships {
+  const items = Object.values(s.sponsorships)
+    .filter((sp) => sp.storeId === storeId)
+    .map((sp) => viewSponsorship(s, sp))
+    .reverse();
+  const sum = (status: Sponsorship['status'], pick: (sp: Sponsorship) => number) =>
+    round2(items.filter((v) => v.sponsorship.status === status).reduce((n, v) => n + pick(v.sponsorship), 0));
+  return {
+    items,
+    packsDelivered: sum('DELIVERED', (sp) => sp.qty),
+    paidOut: sum('DELIVERED', (sp) => sp.storePayout),
+    pending: sum('PLACED', (sp) => sp.storePayout),
+  };
+}
+
+export interface FundSummary {
+  balance: number;
+  /** Change from "Sponsor batch for NGO" payments. */
+  fromSponsors: number;
+  /** The platform's share of its fee on delivered orders. */
+  fromPlatform: number;
+  /** Packs sponsored for NGOs and already in their hands. */
+  packsSponsored: number;
+  sponsorsPending: number;
+  /** Newest first. */
+  recent: NgoFund['entries'];
+}
+
+export function fundSummary(s: AppState): FundSummary {
+  const entries = s.ngoFund.entries;
+  const total = (kind: FundEntryKind) => round2(entries.filter((e) => e.kind === kind).reduce((n, e) => n + e.amount, 0));
+  const sponsorships = Object.values(s.sponsorships);
+  return {
+    balance: s.ngoFund.balance,
+    fromSponsors: total('SPONSOR_CHANGE'),
+    fromPlatform: total('PLATFORM_SHARE'),
+    packsSponsored: sponsorships.filter((sp) => sp.status === 'DELIVERED').reduce((n, sp) => n + sp.qty, 0),
+    sponsorsPending: sponsorships.filter((sp) => sp.status === 'PLACED').length,
+    recent: [...entries].reverse(),
+  };
+}
+
+/** What the NGO fund received from one delivered order, so the customer can see where their order helped. */
+export function orderFundShare(s: AppState, orderId: string): number {
+  return s.ngoFund.entries.find((e) => e.kind === 'PLATFORM_SHARE' && e.refId === orderId)?.amount ?? 0;
+}
+
 export interface StoreWriteOff {
   pickup: Pickup;
   certificate: WriteOffCertificate;
@@ -181,6 +266,8 @@ export interface StoreWriteOff {
 export function storeWriteOffs(s: AppState, storeId: string): StoreWriteOff[] {
   return Object.values(s.pickups)
     .filter((p) => p.sourceStoreId === storeId && (p.status === 'DELIVERED_TO_NGO' || p.status === 'INCINERATED'))
+    // Packs a customer sponsored were sold to that customer (and paid for), so they are not a write-off.
+    .filter((p) => !(p.sponsorshipId && p.status === 'DELIVERED_TO_NGO'))
     .map((pickup) => {
       const donated = pickup.status === 'DELIVERED_TO_NGO';
       const recipient = donated ? (pickup.ngoId ? s.ngos[pickup.ngoId]?.name : undefined) ?? 'NGO' : s.cbwtf.name;

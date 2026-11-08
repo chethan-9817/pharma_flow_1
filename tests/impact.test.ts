@@ -24,7 +24,7 @@ function sellEcoOkacet(sim: Sim) {
 
 describe('impactTimeline', () => {
   it('starts at zero on the first day even with no events', () => {
-    expect(impactTimeline(SEED, [])).toEqual([{ step: 0, date: SEED.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 }]);
+    expect(impactTimeline(SEED, [])).toEqual([{ step: 0, date: SEED.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0, ngoFund: 0 }]);
   });
 
   it('records a point whenever a number changes, even within a single day', () => {
@@ -37,7 +37,8 @@ describe('impactTimeline', () => {
     const points = impactTimeline(SEED, sim.log);
     expect(points.map((p) => p.step)).toEqual([0, 8, 11]);
     expect(points[0]).toMatchObject({ ecoRevenue: 0, bloodDonations: 0, date: '2026-11-08' });
-    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0, date: '2026-11-08' });
+    // Delivering a ₹23 order also puts 2% of the 10% platform fee (₹0.05) into the NGO fund.
+    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0, ngoFund: 0.05, date: '2026-11-08' });
     expect(points[2]).toMatchObject({ ecoRevenue: 23, bloodDonations: 1, date: '2026-11-09' });
   });
 

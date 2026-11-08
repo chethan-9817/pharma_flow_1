@@ -17,11 +17,17 @@ export interface ImpactPoint {
   /** Hazardous waste sent to incineration, in kg. */
   wasteKg: number;
   bloodDonations: number;
+  /** Money in the NGO fund, in rupees. */
+  ngoFund: number;
 }
 
 type Metrics = Omit<ImpactPoint, 'step' | 'date'>;
 const sameMetrics = (a: Metrics, b: Metrics) =>
-  a.ecoRevenue === b.ecoRevenue && a.ngoValue === b.ngoValue && a.wasteKg === b.wasteKg && a.bloodDonations === b.bloodDonations;
+  a.ecoRevenue === b.ecoRevenue &&
+  a.ngoValue === b.ngoValue &&
+  a.wasteKg === b.wasteKg &&
+  a.bloodDonations === b.bloodDonations &&
+  a.ngoFund === b.ngoFund;
 
 /**
  * Cumulative impact as the event log grows, found by replaying it. A point is recorded each time a
@@ -31,7 +37,7 @@ const sameMetrics = (a: Metrics, b: Metrics) =>
  */
 export function impactTimeline(seed: Seed, events: readonly DomainEvent[]): ImpactPoint[] {
   let state = createInitialState(seed);
-  const points: ImpactPoint[] = [{ step: 0, date: seed.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 }];
+  const points: ImpactPoint[] = [{ step: 0, date: seed.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0, ngoFund: 0 }];
   let step = 0;
 
   for (const event of events) {
@@ -48,6 +54,7 @@ export function impactTimeline(seed: Seed, events: readonly DomainEvent[]): Impa
       ngoValue: k.ngoMedicineValue,
       wasteKg: k.hazardousKgDiverted,
       bloodDonations: k.bloodDonationsCompleted,
+      ngoFund: state.ngoFund.balance,
     };
     if (!sameMetrics(points[points.length - 1]!, next)) points.push(next);
   }
@@ -87,6 +94,7 @@ const FAMILY: Record<EventType, ActivityFamily> = {
   PICKUP_QA_REJECTED: 'Pickups',
   PICKUP_DELIVERED_TO_NGO: 'Pickups',
   PICKUP_INCINERATED: 'Pickups',
+  SPONSORSHIP_PLACED: 'Civic',
   SCRATCH_CARD_REVEALED: 'Civic',
   BLOOD_BOOKED: 'Civic',
   BLOOD_DONATION_CONFIRMED: 'Civic',

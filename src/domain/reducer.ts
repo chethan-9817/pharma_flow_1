@@ -5,6 +5,7 @@ import * as civic from './handlers/civic';
 import * as inventory from './handlers/inventory';
 import * as orders from './handlers/orders';
 import * as pickups from './handlers/pickups';
+import * as sponsor from './handlers/sponsor';
 import type { Step } from './handlers/common';
 
 /**
@@ -69,6 +70,9 @@ function dispatch(s: AppState, e: DomainEvent): Step {
       return orders.orderOutForDelivery(s, e);
     case 'ORDER_DELIVERED':
       return orders.orderDelivered(s, e);
+
+    case 'SPONSORSHIP_PLACED':
+      return sponsor.sponsorshipPlaced(s, e);
 
     case 'SCRATCH_CARD_REVEALED':
       return civic.scratchCardRevealed(s, e);

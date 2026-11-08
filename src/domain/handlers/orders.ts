@@ -1,6 +1,7 @@
 import { daysLeft } from '../clock';
 import { checkOrderTransition } from '../machines/order';
 import { checkEcoSaleEligible, ecoPrice } from '../rules/ecoSale';
+import { ngoFundShare } from '../rules/fund';
 import {
   buildH1Entries,
   checkItemsSellable,
@@ -21,6 +22,7 @@ import {
   type Ev,
   type Step,
 } from './common';
+import { creditFund } from './fund';
 import { RIDER_PAY, applyCivicReward, payRider } from './payouts';
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -221,5 +223,7 @@ export function orderDelivered(s: AppState, e: Ev<'ORDER_DELIVERED'>): Step {
   let next = withOrder(s, { ...o, status: 'DELIVERED' });
   next = payRider(next, e.actorId, RIDER_PAY.DELIVERY);
   next = applyCivicReward(next, o.customerId, 'ORDER', o.id);
+  // A small share of the platform's fee goes to the NGO fund. The chemist's payout is not touched.
+  next = creditFund(next, 'PLATFORM_SHARE', ngoFundShare(o.total), o.id);
   return done(next);
 }

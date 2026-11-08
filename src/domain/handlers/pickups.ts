@@ -13,6 +13,7 @@ import {
   type Step,
 } from './common';
 import { RIDER_PAY, applyCivicReward, payRider } from './payouts';
+import { sponsorshipDelivered, sponsorshipRefunded } from './sponsor';
 
 function withPickup(s: AppState, p: Pickup): AppState {
   return { ...s, pickups: { ...s.pickups, [p.id]: p } };
@@ -134,7 +135,10 @@ export function pickupQaVerified(s: AppState, e: Ev<'PICKUP_QA_VERIFIED'>): Step
 
 export function pickupQaRejected(s: AppState, e: Ev<'PICKUP_QA_REJECTED'>): Step {
   if (!e.note.trim()) return err('Give a reason for rejecting the medicines');
-  return qaStep(s, e.pickupId, e.actorId, 'QA_REJECTED', e.note);
+  const step = qaStep(s, e.pickupId, e.actorId, 'QA_REJECTED', e.note);
+  if (!step.ok) return step;
+  // Packs a customer sponsored that fail the check are refunded as store credit.
+  return done(sponsorshipRefunded(step.value, s.pickups[e.pickupId]!));
 }
 
 export function pickupDeliveredToNgo(s: AppState, e: Ev<'PICKUP_DELIVERED_TO_NGO'>): Step {
@@ -146,6 +150,7 @@ export function pickupDeliveredToNgo(s: AppState, e: Ev<'PICKUP_DELIVERED_TO_NGO
   let next = closeBatch(withPickup(s, { ...p, status: 'DELIVERED_TO_NGO' }), p.batchId);
   next = payRider(next, e.actorId, RIDER_PAY.PICKUP, RIDER_PAY.GREEN_INCENTIVE);
   if (p.sourceUserId) next = applyCivicReward(next, p.sourceUserId, 'DONATION', p.id);
+  next = sponsorshipDelivered(next, p);
   return done(next);
 }
 

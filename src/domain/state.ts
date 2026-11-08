@@ -1,4 +1,5 @@
 import type { IsoDate } from './clock';
+import type { FundEntryKind } from './rules/fund';
 import type {
   Batch,
   BloodBank,
@@ -9,6 +10,7 @@ import type {
   Pickup,
   Prescription,
   ScratchCard,
+  Sponsorship,
   Store,
   User,
 } from './types';
@@ -38,6 +40,21 @@ export interface RiderProfile {
   earnings: number;
   incentives: number;
   trips: number;
+}
+
+export interface FundEntry {
+  id: string;
+  kind: FundEntryKind;
+  amount: number;
+  /** The order or sponsorship that put the money in. */
+  refId: string;
+  date: IsoDate;
+}
+
+/** Money set aside for medicines for NGOs. It can only be spent on medicines, never paid out as cash. */
+export interface NgoFund {
+  balance: number;
+  entries: FundEntry[];
 }
 
 /** A fixed place riders deliver to, such as the authorised bio-medical waste plant. */
@@ -71,6 +88,8 @@ export interface AppState {
   certificates: Certificate[];
   bloodBookings: Record<string, BloodBooking>;
   riders: Record<string, RiderProfile>;
+  sponsorships: Record<string, Sponsorship>;
+  ngoFund: NgoFund;
 }
 
 export interface Seed {
@@ -113,5 +132,7 @@ export function createInitialState(seed: Seed): AppState {
         .filter((u) => u.role === 'rider')
         .map((u) => [u.id, { online: false, earnings: 0, incentives: 0, trips: 0 }]),
     ),
+    sponsorships: {},
+    ngoFund: { balance: 0, entries: [] },
   };
 }
