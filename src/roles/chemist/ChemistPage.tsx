@@ -1,15 +1,13 @@
 import { motion } from 'framer-motion';
-import { FileCheck, Gift, PackageCheck, ScanLine, ShieldCheck, Tag, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { parseGs1 } from '../../domain/rules/gs1';
+import { FileCheck, Gift, PackageCheck, ShieldCheck, Tag, Trash2 } from 'lucide-react';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
-import type { Batch, User } from '../../domain/types';
+import type { User } from '../../domain/types';
 import { Badge, BucketBadge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
-import { BARCODE_PRESETS } from '../../seed/barcodes';
 import { dispatch, useApp } from '../../store';
+import { StockScanner } from './StockScanner';
 
 const NGO_ID = 'ngo-seva';
 
@@ -19,7 +17,6 @@ export function ChemistPage({ user }: { user: User }) {
   const store = app.stores[storeId]!;
   const inventory = storeInventory(app, storeId);
   const counts = bucketCounts(inventory);
-  const [preset, setPreset] = useState(0);
   const orders = Object.values(app.orders)
     .filter((o) => o.storeId === storeId && (o.status === 'PLACED' || o.status === 'RX_APPROVED'))
     .reverse();
@@ -33,23 +30,6 @@ export function ChemistPage({ user }: { user: User }) {
   const rejectQa = async (pickupId: string) => {
     const note = window.prompt('Why are these medicines rejected?', 'Seal broken');
     if (note) report(await dispatch(user.id, { type: 'PICKUP_QA_REJECTED', pickupId, note }), 'Rejected. A rider will take it to the CBWTF');
-  };
-
-  const scan = async () => {
-    const parsed = parseGs1(BARCODE_PRESETS[preset]!.code);
-    if (!parsed.ok) return report({ ok: false, error: parsed.error });
-    const medicine = Object.values(app.medicines).find((m) => m.gtin === parsed.value.gtin);
-    if (!medicine) return report({ ok: false, error: 'This barcode is not in the catalog' });
-    const batch: Batch = {
-      id: newId('b'),
-      storeId,
-      medicineId: medicine.id,
-      batchNo: parsed.value.batch ?? 'UNKNOWN',
-      expiry: parsed.value.expiry!,
-      qty: 50,
-      status: 'IN_STOCK',
-    };
-    report(await dispatch(user.id, { type: 'STOCK_INGESTED', batch }), `${medicine.brand} added: batch ${batch.batchNo}`);
   };
 
   const ecoSale = async (v: BatchView) =>
@@ -102,28 +82,7 @@ export function ChemistPage({ user }: { user: User }) {
         <Stat label="Expired" value={counts.EXPIRED} hint="Bio-hazard" tone="red" />
       </div>
 
-      <Card className="space-y-3">
-        <SectionTitle>Scan to ingest</SectionTitle>
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={preset}
-            onChange={(e) => setPreset(Number(e.target.value))}
-            className="h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-4 focus:ring-medical/20"
-            aria-label="Preset barcode"
-          >
-            {BARCODE_PRESETS.map((p, i) => (
-              <option key={p.code} value={i}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-          <Button onClick={() => void scan()}>
-            <ScanLine className="size-4" /> Scan preset barcode
-          </Button>
-        </div>
-        <p className="font-mono text-xs text-slate-500">{BARCODE_PRESETS[preset]!.code}</p>
-        <p className="text-xs text-slate-500">GS1 parsing fills GTIN, batch and expiry automatically. Camera scanning arrives with the next roadmap step.</p>
-      </Card>
+      <StockScanner user={user} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
