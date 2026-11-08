@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGs1, parseGs1Date } from '../src/domain/rules/gs1';
+import { parseGs1, parseGs1Date, parseScan } from '../src/domain/rules/gs1';
 
 describe('GS1 date', () => {
   it('parses YYMMDD', () => expect(parseGs1Date('271231')).toBe('2027-12-31'));
@@ -34,5 +34,23 @@ describe('GS1 parsing', () => {
   it('fails on unsupported identifiers and bad expiry', () => {
     expect(parseGs1('99ABC').ok).toBe(false);
     expect(parseGs1('(01)08901234567890(17)271399').ok).toBe(false);
+  });
+});
+
+describe('camera scan results', () => {
+  it('ignores a GS1 symbology identifier prefix', () => {
+    expect(parseScan(']d2(01)08901234567890(17)271231(10)AB1')).toEqual({
+      ok: true,
+      value: { gtin: '08901234567890', batch: 'AB1', expiry: '2027-12-31' },
+    });
+    expect(parseScan(']C10108901234567890' + '17271231' + '10Z9')).toMatchObject({ ok: true, value: { batch: 'Z9' } });
+  });
+  it('accepts a plain EAN-13 as a GTIN with no batch or expiry', () => {
+    expect(parseScan('8901234500011')).toEqual({ ok: true, value: { gtin: '08901234500011' } });
+  });
+  it('accepts GTIN-14 and rejects junk', () => {
+    expect(parseScan('08901234500011')).toEqual({ ok: true, value: { gtin: '08901234500011' } });
+    expect(parseScan('hello').ok).toBe(false);
+    expect(parseScan('12345').ok).toBe(false);
   });
 });
