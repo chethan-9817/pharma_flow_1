@@ -1,485 +1,84 @@
-# 💊 PharmaFlow — pharma_flow_1
+# 💊 PharmaFlow
 
 **Medicine reverse logistics, near-expiry liquidation and civic health on one platform.**
 
-PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
+PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a **closed loop** connecting four roles: **Customers**, **Medical Stores (Chemists)**, **Delivery Riders** and **Admins / NGOs / Blood Banks**.
 
-> 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> ✅ Status: **all four role screens, server mode, the installable PWA, three languages and the Playwright tests are built and tested** (275 unit tests, 14 browser tests). What is still only a design: spending the NGO fund on cheap bulk medicines for NGOs (see [TODO.md](TODO.md)).
->
-> 📖 More docs: [ARCHITECTURE.md](ARCHITECTURE.md) (how the code is organised and why) · [WORKFLOW.md](WORKFLOW.md) (every business flow and the demo script).
+> 🎓 PBL project · Pilot region: **Mangaluru, Karnataka**
+> ✅ All four role apps, server mode, installable PWA and English / ಕನ್ನಡ / हिन्दी are built and tested (275 unit tests, 14 browser tests).
 
----
-
-## 📑 Table of Contents
-
-1. [The Problem](#-the-problem)
-2. [The Solution](#-the-solution)
-3. [How Medicine Flows Through PharmaFlow](#-how-medicine-flows-through-pharmaflow)
-4. [The 4 Roles & Their Features](#-the-4-roles--their-features)
-5. [Prescription Rules (Rx-Only Drugs)](#-prescription-rules-rx-only-drugs)
-6. [Business & Safety Rules](#-business--safety-rules)
-   - [Sponsor batch for NGO and the NGO fund](#-sponsor-batch-for-ngo)
-7. [Legal & Compliance Notes](#%EF%B8%8F-legal--compliance-notes)
-8. [Technical Architecture](#%EF%B8%8F-technical-architecture)
-9. [Tech Stack](#-tech-stack)
-10. [Folder Structure](#-folder-structure)
-11. [Getting Started](#-getting-started)
-    - [Languages](#languages) · [Install it as an app (PWA)](#install-it-as-an-app-pwa) · [Server mode](#%EF%B8%8F-server-mode)
-12. [Demo Walkthrough (for Evaluators)](#-demo-walkthrough-for-evaluators)
-13. [Roadmap](#-roadmap)
-14. [Research Basis](#-research-basis)
-15. [Working on This Repo with an AI Assistant](#-working-on-this-repo-with-an-ai-assistant)
-16. [Architecture](ARCHITECTURE.md) and [Workflows](WORKFLOW.md)
-17. [Recent changes](#-recent-changes)
+📖 **More docs:** [WORKFLOW.md](WORKFLOW.md) (every flow + demo script) · [ARCHITECTURE.md](ARCHITECTURE.md) (how the code works) · [TODO.md](TODO.md) (what's left)
 
 ---
 
-## 🔥 The Problem
+## 🔥 The problem
 
-### 1. Local chemists are losing money
+- **Chemists lose money.** Legacy ERPs cost ~₹35,000 in year one. Distributors refund only 50% on stock with 6+ months left, as a slow credit note, and **refuse anything under 6 months**, a 100% loss.
+- **Households dump medicines illegally.** ~73% bin them and ~20% flush them, though the Bio-Medical Waste Rules 2016 require incineration at an authorised CBWTF. Antibiotics in soil and water breed **antimicrobial resistance**.
+- **The paradox:** safe, unexpired medicines go to waste while **NGO clinics run short of medicines** and **blood banks run short of blood**.
 
-These findings come from field visits and interviews with independent chemists:
-
-| Pain point | Real-world impact |
-|---|---|
-| Legacy ERP licence (Marg, C-Square, PharmaSoft) | ₹10,000 – ₹12,000 upfront |
-| Paywalled add-ons (barcode, expiry alerts, multi-terminal) | ₹14,000 – ₹15,000 extra |
-| Annual Maintenance Charge (AMC) | ~₹8,000 every year → **~₹35,000 in year one** |
-| Distributor 6-month return cutoff | Stock still safe to use is forced off the shelf early |
-| 50% refund penalty | Half the money is lost even on returns made in time |
-| Under 6 months left → return rejected | **100% write-off** |
-| Refund paid as a credit note | Takes 60–90 days; no cash in hand |
-| ERP vendors tied to distributors | Software pushes chemists to *buy more*, not to clear stock |
-| No customer-facing channel | Near-expiry stock can't be sold to local buyers |
-| No disposal pathway | Expired stock is written off on paper, not disposed of legally |
-
-### 2. Households throw medicines away illegally
-
-- Under the **Bio-Medical Waste Management Rules, 2016**, expired medicines are hazardous waste. They must go to a state-authorised **CBWTF** (Common Bio-Medical Waste Treatment Facility) for high-temperature incineration (1000–1200 °C) or encapsulation.
-- In reality, **~73% of people throw leftover strips in the dustbin** and **~20% flush them** down sinks or toilets.
-- Antibiotics and painkillers then leak into soil and groundwater and help breed **antimicrobial-resistant (AMR) "superbugs"**.
-
-### 3. The paradox
-
-Crores worth of **safe, unexpired** medicines sit unused in home cabinets and on chemist shelves, while **NGO clinics and old-age homes run short of basic drugs** and **blood banks run short of blood**.
-
----
-
-## 💡 The Solution
-
-| Problem | PharmaFlow feature |
-|---|---|
-| Expensive ERPs | **Free ERP for chemists**: ₹0 licence, ₹0 add-ons, ₹0 AMC |
-| Distributor refuses returns | **Eco-Sale store**: chemists sell near-expiry stock to local customers at 40–60% off and get paid in cash immediately |
-| Unused medicines at home | **Free doorstep pickup** → pharmacist QA check → **verified NGO clinic** |
-| Expired medicines in the dustbin | **Yellow-Bag pickup** → **CBWTF incineration** with a disposal certificate |
-| People don't take part | **Gamification**: Eco-Karma points, scratch cards, certificates |
-| Blood shortages | **Blood bank connect**: live urgent requirements + appointment booking |
-| No trust or traceability | **Tamper-evident audit ledger** for every action |
-
----
-
-## 🔄 How Medicine Flows Through PharmaFlow
+## 💡 How PharmaFlow fixes it
 
 ```mermaid
 flowchart LR
-    D[Distributor] --> C[Chemist Store]
-    C -->|Normal sale| U[Customer]
+    C[Chemist] -->|Normal sale| U[Customer]
     C -->|Near-expiry: Eco-Sale 40-60% off| U
-    C -->|Unsellable but safe| QA{Pharmacist QA}
-    U -->|Leftover sealed strips| R1[Rider Pickup]
-    R1 --> QA
-    QA -->|Verified| N[NGO Clinic / Old-Age Home]
-    QA -->|Rejected / damaged| B
-    U -->|Expired medicines| R2[Rider Yellow-Bag Pickup]
-    C -->|Expired stock| R2
-    R2 --> B[CBWTF Incineration Plant]
+    U -->|Leftover sealed strips| QA{Pharmacist QA}
+    C -->|Unsellable but safe| QA
+    QA -->|Verified| N[NGO Clinic]
+    QA -->|Rejected| B[CBWTF Incineration]
+    U -->|Expired: Yellow-Bag pickup| B
+    C -->|Expired stock| B
 ```
 
-### Lifecycle of a single batch (by days of shelf life left)
-
-```mermaid
-flowchart LR
-    S["🟢 SAFE<br/>&gt; 180 days"] --> L["🟡 LOCKOUT<br/>30 – 180 days<br/>(distributor penalises/refuses)"]
-    L --> K["🟠 CRITICAL<br/>1 – 29 days"]
-    K --> E["🔴 EXPIRED<br/>bio-hazard"]
-    L -.->|Eco-Sale or NGO| X((Rescued))
-    K -.->|NGO if eligible| X
-    E -.->|Yellow-Bag| Y((Incinerated legally))
-```
+| Role | What it does |
+|---|---|
+| 🛒 **Customer** | Shop with a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · book blood donation · live order tracker · karma points, scratch cards, PDF certificates |
+| 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
+| 🏍️ **Rider** | Dark-mode mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
+| 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
 
 ---
 
-## 👥 The 4 Roles & Their Features
+## 📋 Prescription rules (Rx-only drugs)
 
-### 1️⃣ Customer App (mobile-style, white clinical theme)
+Some medicines **can't be bought without a valid prescription**. This is enforced in the domain rules, not just the UI.
 
-| Feature | Details |
-|---|---|
-| **Medicine catalog** | 12+ everyday Indian medicines (Dolo 650, Augmentin 625 Duo, Pan-D, Okacet, Azithral 500, Shelcal 500, Becosules, Benadryl Syrup, Electral ORS, Volini Gel, Limcee, Accu-Chek strips) with salt, pack size, manufacturer and MRP |
-| **Cheaper generic switcher** | Shows a variant with the **same salt and same strength**, priced against **Jan Aushadhi (PMBJP)**. Example: Pan-D ₹190 → Pantoprazole + Domperidone generic ₹68 (save ₹122) |
-| **Prescription upload** | Required for Rx-only drugs. See [Prescription Rules](#-prescription-rules-rx-only-drugs) |
-| **Eco-Sale store** | Near-expiry stock at 40–60% off with an amber countdown badge, e.g. *"Expires in 38 days • fits a 5-day course • 50% OFF"*. Two buttons: **Buy for myself** or **Sponsor batch for NGO (₹99)** (see [Sponsor batch for NGO](#-sponsor-batch-for-ngo)) |
-| **Civic Impact Hub** | **A.** Donate unused medicines to an NGO · **B.** Safe disposal of expired medicines · **C.** Donate blood |
-| **Course-completion reminder** | *"Finished your 5-day course of Dolo 650? Donate the 10 unopened tablets left to Seva NGO Clinic and earn karma."* |
-| **Live GPS tracker** | Map with store, home, NGO and CBWTF plant, plus an animated rider and a 4-step progress stepper |
-| **Rewards wallet** | Eco-Karma points, MedWallet store credit and real `<canvas>` scratch cards (scratch >40% → confetti + reward) |
-| **Certificates** | NGO Donor, Green Citizen (safe disposal) and Blood Donor certificates as PDF with a QR verification code |
-
-### 2️⃣ Chemist Dashboard (zero-AMC ERP)
-
-| Feature | Details |
-|---|---|
-| **Savings header** | "₹0 licence • ₹0 add-ons • ₹0 AMC — saved ₹35,000/yr vs legacy ERPs" |
-| **Profit calculator** | Distributor return (50% credit note, ₹0 under 6 months) vs PharmaFlow Eco-Sale (50–70% in cash) |
-| **Barcode scan-to-ingest** | Camera scanning with **GS1 parsing**: GTIN (01), **batch (10)** and **expiry (17)** are filled in automatically, and brand, salt, generic and MRP come from the catalog. Preset barcodes work when there's no camera |
-| **Expiry ledger** | Colour-coded buckets: Safe / Lockout / Critical / Expired |
-| **3 one-click actions per batch** | **Put on Eco-Sale** · **Donate to NGO** · **Schedule CBWTF disposal** |
-| **Write-off certificate** | *Inventory Write-Off & NGO Donation Receipt* that includes the **GST ITC reversal** amount (CGST Sec 17(5)(h)) |
-| **Order packing desk** | Review orders and **approve or reject prescriptions** before **Pack & Summon Rider** |
-| **Returned-medicine QA desk** | Inspect seal, batch and expiry of donated strips → **QA Verified – Release to NGO** or **Reject – send to Bio-Disposal** |
-
-### 3️⃣ Rider App (dark mode, built for outdoor use)
-
-| Feature | Details |
-|---|---|
-| **Shift header** | Online/offline toggle, today's earnings, green incentives, trips completed |
-| **3-colour mission radar** | 🔵 Forward delivery · 🟢 NGO reverse pickup · 🟠 Yellow-Bag bio-hazard pickup |
-| **Navigation** | Dark map, multi-stop route, distance, ETA, call button |
-| **Lifecycle buttons** | Large buttons: Accept → Arrived → Collected → Confirm Handover (OTP) |
-| **Backhaul optimisation** | After a delivery, suggests any pending pickup at the same address or street, so a return is collected on the same trip at no extra fuel cost |
-
-### 4️⃣ Admin & Regulatory Portal
-
-| Feature | Details |
-|---|---|
-| **Pharmacy KYC** | New stores start as `PENDING_KYC`. Admin reviews the Drug Licence (e.g. `KA-MNG-2026-8841`) and GSTIN → **Approve** / **Reject** |
-| **Impact KPIs** | ₹ dead stock recovered, kg of hazardous waste diverted, ₹ of medicines sent to NGOs, blood donations booked |
-| **Audit trail** | Every event in a **SHA-256 hash-chained ledger** + **Verify Ledger Integrity** button |
-
----
-
-## 📋 Prescription Rules (Rx-Only Drugs)
-
-Some medicines **cannot be bought without a valid prescription** from a registered doctor. PharmaFlow enforces this in code; the UI alone isn't trusted.
-
-### Drug categories used by the app
-
-| Category | Examples in our catalog | Prescription needed? | What PharmaFlow does |
+| Category | Examples | Prescription? | What the app does |
 |---|---|---|---|
-| **OTC / general** | Dolo 650, Shelcal 500, Becosules, Electral ORS, Volini Gel, Limcee, Accu-Chek strips | ❌ No | Add to cart and check out directly |
-| **Schedule H** (Rx-only) | Pan-D (Pantoprazole + Domperidone), Augmentin 625 Duo, Azithral 500 | ✅ Yes | Rx upload required, chemist must approve before packing |
-| **Schedule H1** (stricter: certain antibiotics, anti-TB and habit-forming drugs) | *(none in the demo catalog yet; the rule engine supports it)* | ✅ Yes + register entry | Rx required, and every sale is logged in an **H1 register** (patient, doctor, drug, quantity) kept for 3 years |
-| **Schedule X / NDPS** (narcotics, psychotropics) | — | 🚫 Not sold | **Blocked on the platform** completely: cannot be sold, donated or listed |
+| **OTC** | Dolo 650, Shelcal, Electral, Volini | ❌ No | Straight to checkout |
+| **Schedule H** | Augmentin 625, Azithral 500, Pan-D | ✅ Yes | Upload Rx → **chemist approves** before packing |
+| **Schedule H1** | (rule engine supports it) | ✅ Yes + register | Every sale logged in the H1 register |
+| **Schedule X / NDPS** | — | 🚫 Never | Blocked: can't be sold, donated or listed |
 
-> ⚠️ Drug classifications in the seed data are for demo purposes. Check them against the latest CDSCO / Drugs & Cosmetics Rules schedules before any real deployment.
+1. An order with an Rx-only item **can't be packed** until the chemist approves the prescription.
+2. **OCR only reads the prescription; the pharmacist decides.**
+3. The Rx must show doctor name, **registration number**, date, patient and drug. Antibiotic prescriptions are valid 30 days and single-use.
+4. **Eco-Sale doesn't skip the rule**: discounted Augmentin still needs a prescription.
+5. Every approval and rejection is written to the audit ledger.
 
-### Prescription flow
-
-```mermaid
-sequenceDiagram
-    participant U as Customer
-    participant A as PharmaFlow
-    participant C as Chemist
-    participant R as Rider
-    U->>A: Adds Augmentin (Schedule H) to cart
-    A-->>U: "Prescription required" (checkout locked)
-    U->>A: Uploads prescription photo
-    A->>A: OCR (Tesseract.js) extracts doctor name, reg. no., date, patient, drug
-    A->>A: Auto-checks: readable? drug listed? date valid?
-    A->>C: Order arrives in Packing Desk with Rx image + extracted fields
-    alt Chemist approves
-        C->>A: Approve Rx
-        A->>A: Order moves to PACKED (H1 drugs also written to the H1 register)
-        A->>R: Rider summoned
-    else Chemist rejects
-        C->>A: Reject (reason: unreadable / expired / wrong drug)
-        A-->>U: Notified, may re-upload; payment refunded if already paid
-    end
-```
-
-### Rules the code enforces
-
-1. An order with any Rx-only item **cannot move to `PACKED`** until the chemist has approved the prescription.
-2. **OCR only reads the prescription; it never approves it.** The pharmacist always makes the final decision, as the law requires.
-3. The prescription must show: doctor name, **registration number**, date, patient name and the prescribed drug.
-4. Validity window is configurable (demo default: **30 days for antibiotics**, 180 days for others), and a **prescription for an antibiotic course is single-use**.
-5. Quantity sold can't exceed what the prescription covers.
-6. **Eco-Sale doesn't skip these rules**: a discounted Augmentin still needs a prescription.
-7. **Donated Rx-only medicines** go only to NGO clinics that have a **registered doctor or pharmacist** on site.
-8. Every approval and rejection is recorded in the audit ledger.
+> ⚠️ Drug schedules in the demo data are for demonstration. Verify against current CDSCO lists before real use.
 
 ---
 
-## 📏 Business & Safety Rules
+## 📚 Research behind it
 
-All rules live in `/src/domain` as pure, unit-tested functions.
-
-| Rule | Value |
-|---|---|
-| Expiry buckets | SAFE > 180 d · LOCKOUT 30–180 d · CRITICAL 1–29 d · EXPIRED ≤ 0 d |
-| Eco-Sale discount | 40% – 60% |
-| Eco-Sale eligibility | `days_left ≥ course_days + 15` (the patient must finish the course before the medicine expires) |
-| NGO donation eligibility | Sealed/unopened, `days_left > 30`, **not** cold-chain (e.g. insulin), **not** Schedule X/NDPS, **not** opened liquids |
-| Donated medicines | **Must pass chemist QA** before NGO handover; rejected items go to bio-disposal |
-| Expired medicines | Only allowed route: Yellow-Bag → CBWTF incineration |
-| Rewards | Donation +200 karma + 1 scratch card · Safe disposal +150 karma · Orders earn scratch cards |
-| Blood donation rewards | +500 karma, certificate and badge **only**: no cashback or anything with money value |
-| MedWallet | **Closed-loop store credit**, never converted to cash |
-| Sponsor batch for NGO | Flat **₹99** buys as many packs of an **Eco-Sale** deal as it covers (at least one). **OTC medicines only**, more than 30 days of shelf life. The store is paid its Eco-Sale price, the change tops up the NGO fund. Reward: +200 karma, a scratch card and an NGO Donor certificate. A failed pharmacist check refunds ₹99 as MedWallet credit |
-| NGO fund | Closed-loop money for medicines for NGOs, never paid out as cash. Fed by sponsor change and **2% of the platform's 10% fee** on every delivered order (demo values). Never taken from the chemist's payout |
-
-### Order & pickup lifecycles (state machines; invalid jumps are rejected)
-
-```
-Forward order:   PLACED → [RX_APPROVED] → PACKED → OUT_FOR_DELIVERY → DELIVERED
-Reverse pickup:  SCHEDULED → COLLECTED → QA_VERIFIED → DELIVERED_TO_NGO
-                                       ↘ QA_REJECTED → INCINERATED
-Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
-Sponsorship:     PLACED → DELIVERED   (store paid, fund topped up, sponsor rewarded)
-                        ↘ REFUNDED    (pharmacist rejects the packs: ₹99 back as MedWallet credit)
-```
-
----
-
-## 💚 Sponsor batch for NGO
-
-A second button on every Eco-Sale deal. It lets a customer put medicines into an NGO's hands, and it **depends on the registered medical stores**: the packs come out of that store's own Eco-Sale batch, the store hands them to a rider, the store's chemist checks them, and the store is paid.
-
-```mermaid
-sequenceDiagram
-    participant U as Customer
-    participant A as PharmaFlow
-    participant S as Store (chemist)
-    participant R as Rider
-    participant N as NGO
-    U->>A: Sponsor batch for NGO (₹99)
-    A->>A: Set packs aside from the store's Eco-Sale batch
-    R->>S: Collect the packs at the store
-    S->>A: QA desk: verified (or rejected)
-    R->>N: Hand over to the NGO
-    A-->>S: Paid the Eco-Sale price for the packs
-    A-->>A: Change tops up the NGO fund
-    A-->>U: +200 karma, scratch card, NGO Donor certificate
-```
-
-| Question | Answer |
-|---|---|
-| What does ₹99 buy? | As many packs of that deal as ₹99 covers at the Eco-Sale price (for example 10 packs at ₹9.20), at least one, never more than the batch has left |
-| Who is paid? | The store, the Eco-Sale price of those packs, once the NGO has them |
-| Where does the change go? | Into the **NGO fund** (here ₹99 − ₹92 = ₹7). It can only ever buy medicines for NGOs |
-| Which medicines? | **Over-the-counter only.** Prescription-only drugs are left out: the sponsor has no prescription, and those need an NGO with a registered doctor or pharmacist |
-| Does the customer earn anything? | +200 karma, a scratch card and an **NGO Donor certificate** that names the sponsored packs |
-| What if the pharmacist rejects the packs? | The sponsor gets the full ₹99 back as **MedWallet** credit, the store is not paid, and the packs go to bio-disposal |
-| Is it a donation write-off for the store? | No. It is a sale, so no donation receipt or GST ITC reversal is issued for it |
-
-**The NGO fund** is shown on the Admin dashboard (balance, where it came from, recent entries, and a purple line on the *Money recovered* chart). Customers see how much of each delivered order went into it. Spending it on bulk, discounted medicines through distributors is **designed but not built yet**: see [TODO.md](TODO.md).
-
----
-
-## ⚖️ Legal & Compliance Notes
-
-| Area | How PharmaFlow handles it |
-|---|---|
-| **Drugs & Cosmetics Act 1940 / Rules 1945** | Schedule H/H1 need a prescription and pharmacist approval; Schedule X/NDPS are blocked |
-| **Bio-Medical Waste Management Rules 2016** | Expired medicines go only to an authorised CBWTF (Yellow category) |
-| **Solid Waste Management Rules 2016** | Household medicines are treated as domestic hazardous waste; the app explains this to users |
-| **Medicine redistribution** | India has no explicit framework for re-dispensing household returns, so it runs as a **pharmacist-gated pilot** limited to sealed strips |
-| **Income Tax (80G)** | In-kind (goods) donations **don't qualify** for 80G. We issue an inventory write-off record + NGO receipt instead |
-| **GST — CGST Sec 17(5)(h)** | Input tax credit on goods written off, destroyed or given away must be reversed; the certificate calculates it |
-| **Sponsor batch for NGO** | The sponsor buys from the store, so it is a normal sale by the store and not a donation write-off. The NGO fund is closed-loop and never paid out as cash. **Holding real donated money needs a registered trust or partner NGO, and any 80G claim needs advice from a CA**; the demo only keeps a ledger |
-| **Blood donation** | India's policy is voluntary and unpaid, so there are no money-value rewards |
-| **RBI prepaid wallet rules** | MedWallet is closed-loop store credit (no cash-out) |
-
-> This project is an academic prototype, not legal advice.
-
----
-
-## 🏗️ Technical Architecture
-
-> Full detail, including sync and conflict handling, is in [ARCHITECTURE.md](ARCHITECTURE.md). Every business flow is drawn out in [WORKFLOW.md](WORKFLOW.md).
-
-### The core idea: everything is an event
-
-Every action (scanning a batch, placing an order, approving a prescription, collecting a pickup) is stored as an **immutable domain event** in one event log.
-
-```mermaid
-flowchart TB
-    UI[Role UIs<br/>Customer / Chemist / Rider / Admin] -->|dispatch event| ST[Zustand Store]
-    ST --> RD[Domain Reducer<br/>pure TS rules + state machines]
-    RD --> ST
-    ST --> LOG[(Event Log<br/>SHA-256 hash chain)]
-    LOG --> DB[(Dexie / IndexedDB)]
-    ST <-->|Transport adapter| T{Mode}
-    T -->|Demo mode| BC[BroadcastChannel<br/>cross-tab sync]
-    T -->|Server mode| WS[WebSocket ↔ Hono API ↔ SQLite]
-    LOG --> KPI[Admin KPIs]
-    LOG --> AUD[Audit Trail]
-```
-
-Why this design:
-
-- **One codebase, two modes.** Demo mode works with no setup; server mode reuses the same events and reducer.
-- **Real-time sync comes free.** Events are broadcast to every open tab or client.
-- **Audit trail and KPIs come free.** They're just views of the event log.
-- **Tamper-evident.** Each event stores `sha256(prevHash + payload)`; changing any past event breaks the chain.
-- **Time travel for demos.** Domain logic uses a **simulated clock**, so the presenter can jump forward 60 days and watch batches change bucket.
-
-### Modes
-
-| Mode | Storage | Sync | Setup |
-|---|---|---|---|
-| **Demo (default)** | IndexedDB (Dexie) | BroadcastChannel between tabs | None: `npm run dev` |
-| **Server** | SQLite file on the server (`node:sqlite`) | WebSocket pushed from the server | Node.js only: `pharmaflow server` or `npm run server` |
-
-Both modes run the **same events and the same reducer**. Server mode swaps only the two interfaces behind the store (`EventStorage` and `Transport`), so no screen changed. See [Server mode](#%EF%B8%8F-server-mode).
-
-### Server API
-
-The server is a small [Hono](https://hono.dev) app. Instead of one route per feature (inventory, orders, donations…), there is one **event endpoint**, because every action is already an event that the shared reducer validates.
-
-| Endpoint | Purpose |
-|---|---|
-| `POST /api/login` | Password (bcrypt) → JWT. Also sets an HttpOnly cookie. Failed logins are rate limited |
-| `GET /api/events?after=N` | The hash-chained log (needs login) |
-| `POST /api/events` | Append one entry. The server re-checks it with the **same reducer** as the browser and answers `403` (wrong user), `409` (someone wrote first, so the browser re-syncs and retries) or `422` (a rule says no) |
-| `POST /api/reset` | Admin only: "Reset demo" |
-| `GET /api/verify/:code` | Public: is this certificate code real? (what the QR code opens) |
-| `GET /api/health` | Public: is the server up |
-| `WebSocket /ws` | After a first `{type:"auth", token}` message, the server pushes every stored entry to every signed-in browser |
-
-Not built: per-feature REST routes, self-service registration (the demo users are fixed), email verification and password reset.
-
----
-
-## 🧰 Tech Stack
-
-| Layer | Choice |
-|---|---|
-| Language | **TypeScript** |
-| Framework / build | **React 18 + Vite** |
-| Routing | **React Router 7** (`/customer`, `/chemist`, `/rider`, `/admin`, `/presenter`) |
-| State | **Zustand** |
-| Browser storage | **Dexie.js** (IndexedDB) |
-| Validation | **Zod** |
-| UI | **Tailwind CSS + shadcn/ui (Radix) + Lucide icons + Framer Motion** |
-| Barcode | **@zxing/browser** + GS1 parser |
-| Prescription OCR | **Tesseract.js** |
-| Maps | **react-leaflet + OpenStreetMap** tiles darkened with a CSS filter (no API key), SVG fallback when offline |
-| Scratch cards | HTML5 `<canvas>` (`destination-out`) + **canvas-confetti** |
-| Certificates | **jsPDF + qrcode** |
-| Charts | **Recharts** |
-| Server | **Hono + `node:sqlite` + ws + bcryptjs + JWT** (`node:sqlite` is built into Node 22+, so nothing needs compiling; this replaces the planned better-sqlite3 + Drizzle) |
-| PWA / i18n | **vite-plugin-pwa** (Workbox), **react-i18next** (English, ಕನ್ನಡ, हिन्दी) |
-| Testing | **Vitest** (domain rules, server, sync) + **Playwright** (four-tab demo, languages, PWA, server mode) |
-| Sample database | **node:sqlite** (built into Node 22+), schema in `scripts/schema.sql` |
-| Hosting | Vercel / Netlify (demo) · Render / Railway (server) |
-
-### Design tokens
-
-| Token | Colour | Used for |
+| Source | Finding | Feature in PharmaFlow |
 |---|---|---|
-| Medical Blue | `#0284C7` | Commerce, orders |
-| Emerald | `#10B981` | Eco / NGO actions |
-| Amber | `#F59E0B` | Expiry countdowns |
-| Crimson | `#E11D48` | Blood donation |
-| Background | `#F8FAFC` / cards `#FFFFFF` | Customer app |
-| Rider | `bg-slate-950` | Dark mode for the field |
+| Jose & Surendran (2025) | Incentives and awareness drive medicine returns | Karma, scratch cards, certificates |
+| Wickens et al. (2024) | Returned medicines can be reused if inspected | Pharmacist QA desk + audit trail |
+| Kanyari (2024); IJCMPH | Households dump drugs because pharmacies won't take them back | Free doorstep pickup |
+| Sorensen et al. (2024) | Barcode scanning cuts expiry checks by 59% | GS1 scan-to-ingest + expiry ledger |
+| **Forkan, Rizvi & Chowdhury (2021)**: multi-objective reverse-logistics inventory | Returns have their own demand; when they arrive faster than demand, holding cost rises. Cost, CO₂ and energy must be balanced together | Pace NGO pickups to NGO capacity · show **₹ recovered, kg CO₂, km travelled** for every batch action |
+| **Xue, Dong et al.**: reverse-logistics system for medical waste | Hub sites (K-means), full tracking and cost + risk routing cut working time **58.4%** and cost **20.8%** | **Green Hub** chemists for bulk Yellow-Bag collection · QR + weight check on every bag · routes scored on distance + hazard |
+
+🎥 2-minute explainer of the two papers: [`media/PharmaFlow_Research_Takeaways.mp4`](media/PharmaFlow_Research_Takeaways.mp4)
 
 ---
 
-## 📁 Folder Structure
+## 🚀 Run it
 
-```
-Pharma-flow/
-├── src/
-│   ├── domain/              # Pure TypeScript. No React, no Date.now(), no storage
-│   │   ├── types.ts         # Zod schemas + types (medicines, batches, orders, pickups…)
-│   │   ├── state.ts         # AppState shape + createInitialState(seed)
-│   │   ├── events.ts        # Typed domain events
-│   │   ├── reducer.ts       # applyEvent / reduce: validates every event
-│   │   ├── ledger.ts        # SHA-256 hash chain + verify
-│   │   ├── clock.ts         # Simulated-date helpers
-│   │   ├── checkout.ts      # Cart quote, FEFO batch picking, order planning
-│   │   ├── selectors.ts     # Inventory, Eco-Sale, KPIs, missions, backhaul
-│   │   ├── route.ts         # Rider stops, distance, ETA and position
-│   │   ├── impact.ts        # Impact timeline, activity and stock health for the admin charts
-│   │   ├── sponsor.ts       # Plans a "Sponsor batch for NGO" deal (packs, store payout, fund top-up)
-│   │   ├── rules/           # expiry, ecoSale, donation, prescription, rxText, generic, rewards, gst, gs1, sponsor, fund
-│   │   ├── machines/        # order.ts, pickup.ts (state machines)
-│   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts, sponsor, fund)
-│   ├── store/               # Zustand store, Dexie + in-memory storage, BroadcastChannel transport
-│   │   └── server/          # Server mode in the browser: ServerStorage, WebSocketTransport, login tokens
-│   ├── i18n/                # en.json, kn.json, hi.json and the language setup
-│   ├── roles/
-│   │   ├── customer/        # Shop, Deals (with Sponsor), Cart, Orders (tracker, scratch cards), Civic hub, Rx form with OCR
-│   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, sponsored packs, write-off receipts, demo barcodes
-│   │   ├── rider/           # Mission radar, lifecycle and the navigation map
-│   │   └── admin/           # KYC queue, KPIs, charts, NGO fund, blood confirmations, audit trail
-│   ├── components/          # PresenterBar, RoleGate, ServerLogin, LanguageSwitcher, VerifyPage, layout hook, toast, UI primitives
-│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), certificatePdf.ts (jsPDF), serverAuth.ts, confetti.ts, image.ts, id.ts
-│   ├── seed/                # Medicines, stores, NGOs, blood banks, users, preset barcodes
-│   ├── App.tsx · main.tsx · index.css
-├── server/                  # Server mode: Hono API (app.ts), event log (log.ts), logins (auth.ts), WebSocket (ws.ts), SQLite (db.ts)
-├── public/icons/            # PWA icons (made by scripts/make-icons.mjs)
-├── scripts/
-│   ├── schema.sql           # Sample SQLite schema (the server's events table has the same columns)
-│   ├── install-command.ps1  # Adds or removes the `pharmaflow` command on your user Path
-│   ├── make-icons.mjs       # Draws the PWA icons with no image library
-│   └── sample-db.ts         # Runs a full scenario and writes data/pharmaflow-sample.db
-├── tests/                   # Vitest: rules, machines, reducer, store sync, server, translations, walkthrough
-├── e2e/                     # Playwright: four-tab walkthrough, sponsor flow, languages, PWA, server mode
-├── playwright*.config.ts    # Playwright setups: demo (default), PWA (production build), server (real server)
-├── data/                    # Generated databases and logs (git-ignored)
-├── pharmaflow.cmd           # The `pharmaflow` command (start, stop, status, test, db, build, server)
-├── Start PharmaFlow.cmd     # Double-click launcher
-├── run.ps1                  # PowerShell launcher used by both
-├── ARCHITECTURE.md          # How the code is organised and why
-├── WORKFLOW.md              # Every business flow, plus the demo script
-└── README.md                # This file
-```
-
----
-
-## 🚀 Getting Started
-
-**Requirements:** Node.js 22 or newer (the sample database uses Node's built-in `node:sqlite`) and a Chromium-based browser (Chrome or Edge) for the camera features.
-
-### Windows: one command (recommended)
-
-Run this **once** to add the `pharmaflow` command to your user Path. It needs no administrator rights, and `-Remove` undoes it:
-
-```powershell
-cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-powershell -ExecutionPolicy Bypass -File .\scripts\install-command.ps1
-```
-
-Then open a **new** PowerShell or Command Prompt window, in any folder, and type:
-
-```powershell
-pharmaflow
-```
-
-It starts the app in the background (no extra window), waits until it is ready and opens `http://localhost:5173/presenter` in your browser. If the app is already running it just opens the browser. Prefer clicking? Double-click **`Start PharmaFlow.cmd`** in the project folder.
-
-| Command | What it does |
-|---|---|
-| `pharmaflow` | Start in the background and open the browser |
-| `pharmaflow dev` | Run the dev server in the current window (Ctrl+C to stop) |
-| `pharmaflow stop` | Stop the background app |
-| `pharmaflow status` | Say whether it is running |
-| `pharmaflow test` | Run the 275 unit tests (domain, server, sync, translations) |
-| `pharmaflow db` | Build and print the sample SQLite database |
-| `pharmaflow build` | Typecheck and create a production build |
-| `pharmaflow server` | Run **server mode** in the current window: real logins, data kept on the server (see [Server mode](#%EF%B8%8F-server-mode)) |
-| `pharmaflow -NoBrowser` | Start without opening the browser |
-
-Without installing the command you can run the same things from the project folder with `.\pharmaflow.cmd` or `.\run.ps1` (for example `.\run.ps1 -Stop`). `npm run dev`, `npm test`, `npm run build` and `npm run db:sample` also work. The background server writes its log to `data/dev-server.log`; open it if the app does not start.
-
-Browser tests (they use the Chrome you already have, no download): `npm run test:e2e` (four-tab demo and languages), `npm run test:e2e:pwa` (builds the app, checks installability and offline use) and `npm run test:e2e:server` (builds and starts the real server).
-
-### Any shell
+Requires **Node.js 22+** and Chrome or Edge.
 
 ```bash
 git clone https://github.com/chethan-9817/pharma_flow_1.git
@@ -488,264 +87,34 @@ npm install
 npm run dev
 ```
 
-Then open, **each in its own tab**:
+Open **`http://localhost:5173/presenter`** to see all four roles side by side, or `/customer`, `/chemist`, `/rider`, `/admin` in separate tabs. Use the **1-tap demo login** buttons.
 
-- `http://localhost:5173/customer`
-- `http://localhost:5173/chemist`
-- `http://localhost:5173/rider`
-- `http://localhost:5173/admin`
+On Windows you can also double-click **`Start PharmaFlow.cmd`**. For the `pharmaflow` command, server mode, tests and troubleshooting, see [WORKFLOW.md](WORKFLOW.md#developer-workflow).
 
-…or `http://localhost:5173/presenter` to see all four side by side.
+## 🎬 Demo in 60 seconds
 
-Use the **1-tap demo login** buttons; no sign-up is needed.
+1. **Chemist** scans Dolo 650 → **Time-Travel** +5 months → batch turns amber → **Put on Eco-Sale**.
+2. **Customer** sees it instantly at 50% off, adds Augmentin too → checkout locked → uploads Rx.
+3. **Chemist** approves the Rx → **Pack & Summon Rider** → **Rider** delivers with OTP.
+4. **Customer** scratches a reward card, then donates leftovers → rider pickup → chemist QA → NGO → PDF certificate.
+5. **Admin** sees the KPIs move and clicks **Verify Ledger** → ✅ chain intact.
 
-### Before you present
-
-| Feature | Needs | Notes |
-|---|---|---|
-| Everything except the two items below | Nothing | Works offline. All data stays in your browser |
-| **Camera barcode scanning** | Camera permission + `http://localhost` | No download. Browsers only allow the camera on `localhost` or HTTPS, so a plain `http://192.168…` address will not work. Open `/demo-barcodes` on a phone or print it, then point the chemist camera at a QR code. **If the camera cannot read a strip, type the barcode** into the "Can't scan? Type the barcode" box |
-| **Prescription OCR** (Tesseract.js) | Internet **once** | The first "Read with OCR" downloads about 10 MB of English language data, then the browser caches it. Press it once on wifi before the demo. If OCR is unavailable, the form falls back to typing the details |
-| **Rider map** (Leaflet) | Internet for street tiles | Tiles come from the free OpenStreetMap servers, so no API key. Offline, or if tiles keep failing, it switches by itself to a simple route diagram with the same stops, ETA and Call button |
-| **PDF certificates, charts, scratch cards** | Nothing | Built in the browser. A certificate's QR code opens `/verify?code=…`, which checks the code against the data in the same browser |
-| Inter font | Internet (optional) | Loaded from Google Fonts, with Noto Sans for Kannada and Hindi. Without internet the browser uses a system font |
-
-### Languages
-
-The picker in the top bar switches between **English, ಕನ್ನಡ (Kannada) and हिन्दी (Hindi)**. The choice is remembered, and the **All 4** panes follow it. The whole customer app, the chemist dashboard (ledger, packing and QA desks, sponsored packs, receipts), the rider screen, the admin portal, the certificate verify page and the sign-in screens are translated.
-
-Not translated, on purpose: medicine names and other data, the PDF certificates and receipts, the messages that the business rules produce (they come from `src/domain`, which has no UI language, so a rule's "why not" message stays in English), and a few parts that are still English: the chemist's **Add inventory** card and the camera scanner, the customer's **prescription form** (Rx upload and OCR), the rider's navigation panel and map, and the printable demo barcodes page. The Kannada and Hindi text was written without a native-speaker review, so please have someone read it before you show it to an audience.
-
-A test (`tests/i18n.test.ts`) keeps the three files in step: same keys and placeholders, no empty text, no key that a screen asks for but is missing, and no leftover key.
-
-### Install it as an app (PWA)
-
-The production build (`npm run build`, then `npm run preview`) is an **installable app with an offline shell**: Chrome and Edge offer **Install** in the address bar. Once the page has loaded online, every page of the app opens with no network, your demo data is still there (it is in IndexedDB), and rider map tiles you have already seen are cached. Only first-time OCR and the maps of unseen areas need internet. The service worker is built only by `vite build`, so `npm run dev` is unaffected.
-
-### Sample database
-
-`npm run db:sample` runs a full scenario through the real rules (scan, time travel, Eco-Sale, prescription order, delivery, donation, disposal, blood booking, KYC) and writes `data/pharmaflow-sample.db`. It prints the tables and the hash-chained `events` log. Open the file in any SQLite viewer. See [ARCHITECTURE.md](ARCHITECTURE.md#sample-database-and-server-mode) for how it maps to server mode.
+Full script with timings: [WORKFLOW.md → Demo script](WORKFLOW.md#demo-script).
 
 ---
 
-## 🖥️ Server mode
+## 🧰 Tech stack
 
-The default demo keeps everything in one browser. **Server mode keeps the data on a server**, so different computers and phones share it, and people sign in with a real password.
+**Frontend:** React 18 · TypeScript · Vite · Tailwind + shadcn/ui · Zustand · Dexie (IndexedDB) · Zod · React Router
+**Features:** ZXing (barcode) · Tesseract.js (OCR) · Leaflet + OpenStreetMap · jsPDF + QR · Recharts · canvas scratch cards
+**Sync:** event-sourced core, BroadcastChannel across tabs (demo) or WebSocket (server)
+**Server:** Hono · `node:sqlite` · bcrypt + JWT
+**Other:** PWA (Workbox) · react-i18next (en / kn / hi) · Vitest · Playwright
 
-```powershell
-pharmaflow server            # or: npm run build:server, then npm run server
-```
-
-Open `http://localhost:8787/presenter`. Each role now asks for a password (the **demo users all share `pharmaflow`**; the login screen shows it only while it is still the password). The first start builds the server version of the app, which takes a few seconds.
-
-| What | How it works |
-|---|---|
-| Data | One SQLite file, `data/pharmaflow.db` (override with `PHARMAFLOW_DB`). The `events` table is the hash-chained log, the same one the browser keeps in demo mode. Delete the file to start over |
-| Rules | The server runs the **same reducer** as the browser on every event, so it never stores anything a rule would reject. A customer cannot list stock, move time, or act as someone else, whatever their browser sends |
-| Logins | bcrypt password hashes in `credentials`, a 12-hour JWT per user (also sent as an HttpOnly cookie), failed logins rate limited, cookie-authenticated changes must come from the same site |
-| Live sync | After sign-in each browser opens a WebSocket (`/ws`) and the server pushes every new entry to all of them. If the connection drops, the browser reconnects and reloads the log |
-| Same screens | Only the storage and the transport behind the store change (`ServerStorage`, `WebSocketTransport`). The role screens, the reducer and the rules are unchanged |
-| Certificates | The QR code opens `/verify?code=…`, which asks the server, so anyone can check a certificate without signing in |
-
-Settings (environment variables): `PORT` (8787), `HOST` (`localhost`; use `0.0.0.0` to reach it from other devices), `PHARMAFLOW_DB`, `PHARMAFLOW_DEMO_PASSWORD` (the password given to each demo user the first time the database is made), `PHARMAFLOW_JWT_SECRET` (otherwise a key is made once and kept in the database) and `PHARMAFLOW_SECURE_COOKIE=1` behind HTTPS.
-
-**Developing with it:** run `npm run server` (the API) in one window and `npm run dev:server` (Vite on port 5173, proxying `/api` and `/ws`) in another. In server mode, the presenter bar's **time travel and Reset demo need the admin to be signed in** in some tab of that browser.
-
-This is a demo-grade server. Not built: registering new accounts, password reset, per-role views of the log (a signed-in user can read every event, including prescriptions), HTTPS (put it behind a proxy that does TLS), and spending the NGO fund. See [TODO.md](TODO.md).
+Every action is an event in one hash-chained log. State, live sync, KPIs and the audit trail all come from that log. Details in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## 🎬 Demo Walkthrough (for Evaluators)
+> Academic prototype, not legal or medical advice. Blood donation earns no money-value rewards (India's voluntary donation policy), and MedWallet is closed-loop store credit.
 
-All of this happens **live across 4 tabs without a page refresh**. A step-by-step presenter script with timings is in [WORKFLOW.md](WORKFLOW.md#demo-script).
-
-> **How to show it.** Open a role **on its own** (the Customer, Chemist, Rider or Admin tab) for the roomy **laptop layout**: the customer gets a sidebar and a multi-column shop, and the rider gets the missions beside a large map. Use **All 4** for the whole loop at once: those panes keep the compact **phone-style** layout so four of them fit side by side.
-
-1. **Chemist** scans a batch of Dolo 650 and one of Augmentin (camera on a demo QR code, a preset, or type the barcode) → confirms batch and expiry → Dolo lands in **SAFE**.
-2. Presenter drags the **Time-Travel slider** +5 months → the batch moves to **LOCKOUT** (amber).
-3. **Chemist** clicks **Put on Eco-Sale** → the batch **instantly appears** in the Customer Deals tab at 50% off.
-4. **Customer** adds Eco-Sale Dolo + **Augmentin** → checkout is **locked: prescription required** → uploads an Rx → OCR fills in the fields.
-5. **Chemist** reviews and **approves the Rx** → **Pack & Summon Rider**.
-6. **Rider** sees a 🔵 mission → the **dark map** shows the route with distance, ETA and a **Call** button → Accept → Arrived → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
-7. **Customer** gets a **scratch card** → scratches it with the mouse or a finger → confetti and a reward.
-8. **Customer** opens the **Civic hub** and donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate** as a PDF with a QR code that opens the verify page.
-   - **Or sponsors a batch:** on a Deals card the customer taps **Sponsor batch for NGO (₹99)** → the rider collects the packs **at the store** → the **chemist's QA desk** verifies them → handed to the NGO → the store is paid, the NGO fund grows, and the customer gets karma, a scratch card and an NGO Donor certificate.
-9. **Admin** sees the KPIs and the **NGO fund** update and clicks **Verify Ledger Integrity** → ✅ chain intact.
-
----
-
-## 🗺️ Roadmap
-
-- [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
-- [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
-- [x] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate *(camera, typed-barcode and GS1 scanning with a confirm step; an **Add inventory** section (scan, type the barcode, or choose the medicine); expiry ledger; Eco-Sale / Donate / Dispose; packing desk with Rx review; QA desk; write-off receipt PDFs with the GST ITC reversal)*
-- [x] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(all built, plus a live order tracker with a progress stepper, map and ETA, and the **Sponsor batch for NGO (₹99)** button: see [Sponsor batch for NGO](#-sponsor-batch-for-ngo))*
-- [x] **5. Rider:** mission radar, lifecycle buttons, map, backhaul *(dark map with numbered multi-stop route, distance, ETA and Call; offline route diagram; radar; lifecycle with OTP; backhaul; earnings)*
-- [x] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(donate and Yellow-Bag forms with live eligibility feedback; blood booking; pickup tracking; certificate PDFs with a QR code and a verify page; course-completion reminder; canvas scratch cards with confetti)*
-- [x] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(KYC queue, KPI cards, three charts, blood donation confirmations, audit trail with ledger verification)*
-- [x] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(all built: PowerShell launcher and the `pharmaflow` command, sample SQLite database, [server mode](#%EF%B8%8F-server-mode) with logins and live sync, the installable offline PWA, English / Kannada / Hindi, and Playwright tests for the four-tab walkthrough, the sponsor flow, languages, the PWA and server mode)*
-
-**Ideas that are designed but not built:** an NGO login with a *needs list*, a chemist *NGO price* opt-in, and bulk buying from distributors at a cheaper rate, paid from the NGO fund. See [TODO.md](TODO.md).
-
----
-
-## 📚 Research Basis
-
-| Source | Finding | Feature |
-|---|---|---|
-| Jose & Surendran (2025) | Awareness, incentives and shared roles drive medicine returns | Karma points, scratch cards, certificates |
-| Wickens et al. (2024) | Returned medicines can be reused if inspected and regulated | Pharmacist QA desk + audit trail |
-| Kanyari (2024); IJCMPH (2024, 2025) | Households bin or flush drugs because pharmacies won't take them back | Free doorstep rider pickup |
-| Sorensen et al. (2024, Denmark) | Barcode scanning cuts expiry-check time by 59% | GS1 scan-to-ingest + expiry ledger |
-| PharmaSwap; NCSL (2025) | Near-expiry and repository programmes fail on manual paperwork | Unified digital Eco-Sale + NGO intake |
-
-### 🔬 Deep-dive: 2 reverse-logistics papers → 5 features
-
-#### Paper 1 — *A Multiobjective Mathematical Model of Reverse Logistics for Inventory Management with Environmental Impacts* (Forkan, Rizvi & Chowdhury, 2021, arXiv:2101.09541)
-
-- Returned (repaired/recovered) items have **their own demand**, separate from new stock.
-- The model minimises **holding cost**, **greenhouse-gas emissions** and **energy** together, under **storage-space limits**.
-- Because these goals conflict, it gives a set of best trade-offs (a **Pareto front**) instead of a single answer.
-- Key finding: when returns arrive faster than their demand, returned stock **piles up and holding cost rises**.
-
-#### Paper 2 — *Design of the Reverse Logistics System for Medical Waste Recycling, Part I* (Xue, Dong, Liu, Liao & Li; 1st prize, YUNFENG CUP, China)
-
-- 3 modules: **Classification & Monitoring** (weighing, RFID, GPS tracking for government, hospitals and logistics companies), **Temporary Storage & Disposal Site Selection** (linear programming + **K-means clustering**), and **Route Optimisation** (transport cost + risk cost, AHP weights, genetic algorithm).
-- Small clinics produce too little waste to collect individually, so they're grouped around larger **temporary storage sites** within a distance limit *L*.
-- Real Dalian city data: daily working time **−58.4%** (1194 → 497 min), daily cost **−20.8%**.
-
-#### Takeaways → what PharmaFlow implements, how, and why
-
-| # | Takeaway | How PharmaFlow implements it | Why |
-|---|---|---|---|
-| 1 | **Returns need their own demand stream** (Paper 1) | Near-expiry stock is modelled separately; Eco-Sale demand forecast per medicine; NGO pickups are **paced** to what partner NGOs can absorb; the QA desk shows backlog and holding cost | Stops donated/returned stock from piling up at the chemist or QA desk |
-| 2 | **Optimise cost *and* environment** (Paper 1) | Every batch action (Eco-Sale / NGO / CBWTF) shows 3 scores: **₹ recovered · kg CO₂ · km travelled**; admin **Cheapest ↔ Greenest** slider; shelf-capacity limit per store | Decisions become measurable; admin eco-KPIs are real numbers |
-| 3 | **Hub-and-spoke collection** (Paper 2) | Selected chemists become **Green Hubs**; homes and small stores are clustered to the nearest hub with **K-means** (within *L* km); riders drop Yellow Bags at the hub; the CBWTF van makes **one bulk pickup** | Fewer trips and less working time (paper: −58.4%) |
-| 4 | **End-to-end traceability** (Paper 2) | **QR tag** on every Yellow Bag; weight logged at pickup **and** at the hub; a mismatch triggers an admin alert; every step goes into the hash-chained ledger | Expired medicine can't quietly leak back into the market |
-| 5 | **Routes minimise cost *and* risk** (Paper 2) | Rider route score = distance + hazard; bio-hazard bags go to a hub fast; **backhaul** combines deliveries and pickups in one trip; time-window pickup slots | Safer riders, less fuel, faster collection |
-
-New domain rules these add (implemented in `/src/domain`):
-
-```
-greenHub.assign(home)      -> nearest hub by K-means cluster, only if distance <= L km
-pickup.paceLimit(ngo)      -> max NGO pickups/day = that NGO's declared intake capacity
-batchAction.scores(action) -> { rupeesRecovered, kgCO2, kmTravelled }
-yellowBag.verify(bag)      -> alert if |hubWeight - pickupWeight| > 5%
-route.score(path)          -> w1 * distance + w2 * hazardExposure   (weights set by AHP)
-```
-
-> 🎥 A 2-minute narrated explainer of these takeaways is in `media/PharmaFlow_Research_Takeaways.mp4`.
-
----
-
-## 🤖 Working on This Repo with an AI Assistant
-
-If you use an AI coding assistant on this project, paste the brief below as your first message. It keeps the AI aligned with every decision in this README. This README is the single source of truth for the project.
-
-<details>
-<summary><b>Click to expand the AI project brief</b></summary>
-
-```markdown
-# PROJECT BRIEF — PharmaFlow (read fully before writing any code)
-
-## 1. What you are building
-A web app closing the medicine loop in Mangaluru, India, connecting 4 roles:
-CUSTOMER (buy, buy near-expiry at discount, donate leftovers, dispose expired, book blood donation),
-CHEMIST (free ERP: scan stock, expiry ledger, liquidate via Eco-Sale / NGO / bio-disposal, approve prescriptions),
-RIDER (forward deliveries + reverse pickups),
-ADMIN (pharmacy KYC, KPIs, tamper-evident audit ledger).
-College PBL demo. Must run with ZERO setup: `npm install && npm run dev`. No cloud, no API keys.
-
-## 2. Fixed decisions (do not change or re-debate)
-TypeScript, React 18, Vite, React Router 7, Tailwind, shadcn/ui, Lucide, Framer Motion,
-Zustand, Dexie, Zod. Event-sourced core: every action is a typed event; state = reduce(events).
-Sync via BroadcastChannel (demo mode). Server mode (Hono + node:sqlite + ws, in /server) is built and uses the same events/reducer.
-Routes: /customer /chemist /rider /admin /presenter.
-Libs: @zxing/browser, Tesseract.js, react-leaflet, jsPDF + qrcode, Recharts, canvas-confetti.
-Folders: src/domain (pure TS) | src/store | src/roles/<role> | src/components | src/seed.
-
-## 3. Domain rules (exact; all in src/domain; all unit-tested)
-- Buckets by simulated days_left: SAFE >180 | LOCKOUT 30-180 | CRITICAL 1-29 | EXPIRED <=0.
-- Eco-Sale: 40-60% off; sellable only if days_left >= course_days + 15; never EXPIRED.
-- Donation: sealed, days_left > 30, not cold-chain, not Schedule X/NDPS, not opened liquids;
-  must pass chemist QA; rejected -> bio-disposal.
-- Expired -> Yellow-Bag -> CBWTF only.
-- PRESCRIPTIONS: drugs have schedule OTC | H | H1 | X.
-  H and H1 need an uploaded Rx; OCR only extracts fields; CHEMIST must approve before PACKED.
-  H1 sales also written to an H1 register. X/NDPS are blocked everywhere.
-  Rx must have doctor name, reg no, date, patient, drug. Validity: 30 d antibiotics, 180 d others.
-  Antibiotic Rx single-use. Qty <= prescribed. Eco-Sale does NOT bypass Rx.
-  Donated Rx-only drugs go only to NGOs with a registered doctor/pharmacist.
-- Generic label: "Same salt, same strength" (never "certified bioequivalent").
-- Rewards: donation +200 karma + scratch card; disposal +150; blood +500 karma + certificate ONLY
-  (no money-value rewards). MedWallet = closed-loop credit, no cash-out.
-- Write-off cert = "Inventory Write-Off & NGO Donation Receipt" with GST ITC reversal
-  (CGST 17(5)(h)). Never call it 80G.
-- State machines (reject invalid transitions):
-  Order: PLACED -> [RX_APPROVED] -> PACKED -> OUT_FOR_DELIVERY -> DELIVERED
-  Pickup: SCHEDULED -> COLLECTED -> QA_VERIFIED|QA_REJECTED -> DELIVERED_TO_NGO|INCINERATED
-- New chemists start PENDING_KYC; cannot list stock until ADMIN approves.
-- Ledger: each event stores sha256(prevHash + payload) via Web Crypto; admin can verify.
-- Barcode: parse GS1 AIs 01 GTIN, 10 batch, 17 expiry (YYMMDD); preset fallback.
-
-## 4. Design
-Customer: phone frame, white theme; blue #0284C7 commerce, green #10B981 eco,
-amber #F59E0B expiry, crimson #E11D48 blood. Chemist/Admin: dense dashboards.
-Rider: dark (bg-slate-950), big buttons. Presenter bar everywhere: role switch,
-1-tap demo logins, time-travel slider, reset demo data.
-
-## 5. Do NOT
-No Supabase/Firebase/paid/cloud/API-key services. No fake "AI verified" claims.
-No Date.now() in domain logic (use simulated clock). No business rules in React components.
-No unlisted features without asking. Don't rewrite working modules.
-
-## 6. Build order: follow the README Roadmap, one step at a time.
-
-## 7. Done = README "Demo Walkthrough" works across 4 tabs without refresh.
-
-## 8. How to work with me
-Plan first (files to touch), then complete files (no "...rest unchanged"),
-then tell me how to run/check it. If a rule is unclear, ASK.
-```
-
-</details>
-
----
-
-## 📝 Recent changes
-
-> Newest first. This list is updated with each batch of work.
-
-**2026-11-08**
-
-- Added **server mode** (`pharmaflow server`): a Hono API with bcrypt passwords and JWT logins, a SQLite hash-chained event log that checks every event with the same reducer as the browser, live push over a WebSocket, and a public certificate check. The browser swaps only `EventStorage` and `Transport`, so no screen changed. Time travel is now admin-only in the rules.
-- Added **English, Kannada and Hindi** with a language picker in the top bar. The whole customer app, the chemist, rider and admin screens and the verify page are translated; a test keeps the three files in step.
-- Made the app an **installable PWA** with an offline shell (Workbox service worker, generated icons, cached map tiles), checked by a Playwright test against the production build.
-- Added Playwright tests for the four-tab walkthrough, the languages, the PWA and server mode (`npm run test:e2e`, `test:e2e:pwa`, `test:e2e:server`).
-- Replaced the planned better-sqlite3 + Drizzle with Node's built-in `node:sqlite` for the server, so nothing needs compiling.
-- Added **Sponsor batch for NGO (₹99)** on Eco-Sale deals. The packs come out of the store's own batch, the store's chemist checks them, the store is paid its Eco-Sale price, the change tops up a new **NGO fund**, and the sponsor earns +200 karma, a scratch card and an NGO Donor certificate. A failed check refunds the sponsor as MedWallet credit. OTC medicines only.
-- Added the **NGO fund**: sponsor change plus 2% of the platform's 10% fee on delivered orders. It shows on the Admin dashboard and chart, and customers see their order's share.
-- Added **Playwright** multi-tab tests (`npm run test:e2e`) for the walkthrough and the sponsor flow.
-- Added the **Civic hub** for customers: donate unused medicines, dispose of expired ones through a Yellow-Bag pickup, book a blood donation, track pickups, and a reminder when a medicine course has finished.
-- Added a real **canvas scratch card** with confetti, **certificate PDFs with a QR code** and a verify page, and **write-off receipt PDFs** for chemists with the GST ITC reversal.
-- Added **admin charts** (stock health, money recovered, platform activity) and blood donation confirmations.
-- Added a **live order tracker** for customers: progress stepper, map, moving rider and ETA.
-- **Layouts:** a role opened on its own now uses a roomy **laptop layout** (customer sidebar and multi-column shop, rider map beside the missions). The "All 4" view keeps the compact phone-style panes.
-- Added the rider **navigation map**: dark OpenStreetMap view with a numbered multi-stop route, distance and ETA, a Call button, an Open in Maps link and an offline route diagram. Tiles use the free OpenStreetMap servers (CARTO's dark basemap now needs an API key).
-- Added an **Add inventory** section for chemists (scan, type the barcode, or choose the medicine) with buttons in the shop header and the expiry ledger.
-- Fixed a cart re-render loop on the customer screen.
-- Added the `pharmaflow` command (start, stop, status, test, db, build) that works from any folder, a double-click `Start PharmaFlow.cmd`, and `scripts/install-command.ps1` to add or remove it.
-- Added typed barcode entry for when scanning fails, plus a hint in the camera dialog.
-- Added camera barcode scanning (ZXing) and a printable demo QR barcodes page.
-- Added `ARCHITECTURE.md` and `WORKFLOW.md`.
-- Customer app: Shop, Deals, Cart and Orders tabs with prescription upload and OCR.
-- Added a sample SQLite database (`npm run db:sample`) and a PowerShell launcher.
-- Domain core, sync layer and first versions of all four role screens, with 153 tests.
-
----
-
-## 👤 Author
-
-**Chethan** — [@chethan-9817](https://github.com/chethan-9817)
-
-*This project is all about medicine reverse logistics: making sure every strip of medicine ends up helping someone or being destroyed safely, never in a dustbin or a drain.*
+**Author:** Chethan · [@chethan-9817](https://github.com/chethan-9817)

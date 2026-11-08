@@ -65,7 +65,7 @@ Project folder: `C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow` (quot
 Repo: https://github.com/chethan-9817/pharma_flow_1
 
 ## Rules to keep following
-- **Keep the docs current.** Update `README.md` (including *Recent changes*), `ARCHITECTURE.md` and `WORKFLOW.md` with every feature.
+- **Keep the docs current.** Keep `README.md` a short overview; put feature detail in `ARCHITECTURE.md` and `WORKFLOW.md`, and update them with every feature.
 - **Small, atomic commits**, one logical change each. Author is `chethanksks4@gmail.com`. **No Claude co-author line.**
 - **Layouts:** a role opened on its own must be laptop-optimised. The **All 4** presenter view (`?embed=1`) keeps the compact phone-style panes. Do not change the All 4 view.
 - No cloud services or API keys. Never fake "AI verified" claims. Business rules live in `src/domain`, never in React components.

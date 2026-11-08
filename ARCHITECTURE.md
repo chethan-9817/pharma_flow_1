@@ -355,7 +355,7 @@ Vitest runs 275 tests in 24 files, in about two seconds.
 | Server | Logins, the event API (every status code), restart and tamper detection, certificate check, security checks, and a real HTTP server with real WebSocket clients |
 | Server client | Two stores on a real server: live sync, simultaneous writes, signed-out loading, ended sessions, reset, reconnecting, an unreachable server |
 | Translations | Same keys and placeholders in all three languages, no unused or missing keys |
-| Walkthrough | `tests/walkthrough.test.ts` runs the README demo, steps 1–9, headlessly |
+| Walkthrough | `tests/walkthrough.test.ts` runs the full demo walkthrough (see [WORKFLOW.md](WORKFLOW.md#demo-script)) headlessly |
 
 **Playwright** (14 tests, in your installed Chrome) drives the real UI:
 
