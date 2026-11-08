@@ -17,9 +17,10 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 11. [Blood donation](#9-blood-donation)
 12. [Rewards and certificates](#10-rewards-and-certificates)
 13. [Time travel](#11-time-travel)
-14. [Demo script](#demo-script)
-15. [Developer workflow](#developer-workflow)
-16. [Troubleshooting](#troubleshooting)
+14. [Sponsoring a batch for an NGO, and the NGO fund](#12-sponsoring-a-batch-for-an-ngo-and-the-ngo-fund)
+15. [Demo script](#demo-script)
+16. [Developer workflow](#developer-workflow)
+17. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -27,8 +28,8 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 
 | Role | Demo login | Can do |
 |---|---|---|
-| **Customer** | Asha Shetty, Ravi Kumar | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards (domain also supports donate, dispose and blood booking) |
-| **Chemist** | Ganesh Prabhu (Sri Ganesh Medicals) | Ingest stock, Eco-Sale, donate and dispose batches, review prescriptions, pack orders, run the QA desk |
+| **Customer** | Asha Shetty, Ravi Kumar | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards, donate, dispose, book blood, sponsor an Eco-Sale batch for an NGO |
+| **Chemist** | Ganesh Prabhu (Sri Ganesh Medicals) | Ingest stock, Eco-Sale, donate and dispose batches, review prescriptions, pack orders, run the QA desk (including sponsored packs) |
 | **Rider** | Kiran Poojary | Go online, accept and complete deliveries and pickups |
 | **Admin** | PharmaFlow Admin | Approve or reject pharmacies, verify the ledger (the domain also lets admins confirm blood donations; screen to come) |
 
@@ -54,7 +55,8 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 | Write-off receipts for chemists | ✅ | ✅ PDF with the GST ITC reversal |
 | Live order tracker for customers | ✅ | ✅ stepper, map, moving rider and ETA |
 | Admin charts | ✅ | ✅ stock health, money recovered, platform activity |
-| "Sponsor batch for NGO (₹99)" | ⏳ rules not defined | ⏳ needs a decision first |
+| "Sponsor batch for NGO (₹99)" | ✅ | ✅ Deals card, Civic hub tracking, chemist QA badge and payout list |
+| NGO fund | ✅ | ✅ Admin card and chart line; customers see their order's share. Spending it is not built yet |
 
 ---
 
@@ -294,6 +296,7 @@ India's policy is voluntary, unpaid blood donation, so the reward has **no money
 |---|---|
 | Delivered order | Scratch card |
 | Donation to an NGO (customer) | +200 karma, scratch card, NGO Donor certificate |
+| Sponsoring a batch for an NGO | The same: +200 karma, scratch card, NGO Donor certificate (worded as sponsoring), earned when the NGO has the packs. A failed pharmacist check gives the ₹99 back as MedWallet credit instead |
 | Safe disposal (customer) | +150 karma, Green Citizen certificate |
 | Blood donation | +500 karma, Blood Donor certificate, badge |
 
@@ -315,6 +318,45 @@ What changes as the date moves:
 - Seed stock expires quickly. After +5 months most of the starting inventory is expired, which is useful for showing disposal.
 
 **Reset demo** clears everything in every open tab and returns the date to 8 Nov 2026.
+
+## 12. Sponsoring a batch for an NGO, and the NGO fund
+
+**Actors:** Customer (sponsors), the store's chemist, a rider, the NGO. **Screen:** Customer → *Deals* → **Sponsor batch for NGO (₹99)** on any card.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PLACED: customer sponsors (₹99 paid, packs set aside)
+    PLACED --> DELIVERED: rider hands the packs to the NGO
+    PLACED --> REFUNDED: chemist QA rejects the packs
+    DELIVERED --> [*]: store paid, fund topped up, sponsor rewarded
+    REFUNDED --> [*]: ₹99 back as MedWallet credit
+```
+
+1. The customer picks the NGO. The panel shows exactly what happens, for example: *"₹99 sponsors 10 packs for Seva NGO Clinic. ₹92 pays Sri Ganesh Medicals at the Eco-Sale price. ₹7 tops up the NGO fund."* The numbers come from the same rule the reducer re-checks.
+2. The packs are set aside from the store's batch at once, and a rider mission appears **at the store** (not at the customer's home).
+3. The rider accepts, arrives and collects. The chemist's **QA desk** then shows the packs with a *Sponsored* badge and the payout they will earn.
+4. **QA verified** → the rider hands them to the NGO. **QA rejected** → the packs go to bio-disposal and the sponsor is refunded.
+
+**What changes when the NGO has the packs**
+
+| Who | What |
+|---|---|
+| Store | Paid the Eco-Sale price of the packs. Shown under *Sponsored for NGOs* on the chemist dashboard (packs delivered, paid, still on the way) |
+| NGO fund | The change (for example ₹7) is added |
+| Sponsor | +200 karma, a scratch card, and an **NGO Donor certificate** that says *Sponsored 10 packs of Okacet for Seva NGO Clinic* |
+| Rider | Pickup pay, like any pickup |
+| Admin | *Medicines to NGOs* counts the packs at MRP; the NGO fund card and chart line step up |
+
+**Rules that can stop it**
+
+- Only an **Eco-Sale** batch, only **OTC** medicines (a prescription-only deal shows *"needs a prescription, so only over-the-counter medicines can be sponsored"*), not cold-chain, and **more than 30 days** of shelf life left because the packs go on to an NGO.
+- A pack that costs more than ₹99, or an empty batch, cannot be sponsored.
+- If the batch has fewer packs left than ₹99 would buy, the sponsor gets those packs and the change in the fund is larger.
+- It is a **sale** to the sponsor, so the store gets no donation write-off receipt or GST ITC reversal for these packs. (Rejected packs are written off as bio-disposal, as usual.)
+
+**The NGO fund** is closed-loop money for medicines for NGOs, never cash. Two things feed it: sponsor change, and **2% of the platform's 10% fee on every delivered order** (demo values in `src/domain/rules/fund.ts`; the chemist's payout is never reduced). The Admin dashboard shows its balance, where it came from and recent entries. After a delivery the customer's order card says how much went in.
+
+**Not built yet (designed):** an NGO login with a *needs list*, a chemist **NGO price** opt-in, and bulk buying from distributors at a cheaper rate, all paid from this fund. See [TODO.md](TODO.md).
 
 ---
 
@@ -355,6 +397,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | 7 | Rider | **Offline → Online** → **Accept mission** (the map appears: point out the route, ETA and Call button) → **Arrived** → **Collected** → type the OTP shown in the customer's Orders tab → **Confirm handover** | ₹40 earnings, 1 trip |
 | 8 | Customer | **Orders** tab → scratch the card with the mouse until about half is clear | Confetti, and karma or MedWallet credit appears |
 | 9 | Customer | **Civic hub** → fill **Donate unused medicines** (for example Dolo 650, a batch number, an expiry more than 30 days away) → **Schedule free pickup**. Then Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The pickup tracker follows each step. The customer gets +200 karma and an NGO Donor certificate: press **PDF** and show the QR code |
+| 9b | Customer, Chemist, Rider | *Optional.* In **Deals** on the Eco-Sale card tap **Sponsor batch for NGO (₹99)** → **Sponsor now**. Rider accepts and collects **at the store** → Chemist **QA verified** → Rider **Hand over** | The store is paid, the **NGO fund** grows on the Admin page, and the customer gets +200 karma and a certificate that says *Sponsored N packs of …* |
 | 10 | Browser | Scan the certificate's QR code, or open `/verify?code=…` | "Certificate is valid", with the holder's name |
 | 11 | Customer, Admin | **Civic hub** → **Book appointment** for blood; then Admin → **Confirm donation** | +500 karma, a Blood Donor certificate and a badge, and no wallet credit |
 | 12 | Admin | Show the **charts** and KPIs, then **Verify ledger integrity** | The money line has stepped up; "✅ Chain intact: N events verified" |
@@ -370,6 +413,8 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | "What happens to expired stock?" | Only the Yellow-Bag → CBWTF route is allowed |
 | "Does it work offline?" | Everything except first-time OCR and the web font |
 | "Where is the data?" | In the browser (IndexedDB). `npm run db:sample` shows the same data as SQL tables |
+| "How do NGOs benefit?" | Three ways today: donated strips after a pharmacist's check, **sponsored packs** straight from a store's Eco-Sale batch, and an **NGO fund** (sponsor change plus a small share of the platform's fee). The fund can only buy medicines for NGOs |
+| "Is the platform fee real?" | No, it is a demo number (10% of a delivered order, 2% of that to the fund). It is one constant in `rules/fund.ts` |
 
 ---
 
@@ -377,7 +422,8 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 187 tests, about one second
+pharmaflow test      # 221 tests, about one second
+npm run test:e2e     # Playwright: four browser tabs, uses your installed Chrome (starts its own dev server on :5199)
 npm run typecheck    # strict TypeScript
 npm run build        # typecheck + production build
 npm run db:sample    # rebuild the sample database

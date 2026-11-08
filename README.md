@@ -19,6 +19,7 @@ PharmaFlow replaces the one-way "buy → use → throw away" medicine supply cha
 4. [The 4 Roles & Their Features](#-the-4-roles--their-features)
 5. [Prescription Rules (Rx-Only Drugs)](#-prescription-rules-rx-only-drugs)
 6. [Business & Safety Rules](#-business--safety-rules)
+   - [Sponsor batch for NGO and the NGO fund](#-sponsor-batch-for-ngo)
 7. [Legal & Compliance Notes](#%EF%B8%8F-legal--compliance-notes)
 8. [Technical Architecture](#%EF%B8%8F-technical-architecture)
 9. [Tech Stack](#-tech-stack)
@@ -118,7 +119,7 @@ flowchart LR
 | **Medicine catalog** | 12+ everyday Indian medicines (Dolo 650, Augmentin 625 Duo, Pan-D, Okacet, Azithral 500, Shelcal 500, Becosules, Benadryl Syrup, Electral ORS, Volini Gel, Limcee, Accu-Chek strips) with salt, pack size, manufacturer and MRP |
 | **Cheaper generic switcher** | Shows a variant with the **same salt and same strength**, priced against **Jan Aushadhi (PMBJP)**. Example: Pan-D ₹190 → Pantoprazole + Domperidone generic ₹68 (save ₹122) |
 | **Prescription upload** | Required for Rx-only drugs. See [Prescription Rules](#-prescription-rules-rx-only-drugs) |
-| **Eco-Sale store** | Near-expiry stock at 40–60% off with an amber countdown badge, e.g. *"Expires in 38 days • fits a 5-day course • 50% OFF"*. Two buttons: **Buy for myself** or **Sponsor batch for NGO (₹99)** |
+| **Eco-Sale store** | Near-expiry stock at 40–60% off with an amber countdown badge, e.g. *"Expires in 38 days • fits a 5-day course • 50% OFF"*. Two buttons: **Buy for myself** or **Sponsor batch for NGO (₹99)** (see [Sponsor batch for NGO](#-sponsor-batch-for-ngo)) |
 | **Civic Impact Hub** | **A.** Donate unused medicines to an NGO · **B.** Safe disposal of expired medicines · **C.** Donate blood |
 | **Course-completion reminder** | *"Finished your 5-day course of Dolo 650? Donate the 10 unopened tablets left to Seva NGO Clinic and earn karma."* |
 | **Live GPS tracker** | Map with store, home, NGO and CBWTF plant, plus an animated rider and a 4-step progress stepper |
@@ -225,6 +226,8 @@ All rules live in `/src/domain` as pure, unit-tested functions.
 | Rewards | Donation +200 karma + 1 scratch card · Safe disposal +150 karma · Orders earn scratch cards |
 | Blood donation rewards | +500 karma, certificate and badge **only**: no cashback or anything with money value |
 | MedWallet | **Closed-loop store credit**, never converted to cash |
+| Sponsor batch for NGO | Flat **₹99** buys as many packs of an **Eco-Sale** deal as it covers (at least one). **OTC medicines only**, more than 30 days of shelf life. The store is paid its Eco-Sale price, the change tops up the NGO fund. Reward: +200 karma, a scratch card and an NGO Donor certificate. A failed pharmacist check refunds ₹99 as MedWallet credit |
+| NGO fund | Closed-loop money for medicines for NGOs, never paid out as cash. Fed by sponsor change and **2% of the platform's 10% fee** on every delivered order (demo values). Never taken from the chemist's payout |
 
 ### Order & pickup lifecycles (state machines; invalid jumps are rejected)
 
@@ -233,7 +236,44 @@ Forward order:   PLACED → [RX_APPROVED] → PACKED → OUT_FOR_DELIVERY → DE
 Reverse pickup:  SCHEDULED → COLLECTED → QA_VERIFIED → DELIVERED_TO_NGO
                                        ↘ QA_REJECTED → INCINERATED
 Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
+Sponsorship:     PLACED → DELIVERED   (store paid, fund topped up, sponsor rewarded)
+                        ↘ REFUNDED    (pharmacist rejects the packs: ₹99 back as MedWallet credit)
 ```
+
+---
+
+## 💚 Sponsor batch for NGO
+
+A second button on every Eco-Sale deal. It lets a customer put medicines into an NGO's hands, and it **depends on the registered medical stores**: the packs come out of that store's own Eco-Sale batch, the store hands them to a rider, the store's chemist checks them, and the store is paid.
+
+```mermaid
+sequenceDiagram
+    participant U as Customer
+    participant A as PharmaFlow
+    participant S as Store (chemist)
+    participant R as Rider
+    participant N as NGO
+    U->>A: Sponsor batch for NGO (₹99)
+    A->>A: Set packs aside from the store's Eco-Sale batch
+    R->>S: Collect the packs at the store
+    S->>A: QA desk: verified (or rejected)
+    R->>N: Hand over to the NGO
+    A-->>S: Paid the Eco-Sale price for the packs
+    A-->>A: Change tops up the NGO fund
+    A-->>U: +200 karma, scratch card, NGO Donor certificate
+```
+
+| Question | Answer |
+|---|---|
+| What does ₹99 buy? | As many packs of that deal as ₹99 covers at the Eco-Sale price (for example 10 packs at ₹9.20), at least one, never more than the batch has left |
+| Who is paid? | The store, the Eco-Sale price of those packs, once the NGO has them |
+| Where does the change go? | Into the **NGO fund** (here ₹99 − ₹92 = ₹7). It can only ever buy medicines for NGOs |
+| Which medicines? | **Over-the-counter only.** Prescription-only drugs are left out: the sponsor has no prescription, and those need an NGO with a registered doctor or pharmacist |
+| Does the customer earn anything? | +200 karma, a scratch card and an **NGO Donor certificate** that names the sponsored packs |
+| What if the pharmacist rejects the packs? | The sponsor gets the full ₹99 back as **MedWallet** credit, the store is not paid, and the packs go to bio-disposal |
+| Is it a donation write-off for the store? | No. It is a sale, so no donation receipt or GST ITC reversal is issued for it |
+
+**The NGO fund** is shown on the Admin dashboard (balance, where it came from, recent entries, and a purple line on the *Money recovered* chart). Customers see how much of each delivered order went into it. Spending it on bulk, discounted medicines through distributors is **designed but not built yet**: see [TODO.md](TODO.md).
 
 ---
 
@@ -247,6 +287,7 @@ Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
 | **Medicine redistribution** | India has no explicit framework for re-dispensing household returns, so it runs as a **pharmacist-gated pilot** limited to sealed strips |
 | **Income Tax (80G)** | In-kind (goods) donations **don't qualify** for 80G. We issue an inventory write-off record + NGO receipt instead |
 | **GST — CGST Sec 17(5)(h)** | Input tax credit on goods written off, destroyed or given away must be reversed; the certificate calculates it |
+| **Sponsor batch for NGO** | The sponsor buys from the store, so it is a normal sale by the store and not a donation write-off. The NGO fund is closed-loop and never paid out as cash. **Holding real donated money needs a registered trust or partner NGO, and any 80G claim needs advice from a CA**; the demo only keeps a ledger |
 | **Blood donation** | India's policy is voluntary and unpaid, so there are no money-value rewards |
 | **RBI prepaid wallet rules** | MedWallet is closed-loop store credit (no cash-out) |
 
@@ -357,15 +398,16 @@ Pharma-flow/
 │   │   ├── selectors.ts     # Inventory, Eco-Sale, KPIs, missions, backhaul
 │   │   ├── route.ts         # Rider stops, distance, ETA and position
 │   │   ├── impact.ts        # Impact timeline, activity and stock health for the admin charts
-│   │   ├── rules/           # expiry, ecoSale, donation, prescription, rxText, generic, rewards, gst, gs1
+│   │   ├── sponsor.ts       # Plans a "Sponsor batch for NGO" deal (packs, store payout, fund top-up)
+│   │   ├── rules/           # expiry, ecoSale, donation, prescription, rxText, generic, rewards, gst, gs1, sponsor, fund
 │   │   ├── machines/        # order.ts, pickup.ts (state machines)
-│   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts)
+│   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts, sponsor, fund)
 │   ├── store/               # Zustand store, Dexie + in-memory storage, BroadcastChannel transport
 │   ├── roles/
-│   │   ├── customer/        # Shop, Deals, Cart, Orders (tracker, scratch cards), Civic hub, Rx form with OCR
-│   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, write-off receipts, demo barcodes
+│   │   ├── customer/        # Shop, Deals (with Sponsor), Cart, Orders (tracker, scratch cards), Civic hub, Rx form with OCR
+│   │   ├── chemist/         # Dashboard, Add inventory (scan / type / choose), camera scanner, sponsored packs, write-off receipts, demo barcodes
 │   │   ├── rider/           # Mission radar, lifecycle and the navigation map
-│   │   └── admin/           # KYC queue, KPIs, charts, blood confirmations, audit trail
+│   │   └── admin/           # KYC queue, KPIs, charts, NGO fund, blood confirmations, audit trail
 │   ├── components/          # PresenterBar, RoleGate, VerifyPage, layout hook, toast, UI primitives
 │   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), certificatePdf.ts (jsPDF), confetti.ts, image.ts, id.ts
 │   ├── seed/                # Medicines, stores, NGOs, blood banks, users, preset barcodes
@@ -375,6 +417,8 @@ Pharma-flow/
 │   ├── install-command.ps1  # Adds or removes the `pharmaflow` command on your user Path
 │   └── sample-db.ts         # Runs a full scenario and writes data/pharmaflow-sample.db
 ├── tests/                   # Vitest: rules, machines, reducer, store sync, walkthrough
+├── e2e/                     # Playwright: the walkthrough and the sponsor flow across four browser tabs
+├── playwright.config.ts     # Playwright setup (uses your installed Chrome)
 ├── data/                    # Generated sample database (git-ignored)
 ├── pharmaflow.cmd           # The `pharmaflow` command (start, stop, status, test, db, build)
 ├── Start PharmaFlow.cmd     # Double-click launcher
@@ -413,7 +457,7 @@ It starts the app in the background (no extra window), waits until it is ready a
 | `pharmaflow dev` | Run the dev server in the current window (Ctrl+C to stop) |
 | `pharmaflow stop` | Stop the background app |
 | `pharmaflow status` | Say whether it is running |
-| `pharmaflow test` | Run the 187 domain and sync tests |
+| `pharmaflow test` | Run the 221 domain and sync tests |
 | `pharmaflow db` | Build and print the sample SQLite database |
 | `pharmaflow build` | Typecheck and create a production build |
 | `pharmaflow -NoBrowser` | Start without opening the browser |
@@ -471,7 +515,8 @@ All of this happens **live across 4 tabs without a page refresh**. A step-by-ste
 6. **Rider** sees a 🔵 mission → the **dark map** shows the route with distance, ETA and a **Call** button → Accept → Arrived → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
 7. **Customer** gets a **scratch card** → scratches it with the mouse or a finger → confetti and a reward.
 8. **Customer** opens the **Civic hub** and donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate** as a PDF with a QR code that opens the verify page.
-9. **Admin** sees the KPIs update and clicks **Verify Ledger Integrity** → ✅ chain intact.
+   - **Or sponsors a batch:** on a Deals card the customer taps **Sponsor batch for NGO (₹99)** → the rider collects the packs **at the store** → the **chemist's QA desk** verifies them → handed to the NGO → the store is paid, the NGO fund grows, and the customer gets karma, a scratch card and an NGO Donor certificate.
+9. **Admin** sees the KPIs and the **NGO fund** update and clicks **Verify Ledger Integrity** → ✅ chain intact.
 
 ---
 
@@ -480,7 +525,7 @@ All of this happens **live across 4 tabs without a page refresh**. A step-by-ste
 - [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
 - [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
 - [x] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate *(camera, typed-barcode and GS1 scanning with a confirm step; an **Add inventory** section (scan, type the barcode, or choose the medicine); expiry ledger; Eco-Sale / Donate / Dispose; packing desk with Rx review; QA desk; write-off receipt PDFs with the GST ITC reversal)*
-- [x] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(all built, plus a live order tracker with a progress stepper, map and ETA. The "Sponsor batch for NGO (₹99)" button is not built: the README does not define how a sponsored batch is priced, paid or received, so it needs a decision first)*
+- [x] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(all built, plus a live order tracker with a progress stepper, map and ETA, and the **Sponsor batch for NGO (₹99)** button: see [Sponsor batch for NGO](#-sponsor-batch-for-ngo))*
 - [x] **5. Rider:** mission radar, lifecycle buttons, map, backhaul *(dark map with numbered multi-stop route, distance, ETA and Call; offline route diagram; radar; lifecycle with OTP; backhaul; earnings)*
 - [x] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(donate and Yellow-Bag forms with live eligibility feedback; blood booking; pickup tracking; certificate PDFs with a QR code and a verify page; course-completion reminder; canvas scratch cards with confetti)*
 - [x] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(KYC queue, KPI cards, three charts, blood donation confirmations, audit trail with ledger verification)*
@@ -580,6 +625,9 @@ then tell me how to run/check it. If a rule is unclear, ASK.
 
 **2026-11-08**
 
+- Added **Sponsor batch for NGO (₹99)** on Eco-Sale deals. The packs come out of the store's own batch, the store's chemist checks them, the store is paid its Eco-Sale price, the change tops up a new **NGO fund**, and the sponsor earns +200 karma, a scratch card and an NGO Donor certificate. A failed check refunds the sponsor as MedWallet credit. OTC medicines only.
+- Added the **NGO fund**: sponsor change plus 2% of the platform's 10% fee on delivered orders. It shows on the Admin dashboard and chart, and customers see their order's share.
+- Added **Playwright** multi-tab tests (`npm run test:e2e`) for the walkthrough and the sponsor flow.
 - Added the **Civic hub** for customers: donate unused medicines, dispose of expired ones through a Yellow-Bag pickup, book a blood donation, track pickups, and a reminder when a medicine course has finished.
 - Added a real **canvas scratch card** with confetti, **certificate PDFs with a QR code** and a verify page, and **write-off receipt PDFs** for chemists with the GST ITC reversal.
 - Added **admin charts** (stock health, money recovered, platform activity) and blood donation confirmations.

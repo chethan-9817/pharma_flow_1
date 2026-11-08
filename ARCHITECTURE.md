@@ -176,6 +176,8 @@ All rules are pure functions in `src/domain/rules/`, each with its own unit test
 | `rewards.ts` | Donation +200 karma and a scratch card; disposal +150; blood +500 with a certificate and badge only; closed-loop wallet; deterministic scratch rewards |
 | `gst.ts` | Write-off certificate with the GST ITC reversal (CGST Sec 17(5)(h)); never called 80G |
 | `gs1.ts` | Parses GS1 element strings (GTIN, batch, expiry), symbology prefixes and plain EAN barcodes. `parseScan` is used for both camera results and typed barcodes (spaces and hyphens ignored) |
+| `sponsor.ts` | "Sponsor batch for NGO": flat ₹99 buys as many packs as it covers at the Eco-Sale price (at least one, at most the batch); store payout and fund top-up always add up to ₹99; only Eco-Sale, OTC, non-cold-chain batches with more than 30 days left |
+| `fund.ts` | The NGO fund: a 10% platform fee on delivered orders, of which 2% goes to the fund (demo values, one constant each) |
 
 State machines are in `src/domain/machines/`:
 
@@ -187,7 +189,10 @@ Two modules sit on top of the rules:
 - `checkout.ts` quotes a cart (first-expiry-first-out batch picking, Eco-Sale pricing, stock checks) and plans an order.
 - `selectors.ts` derives everything the screens show: store inventory with buckets, Eco-Sale listings, impact KPIs, open rider missions and backhaul suggestions.
 - `route.ts` turns a rider's active orders and pickups into an ordered list of stops (store or pickup point, customer, chemist QA, NGO, CBWTF), the rider's current position, and distance and ETA at 25 km/h. It is pure and tested; the map only draws what it returns.
-- `impact.ts` feeds the admin charts: `impactTimeline` replays the event log and records a point whenever a number changes, `activityByFamily` counts events by area, and `stockByBucket` sums shelf units by expiry bucket.
+- `impact.ts` feeds the admin charts: `impactTimeline` replays the event log and records a point whenever a number changes (including the NGO fund balance), `activityByFamily` counts events by area, and `stockByBucket` sums shelf units by expiry bucket.
+- `sponsor.ts` plans a sponsorship (`planSponsorship`). The Deals screen uses it to preview the deal, and the reducer runs it again and compares, so an event cannot claim more packs or a different split than the rules give.
+
+**A sponsorship reuses the pickup machine instead of adding a new one.** `SPONSORSHIP_PLACED` sets packs aside from a store's Eco-Sale batch and creates a donation `Pickup` that starts at the store (`sourceStoreId`, `qaStoreId` = the same store, `sponsorshipId`). From there the normal events carry it: the rider collects, the store's chemist verifies or rejects at the QA desk, the rider hands it to the NGO. Two hooks in `handlers/pickups.ts` finish the money side: `PICKUP_DELIVERED_TO_NGO` calls `sponsorshipDelivered` (store payout settled, change added to the NGO fund, sponsor rewarded), and `PICKUP_QA_REJECTED` calls `sponsorshipRefunded` (the whole ₹99 returns as MedWallet credit). Money only moves on those two events, so a sponsorship that is still on its way has paid nobody. Sponsored packs are a sale, so `storeWriteOffs` skips them.
 
 The reducer **re-checks every rule** even when the UI already checked. For example, `ORDER_PLACED` recomputes prices from the batches, re-validates the prescription and re-checks stock, so a stale or tampered client cannot slip an invalid order into the log.
 
@@ -199,8 +204,8 @@ The reducer **re-checks every rule** even when the UI already checked. For examp
 |---|---|
 | Clock | `today` |
 | Reference data (seed) | `medicines`, `stores`, `ngos`, `bloodBanks`, `users`, `cbwtf` (the incineration plant) |
-| Transactions | `batches`, `orders`, `pickups`, `prescriptions`, `h1Register`, `scratchCards`, `bloodBookings` |
-| Balances | `karma`, `wallet` (per user) |
+| Transactions | `batches`, `orders`, `pickups`, `prescriptions`, `h1Register`, `scratchCards`, `bloodBookings`, `sponsorships` |
+| Balances | `karma`, `wallet` (per user), `ngoFund` (balance and its entries) |
 | Outputs | `certificates`, `riders` (online flag, earnings, incentives, trips) |
 
 Everything is stored as plain records keyed by id, so state is easy to diff, serialise and map to SQL tables.
@@ -226,9 +231,9 @@ Going back means **Reset demo data**, which clears the log.
 | `toast` | Shows rule errors and confirmations |
 | `ui.tsx` | Button, Card, Badge, Stat primitives with the design tokens |
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
-| `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk |
+| `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk (sponsored packs are marked), **Sponsored for NGOs** (what the store is paid and what is on the way) |
 | `roles/rider` | Dark mission radar with large lifecycle buttons, plus the navigation panel and map |
-| `roles/admin` | KYC queue, KPI cards, three charts, blood donation confirmations, audit trail |
+| `roles/admin` | KYC queue, KPI cards, three charts (the money chart has an NGO fund line), the NGO fund card, blood donation confirmations, audit trail |
 
 **Two layouts, one codebase.** `components/layout.ts` exports `useEmbedded()`, which is true for `?embed=1`, the URL each pane of the `/presenter` page loads. A role opened on its own gets the wide **laptop layout** (customer sidebar, rider missions beside a large map). Embedded panes keep the compact **phone-style** layout so four fit side by side. Inside a layout, content adapts to the width it is actually given using Tailwind container queries (`@container`, `@2xl:`, `@3xl:`), so the same Shop, Cart or Civic components are one column in a phone frame and two or three on a laptop.
 
@@ -281,10 +286,10 @@ All three fail gracefully: the scanner dialog explains camera problems and offer
 | SQL table | Comes from |
 |---|---|
 | `medicines`, `stores`, `ngos`, `blood_banks`, `users` | Seed / reference data |
-| `batches`, `orders` + `order_items`, `pickups` + `pickup_items`, `prescriptions` + `prescription_drugs`, `h1_register`, `scratch_cards`, `certificates`, `blood_bookings`, `rider_profiles` | `AppState` after replay |
+| `batches`, `orders` + `order_items`, `pickups` + `pickup_items`, `prescriptions` + `prescription_drugs`, `h1_register`, `scratch_cards`, `certificates`, `blood_bookings`, `rider_profiles`, `sponsorships`, `ngo_fund_entries` | `AppState` after replay |
 | `events` | The hash-chained log (`idx`, `type`, `actor_id`, `sim_date`, `payload` JSON, `prev_hash`, `hash`) |
 
-The `events` table is the source of truth; every other table is a projection of it. The views `v_expiry_ledger` and `v_order_summary` show how reporting queries become plain SQL.
+The `events` table is the source of truth; every other table is a projection of it. The views `v_expiry_ledger`, `v_order_summary` and `v_ngo_fund` show how reporting queries become plain SQL. The scenario includes a sponsorship, so the sample shows the store payout and the fund entry.
 
 **Server mode (planned, roadmap step 8)** keeps the same events and reducer. A Hono API would validate events with the same domain code, store them in SQLite, and push them to clients over WebSockets, replacing `DexieStorage` and `BroadcastTransport` behind the same two interfaces.
 
@@ -323,7 +328,8 @@ The browser flows (camera scan, OCR, prescription checkout, cross-tab delivery) 
 - **GST and costs are assumptions.** The write-off certificate uses a 12% default rate and a cost of 70% of MRP, both configurable.
 - **Map tiles use the public OpenStreetMap servers.** That is fine for a demo and light use. A production app should use its own tile provider or host tiles itself, following the OSM tile usage policy.
 - **Certificate verification is demo-only.** A QR code opens `/verify?code=…`, which looks the code up in the browser's own event log. A real deployment needs the server to answer.
-- **"Sponsor batch for NGO" is not built.** The README names the button but does not say how a sponsored batch is priced, paid or received.
+- **The NGO fund can only grow for now.** Sponsor change and the platform share go in, but nothing spends it yet. Using it for bulk, discounted medicines through distributors is designed (see TODO.md) but not built, and it needs an NGO login and a needs list first.
+- **The platform fee is a demo number.** There is no real revenue model: a 10% fee on delivered orders is assumed so the NGO share has something to be a share of. Holding real donated money also needs a registered trust or partner NGO.
 - **The rider position is simulated.** There is no GPS: the dot glides between stops for display only.
 - **Camera needs a secure context.** Use `http://localhost`, not a LAN IP over plain HTTP.
 - **Prescription OCR is a suggestion engine.** A pharmacist always makes the final decision.
