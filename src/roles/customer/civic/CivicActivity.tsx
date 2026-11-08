@@ -92,7 +92,10 @@ export function CivicActivity({ user }: { user: User }) {
                 <Award className="size-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{CERT_TITLE[c.kind]} Certificate</p>
+                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
+                  <span className="truncate">{CERT_TITLE[c.kind]} Certificate</span>
+                  {c.kind === 'BLOOD_DONOR' && <Badge tone="red">Lifesaver badge</Badge>}
+                </p>
                 <p className="truncate text-xs text-slate-500">{c.summary} · code {c.verifyCode}</p>
               </div>
               <Button size="sm" variant="ghost" onClick={() => void download(c)}>
