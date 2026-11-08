@@ -16,16 +16,18 @@ This document explains how PharmaFlow is put together and why. For the business 
 10. [UI layer](#ui-layer)
 11. [Launcher and the pharmaflow command](#launcher-and-the-pharmaflow-command)
 12. [Libraries that load on demand](#libraries-that-load-on-demand)
-13. [Sample database and server mode](#sample-database-and-server-mode)
-14. [Testing](#testing)
-15. [Design decisions and trade-offs](#design-decisions-and-trade-offs)
-16. [Known limits](#known-limits)
+13. [Sample database](#sample-database-and-server-mode)
+14. [Server mode](#server-mode)
+15. [Languages and the installable app](#languages-and-the-installable-app)
+16. [Testing](#testing)
+17. [Design decisions and trade-offs](#design-decisions-and-trade-offs)
+18. [Known limits](#known-limits)
 
 ---
 
 ## Big picture
 
-PharmaFlow is a single-page React app. There is **no backend** in demo mode. Every user action becomes an immutable, typed **event**. The current state of the whole platform is `reduce(events)`. The events are stored in the browser (IndexedDB) and shared between open tabs with `BroadcastChannel`.
+PharmaFlow is a single-page React app. There is **no backend** in demo mode. Every user action becomes an immutable, typed **event**. The current state of the whole platform is `reduce(events)`. The events are stored in the browser (IndexedDB) and shared between open tabs with `BroadcastChannel`. **Server mode** keeps the same events on a server instead (see [Server mode](#server-mode)): same reducer, same screens, different storage and transport.
 
 ```mermaid
 flowchart TB
@@ -62,6 +64,7 @@ flowchart LR
 | Store | `src/store` | Domain, Zustand, Dexie | Contain business rules |
 | UI | `src/roles`, `src/components` | Domain (selectors, rules for display), store | Decide whether an action is allowed |
 | Lib | `src/lib` | Browser APIs, lazily loaded libraries | Touch application state |
+| Server | `server` | Domain and seed (it runs the same reducer), Hono, `ws`, `bcryptjs`, `node:sqlite` | Import React or `src/store` |
 
 The rule that matters most: **business rules never live in React components**. A component calls `dispatch(...)`. If the action breaks a rule, the reducer returns an error message and the component only shows it.
 
@@ -130,11 +133,11 @@ Nothing is written unless every rule passes, so the log only ever contains valid
 
 Each tab has its own store instance (`src/store/index.ts`). Three small interfaces keep the pieces swappable:
 
-| Interface | Demo implementation | Test implementation | Server mode (planned) |
+| Interface | Demo implementation | Test implementation | Server mode |
 |---|---|---|---|
-| `EventStorage` | `DexieStorage` (IndexedDB, table `events` keyed by `index`) | `MemoryStorage` | SQLite via an API |
-| `Transport` | `BroadcastTransport` (channel `pharmaflow-events`) | `MemoryTransport` on a shared `MemoryBus` | WebSocket |
-| Sessions | `sessionStorage`, per tab | none | JWT cookie |
+| `EventStorage` | `DexieStorage` (IndexedDB, table `events` keyed by `index`) | `MemoryStorage` | `ServerStorage` (HTTP to the API; SQLite on the server) |
+| `Transport` | `BroadcastTransport` (channel `pharmaflow-events`) | `MemoryTransport` on a shared `MemoryBus` | `WebSocketTransport` (pushed by the server) |
+| Sessions | `sessionStorage`, per tab (which role a tab shows) | none | the same, plus a JWT per user in `localStorage` and a password check on the server |
 
 How a tab behaves:
 
@@ -226,8 +229,8 @@ Going back means **Reset demo data**, which clears the log.
 
 | Piece | Purpose |
 |---|---|
-| `PresenterBar` | Role switch, time-travel slider and jump buttons, reset |
-| `RoleGate` | 1-tap demo login per role; sessions are per tab |
+| `PresenterBar` | Role switch, time-travel slider and jump buttons, language picker, reset |
+| `RoleGate` | 1-tap demo login per role (a password form, `ServerLogin`, in server mode); sessions are per tab |
 | `toast` | Shows rule errors and confirmations |
 | `ui.tsx` | Button, Card, Badge, Stat primitives with the design tokens |
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
@@ -291,22 +294,78 @@ All three fail gracefully: the scanner dialog explains camera problems and offer
 
 The `events` table is the source of truth; every other table is a projection of it. The views `v_expiry_ledger`, `v_order_summary` and `v_ngo_fund` show how reporting queries become plain SQL. The scenario includes a sponsorship, so the sample shows the store payout and the fund entry.
 
-**Server mode (planned, roadmap step 8)** keeps the same events and reducer. A Hono API would validate events with the same domain code, store them in SQLite, and push them to clients over WebSockets, replacing `DexieStorage` and `BroadcastTransport` behind the same two interfaces.
+The server's `events` table has the same columns as `scripts/schema.sql`, so the sample database is a faithful preview of what the server stores.
+
+## Server mode
+
+`npm run server` (or `pharmaflow server`) starts `server/index.ts`. It serves the API, the WebSocket and, if `npm run build:server` has been run, the app itself, on one port (8787).
+
+```mermaid
+flowchart LR
+    B1["Browser A<br/>store + reducer"] -->|"POST /api/events (JWT)"| API["Hono API"]
+    B2["Browser B<br/>store + reducer"] -->|"POST /api/events (JWT)"| API
+    API -->|"same reducer: applyEvent"| LOG["EventLog<br/>state + hash chain"]
+    LOG -->|"INSERT"| DB[("SQLite<br/>data/pharmaflow.db")]
+    API -->|"broadcast entry"| HUB["Hub"]
+    HUB -->|"WebSocket /ws"| B1
+    HUB -->|"WebSocket /ws"| B2
+```
+
+| File | Job |
+|---|---|
+| `server/app.ts` | The Hono app: login, events, reset, certificate check, health, secure headers, body limit. It is a plain object, so tests call `app.request(...)` with no port |
+| `server/log.ts` | `EventLog`: the server's hash chain and its `AppState`. `append` runs one at a time and checks, in order: shape, the actor is the signed-in user (403), the entry is the next link (409), the hash matches the event (422), the reducer accepts it (422), then it is stored. On start it replays and verifies everything stored, and refuses to run on a damaged or no-longer-valid log |
+| `server/auth.ts` | bcrypt hashing (cost 10), JWT signing (HS256, 12 hours), the signing key kept in `meta`, a login rate limiter |
+| `server/ws.ts`, `server/hub.ts` | WebSocket at `/ws`. The first message must be `{type:"auth", token}` (a token in the address would end up in logs). Connections that skip it are closed after 5 s. `Hub.broadcast` pushes each stored entry to every signed-in connection |
+| `server/db.ts` | Opens SQLite with Node's built-in `node:sqlite` and creates `events`, `credentials` and `meta` |
+
+**The browser side** (`src/store/server/`) is three small classes behind the interfaces the store already had:
+
+- `ServerStorage` implements `EventStorage`. `append` posts the entry. A `409` is thrown as a plain error, which the store already treats as "another writer won": it re-syncs and tries again, exactly as with two tabs. A refusal for any other reason is a `StorageRejected` carrying the server's message, which the store returns as a normal rule error.
+- `WebSocketTransport` implements `Transport`. `publish` does nothing, because the server tells everyone, the writer included (a browser ignores an entry it already has). After every connection the store is asked to `resync`, so nothing is missed while it was down. It reconnects with a back-off.
+- `BrowserTokens` keeps one JWT per user in `localStorage`, shared by every tab and pane of that browser, so the presenter bar can move time once the admin has signed in anywhere. Which role a tab shows is still per tab (`sessionStorage`).
+
+The build chooses the mode: `vite build --mode server` (`npm run build:server`, output `dist-server/`) sets `SERVER_MODE`, and `src/store/index.ts` picks `ServerStorage` and `WebSocketTransport` instead of Dexie and BroadcastChannel. In server mode `RoleGate` shows a password form (`ServerLogin`), and `/verify` asks `GET /api/verify/:code`.
+
+**Security decisions worth knowing**
+
+- The reducer is the authority on rules, so the server never trusts a client: it re-runs it. A customer's browser cannot list stock, confirm a donation or act as another user, whatever it sends. This also made one rule explicit in the domain: `TIME_TRAVELLED` requires an admin.
+- Login tokens are sent as `Authorization: Bearer`, because one browser holds several users at once. The HttpOnly cookie that `/api/login` also sets is a convenience for plain requests, and a change authenticated only by that cookie must carry a same-site `Origin`.
+- Failed logins are counted per user (the server often sits behind a proxy, where every address looks alike), so a burst of wrong passwords locks that user out for a minute.
+- WebSocket connections must come from this site (`Origin` equals `Host`) and must sign in with a token.
+- The demo password is shown on the login screen only while the server still has the built-in one (`/api/health` reports it).
+
+## Languages and the installable app
+
+**i18n.** `react-i18next` with the three languages bundled as JSON (`src/i18n/en.json`, `kn.json`, `hi.json`), so there is no loading flash. The choice is in `localStorage`; a `storage` listener makes the "All 4" iframes and other tabs follow it live. The browser's own language is deliberately not used, so a demo always starts in English. Plurals use `_one` / `_other` keys, and text with bold parts uses `<Trans>`. The domain layer stays language-free, so a rule's error message (for example "needs more than 30 days of shelf life") is English everywhere. `tests/i18n.test.ts` compares the three files (keys, placeholders, empty text, plural pairs) and scans the source, so a key a screen asks for but is missing, or a key nothing uses, fails the build.
+
+**PWA.** `vite-plugin-pwa` generates a Workbox service worker only for `vite build`. It precaches the app shell and answers every navigation with `index.html`, except `/api` and `/ws`, which always go to the network. Rider map tiles and fonts are cached at runtime. Icons come from `scripts/make-icons.mjs`, which draws them with no image library.
 
 ## Testing
 
-Vitest runs 187 tests in 19 files, in about a second.
+Vitest runs 275 tests in 24 files, in about two seconds.
 
 | Area | What is covered |
 |---|---|
-| Rules | Every boundary: 180/30/1-day buckets, 40–60% discounts, course buffer, donation exclusions, Rx validity and single-use, GS1 parsing, rewards, GST |
+| Rules | Every boundary: 180/30/1-day buckets, 40–60% discounts, course buffer, donation exclusions, Rx validity and single-use, GS1 parsing, rewards, GST, the sponsor and NGO fund rules |
 | State machines | Allowed and rejected transitions for orders and pickups |
-| Reducer | KYC, stock, Eco-Sale, orders, prescription review, H1 register, donations, disposal, blood, time travel |
+| Reducer | KYC, stock, Eco-Sale, orders, prescription review, H1 register, donations, disposal, blood, time travel (admin only), sponsorships (success, tampering, refund) |
 | Checkout | Cart quoting, batch splitting, order planning |
 | Store | Cross-tab sync, simultaneous writes, reset, restore, ledger tamper detection (two stores on a shared in-memory log and bus) |
+| Server | Logins, the event API (every status code), restart and tamper detection, certificate check, security checks, and a real HTTP server with real WebSocket clients |
+| Server client | Two stores on a real server: live sync, simultaneous writes, signed-out loading, ended sessions, reset, reconnecting, an unreachable server |
+| Translations | Same keys and placeholders in all three languages, no unused or missing keys |
 | Walkthrough | `tests/walkthrough.test.ts` runs the README demo, steps 1–9, headlessly |
 
-The browser flows (camera scan, OCR, prescription checkout, cross-tab delivery) were also exercised in real Chrome, using a fake camera feed for the scanner.
+**Playwright** (14 tests, in your installed Chrome) drives the real UI:
+
+| Command | Covers |
+|---|---|
+| `npm run test:e2e` | The walkthrough across four tabs, a prescription order, the sponsor flow (success, QA refund, Rx blocked), and switching languages |
+| `npm run test:e2e:pwa` | Builds the app; checks the manifest, icons, installability and that pages and data work offline |
+| `npm run test:e2e:server` | Builds the server version, starts the real server, and uses **separate browser contexts**, which share no storage, so staying in sync proves it is the server doing it |
+
+Playwright tabs are throttled when in the background, so the tests bring a tab to the front before using it.
 
 ## Design decisions and trade-offs
 
@@ -322,12 +381,13 @@ The browser flows (camera scan, OCR, prescription checkout, cross-tab delivery) 
 
 ## Known limits
 
-- **Demo trust model.** Roles are chosen with demo logins, and the reducer checks the `actorId` it is given. In a real deployment the server must authenticate users and run the same reducer.
-- **One browser profile.** Tabs sync only within the same browser profile and origin.
+- **Demo trust model.** In the default demo, roles are chosen with 1-tap logins and the reducer checks the `actorId` it is given. Server mode authenticates users and runs the same reducer on the server, but it is demo-grade: fixed users with a shared demo password, no registration or password reset, and every signed-in user can read the whole log (prescriptions included).
+- **One browser profile in demo mode.** Tabs sync only within the same browser profile and origin. Server mode has no such limit.
+- **Translations are partial.** Kannada and Hindi cover the main screens; Add inventory, the scanner, the prescription form, the rider's map panel, PDFs and rule messages are English. They also have not been reviewed by a native speaker.
 - **Drug schedules are demo data.** Check them against the latest CDSCO and Drugs & Cosmetics Rules before any real use.
 - **GST and costs are assumptions.** The write-off certificate uses a 12% default rate and a cost of 70% of MRP, both configurable.
 - **Map tiles use the public OpenStreetMap servers.** That is fine for a demo and light use. A production app should use its own tile provider or host tiles itself, following the OSM tile usage policy.
-- **Certificate verification is demo-only.** A QR code opens `/verify?code=…`, which looks the code up in the browser's own event log. A real deployment needs the server to answer.
+- **Certificate verification in demo mode checks only the browser's own log.** In server mode `/verify` asks the server, so it works for anyone.
 - **The NGO fund can only grow for now.** Sponsor change and the platform share go in, but nothing spends it yet. Using it for bulk, discounted medicines through distributors is designed (see TODO.md) but not built, and it needs an NGO login and a needs list first.
 - **The platform fee is a demo number.** There is no real revenue model: a 10% fee on delivered orders is assumed so the NGO share has something to be a share of. Holding real donated money also needs a registered trust or partner NGO.
 - **The rider position is simulated.** There is no GPS: the dot glides between stops for display only.

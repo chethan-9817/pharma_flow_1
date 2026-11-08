@@ -57,6 +57,9 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 | Admin charts | ✅ | ✅ stock health, money recovered, platform activity |
 | "Sponsor batch for NGO (₹99)" | ✅ | ✅ Deals card, Civic hub tracking, chemist QA badge and payout list |
 | NGO fund | ✅ | ✅ Admin card and chart line; customers see their order's share. Spending it is not built yet |
+| Server mode (real logins, shared data) | ✅ | ✅ `pharmaflow server`: password sign-in, data on the server, live sync |
+| Languages (English, Kannada, Hindi) | ✅ | ✅ picker in the top bar; Add inventory, the Rx form and the rider map are still English |
+| Installable app with an offline shell | ✅ | ✅ production build only |
 
 ---
 
@@ -422,9 +425,12 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 221 tests, about one second
-npm run test:e2e     # Playwright: four browser tabs, uses your installed Chrome (starts its own dev server on :5199)
+pharmaflow test      # 275 tests, about two seconds
+npm run test:e2e     # Playwright: four browser tabs and languages, uses your installed Chrome (starts its own dev server on :5199)
+npm run test:e2e:pwa # builds the app and checks installability and offline use
+npm run test:e2e:server  # builds the server version, starts the real server, checks logins and live sync
 npm run typecheck    # strict TypeScript
+pharmaflow server    # server mode: real logins, data in data\pharmaflow.db, on http://localhost:8787
 npm run build        # typecheck + production build
 npm run db:sample    # rebuild the sample database
 ```
@@ -442,6 +448,10 @@ npm run db:sample    # rebuild the sample database
 2. Write its handler, validating with rules and role guards.
 3. Add a `case` in `src/domain/reducer.ts`.
 4. Add a reducer test, then wire a button that calls `dispatch`.
+
+**Adding text to a screen:** add the key to `src/i18n/en.json`, `kn.json` and `hi.json` (the test fails if the three differ), and use `t('section.key')` from `useTranslation()`. Do not put text in `src/domain`.
+
+**Server mode while developing:** run `npm run server` (API on :8787) in one window and `npm run dev:server` (Vite on :5173, which proxies `/api` and `/ws`) in another. The server checks every event with the same reducer, so a rule change needs no server-side change.
 
 **Commits:** small and focused, one logical change each, using a prefix such as `feat(domain):`, `fix:`, `test:`, `docs:`, `chore:`.
 
@@ -462,3 +472,9 @@ npm run db:sample    # rebuild the sample database
 | The app does not start | Open `data\dev-server.log` in the project folder to see why |
 | `npm install` is slow in OneDrive | Pause OneDrive sync while installing, or run `npm install` once and leave it |
 | Port 5173 already in use | Run `pharmaflow stop` if it is PharmaFlow. If another program owns the port, close that program first |
+| Server mode: "Wrong user or password" | Demo users share the password `pharmaflow` unless `PHARMAFLOW_DEMO_PASSWORD` was set when `data\pharmaflow.db` was first made. Delete the file to start over |
+| Server mode: "Too many wrong passwords" | Wait a minute. Five wrong passwords lock that user for 60 seconds |
+| Server mode: "Sign in as the admin first" | The presenter bar's time travel and Reset demo act as the admin. Sign in on the Admin tab of the same browser, then try again |
+| Server mode: "The stored event log no longer replays" | A rule changed since the data was saved. Move `data\pharmaflow.db` aside and restart |
+| Port 8787 already in use | Another copy of server mode is running, or set `PORT` to something else |
+| Installing as an app is not offered | Use `npm run build` then `npm run preview` (the service worker is not built in `npm run dev`), open it on `localhost`, and look for Install in the address bar |
