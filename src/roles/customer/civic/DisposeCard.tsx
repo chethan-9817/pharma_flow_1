@@ -1,6 +1,8 @@
 import { ShieldAlert } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { checkDisposalEligible } from '../../../domain/rules/donation';
+import { KARMA } from '../../../domain/rules/rewards';
 import type { User } from '../../../domain/types';
 import { Button, Card } from '../../../components/ui';
 import { report, toast } from '../../../components/toast';
@@ -9,6 +11,7 @@ import { dispatch, useApp } from '../../../store';
 import { StripFields, emptyStrip } from './shared';
 
 export function DisposeCard({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const medicines = Object.values(app.medicines).sort((a, b) => a.brand.localeCompare(b.brand));
   const [strip, setStrip] = useState(emptyStrip());
@@ -23,9 +26,9 @@ export function DisposeCard({ user }: { user: User }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!medicine) return toast('Choose the medicine you want to dispose of', 'error');
-    if (!strip.batchNo.trim()) return toast('Enter the batch number from the strip', 'error');
-    if (!strip.expiry) return toast('Enter the expiry date', 'error');
+    if (!medicine) return toast(t('customer.civic.disposeChoose'), 'error');
+    if (!strip.batchNo.trim()) return toast(t('customer.civic.enterBatch'), 'error');
+    if (!strip.expiry) return toast(t('customer.civic.enterExpiry'), 'error');
     setBusy(true);
     const result = await dispatch(user.id, {
       type: 'PICKUP_SCHEDULED',
@@ -42,7 +45,7 @@ export function DisposeCard({ user }: { user: User }) {
       },
     });
     setBusy(false);
-    if (report(result, 'Yellow-Bag pickup scheduled')) setStrip(emptyStrip());
+    if (report(result, t('customer.civic.disposeScheduled'))) setStrip(emptyStrip());
   };
 
   return (
@@ -52,10 +55,8 @@ export function DisposeCard({ user }: { user: User }) {
           <ShieldAlert className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">Dispose of expired medicines safely</h3>
-          <p className="text-sm text-slate-500">
-            Expired medicines are hazardous waste. Never bin or flush them: antibiotics that leak into water feed superbugs. A rider collects a sealed Yellow Bag and takes it to the authorised incineration plant.
-          </p>
+          <h3 className="font-bold text-slate-900">{t('customer.civic.disposeTitle')}</h3>
+          <p className="text-sm text-slate-500">{t('customer.civic.disposeBody')}</p>
         </div>
       </div>
 
@@ -67,7 +68,7 @@ export function DisposeCard({ user }: { user: User }) {
           </p>
         )}
         <Button type="submit" variant="danger" block disabled={busy || Boolean(problem)}>
-          Schedule Yellow-Bag pickup · earn +150 karma
+          {t('customer.civic.disposeButton', { karma: KARMA.DISPOSAL })}
         </Button>
       </form>
     </Card>

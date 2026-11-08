@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Plus, Search, Tag } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { nearestStoreId, stockFor } from '../../domain/checkout';
 import { genericOffer } from '../../domain/rules/generic';
 import { requiresRx } from '../../domain/rules/prescription';
@@ -12,6 +13,7 @@ import { useApp } from '../../store';
 import { useCart } from './cart';
 
 export function ShopTab({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const add = useCart((s) => s.add);
   const [query, setQuery] = useState('');
@@ -30,11 +32,11 @@ export function ShopTab({ user }: { user: User }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search medicines or salts"
+          placeholder={t('customer.shop.search')}
           className="h-11 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-medical focus:ring-4 focus:ring-medical/15"
         />
       </div>
-      {store && <p className="text-xs text-slate-500">Delivering from <b>{store.name}</b>, {store.area}</p>}
+      {store && <p className="text-xs text-slate-500">{t('customer.shop.deliveringFrom')} <b>{store.name}</b>, {store.area}</p>}
 
       <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
         {medicines.map((m, i) => {
@@ -50,35 +52,35 @@ export function ShopTab({ user }: { user: User }) {
                     <p className="truncate text-xs text-slate-500">{m.salt}</p>
                     <p className="text-xs text-slate-400">{m.packSize} · {m.manufacturer}</p>
                   </div>
-                  {requiresRx(m) ? <Badge tone="red">Rx · Schedule {m.schedule}</Badge> : <Badge tone="green">OTC</Badge>}
+                  {requiresRx(m) ? <Badge tone="red">{t('customer.shop.rxBadge', { schedule: m.schedule })}</Badge> : <Badge tone="green">{t('customer.shop.otc')}</Badge>}
                 </div>
 
                 {offer && (
                   <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
-                    <b>Cheaper generic:</b> {offer.name}, {inr(offer.price)}. Save {inr(offer.saving)} ({offer.savingPct}%).
-                    <span className="block text-emerald-700">{offer.label} · ask for it at a Jan Aushadhi Kendra</span>
+                    <b>{t('customer.shop.cheaperGeneric')}</b> {offer.name}, {inr(offer.price)}. {t('customer.shop.save', { amount: inr(offer.saving), pct: offer.savingPct })}
+                    <span className="block text-emerald-700">{offer.label} · {t('customer.shop.askJanAushadhi')}</span>
                   </div>
                 )}
                 {eco && (
                   <p className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
-                    <Tag className="size-3.5" /> Eco-Sale batch available at {eco.discountPct}% off. See the Deals tab.
+                    <Tag className="size-3.5" /> {t('customer.shop.ecoBatch', { pct: eco.discountPct })}
                   </p>
                 )}
 
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-lg font-bold text-slate-900">{inr(m.mrp)}</span>
-                    <span className="ml-2 text-xs text-slate-500">{stock > 0 ? `${stock} in stock` : 'Out of stock'}</span>
+                    <span className="ml-2 text-xs text-slate-500">{stock > 0 ? t('customer.shop.inStock', { count: stock }) : t('customer.shop.outOfStock')}</span>
                   </div>
                   <Button
                     size="sm"
                     disabled={stock === 0}
                     onClick={() => {
                       add({ medicineId: m.id, qty: 1 });
-                      toast(`${m.brand} added to cart`);
+                      toast(t('customer.shop.added', { brand: m.brand }));
                     }}
                   >
-                    <Plus className="size-4" /> Add
+                    <Plus className="size-4" /> {t('customer.shop.add')}
                   </Button>
                 </div>
               </Card>

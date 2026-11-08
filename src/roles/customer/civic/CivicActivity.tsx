@@ -1,41 +1,47 @@
 import { Award, Download, Droplets, HeartHandshake, Truck } from 'lucide-react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { customerSponsorships, type SponsorshipView } from '../../../domain/selectors';
 import type { AppState, Certificate } from '../../../domain/state';
-import type { Pickup, PickupStatus, User } from '../../../domain/types';
+import type { Pickup, User } from '../../../domain/types';
 import { Badge, Button, Card, SectionTitle, inr } from '../../../components/ui';
 import { toast } from '../../../components/toast';
 import { downloadCertificate } from '../../../lib/certificatePdf';
 import { useApp } from '../../../store';
 
-const CERT_TITLE: Record<Certificate['kind'], string> = {
-  NGO_DONOR: 'NGO Donor',
-  GREEN_CITIZEN: 'Green Citizen',
-  BLOOD_DONOR: 'Blood Donor',
-};
+type Tone = 'blue' | 'green' | 'amber' | 'orange' | 'red';
+type Status = { text: string; tone: Tone };
 
-function pickupStatus(app: AppState, p: Pickup): { text: string; tone: 'blue' | 'green' | 'amber' | 'orange' | 'red' } {
+function pickupStatus(app: AppState, p: Pickup, t: TFunction): Status {
   const ngo = p.ngoId ? app.ngos[p.ngoId]?.name : undefined;
-  const map: Record<PickupStatus, { text: string; tone: 'blue' | 'green' | 'amber' | 'orange' | 'red' }> = {
-    SCHEDULED: { text: p.riderId ? 'Rider is on the way' : 'Waiting for a rider', tone: 'blue' },
-    COLLECTED: { text: p.kind === 'DONATION' ? 'Collected. The pharmacist is checking it' : 'Collected. On the way to the CBWTF plant', tone: 'amber' },
-    QA_VERIFIED: { text: `Verified. Heading to ${ngo ?? 'the NGO'}`, tone: 'green' },
-    QA_REJECTED: { text: 'Did not pass the check. Going for safe disposal', tone: 'orange' },
-    DELIVERED_TO_NGO: { text: `Delivered to ${ngo ?? 'the NGO'}`, tone: 'green' },
-    INCINERATED: { text: p.kind === 'DISPOSAL' ? 'Safely incinerated' : 'Safely incinerated after the check', tone: p.kind === 'DISPOSAL' ? 'green' : 'orange' },
-  };
-  return map[p.status];
+  const donation = p.kind === 'DONATION';
+  switch (p.status) {
+    case 'SCHEDULED':
+      return { text: p.riderId ? t('customer.activity.status.riderComing') : t('customer.activity.status.waitingRider'), tone: 'blue' };
+    case 'COLLECTED':
+      return { text: donation ? t('customer.activity.status.collectedDonation') : t('customer.activity.status.collectedDisposal'), tone: 'amber' };
+    case 'QA_VERIFIED':
+      return { text: t('customer.activity.status.verified', { ngo: ngo ?? t('customer.activity.status.theNgo') }), tone: 'green' };
+    case 'QA_REJECTED':
+      return { text: t('customer.activity.status.rejected'), tone: 'orange' };
+    case 'DELIVERED_TO_NGO':
+      return { text: t('customer.activity.status.deliveredTo', { ngo: ngo ?? t('customer.activity.status.theNgo') }), tone: 'green' };
+    case 'INCINERATED':
+      return donation
+        ? { text: t('customer.activity.status.incineratedAfterCheck'), tone: 'orange' }
+        : { text: t('customer.activity.status.incinerated'), tone: 'green' };
+  }
 }
 
-type Tone = 'blue' | 'green' | 'amber' | 'orange' | 'red';
-
-function sponsorshipStatus(app: AppState, v: SponsorshipView): { text: string; tone: Tone } {
+function sponsorshipStatus(app: AppState, v: SponsorshipView, t: TFunction): Status {
   const { sponsorship: sp, pickup } = v;
-  if (sp.status === 'DELIVERED') return { text: `Delivered to ${v.ngoName}`, tone: 'green' };
-  if (sp.status === 'REFUNDED') return { text: `Did not pass the pharmacist's check. ${inr(sp.amount)} is back in your MedWallet`, tone: 'orange' };
-  return pickup ? pickupStatus(app, pickup) : { text: 'Waiting for a rider', tone: 'blue' };
+  if (sp.status === 'DELIVERED') return { text: t('customer.activity.status.deliveredTo', { ngo: v.ngoName }), tone: 'green' };
+  if (sp.status === 'REFUNDED') return { text: t('customer.activity.status.refunded', { amount: inr(sp.amount) }), tone: 'orange' };
+  return pickup ? pickupStatus(app, pickup, t) : { text: t('customer.activity.status.waitingRider'), tone: 'blue' };
 }
 
 export function CivicActivity({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const pickups = Object.values(app.pickups).filter((p) => p.sourceUserId === user.id).reverse();
   const sponsorships = customerSponsorships(app, user.id);
@@ -46,17 +52,17 @@ export function CivicActivity({ user }: { user: User }) {
     try {
       await downloadCertificate(cert, { holderName: user.name, origin: window.location.origin });
     } catch {
-      toast('Could not create the PDF. Please try again.', 'error');
+      toast(t('customer.activity.pdfFailed'), 'error');
     }
   };
 
   return (
     <div className="grid gap-6 @3xl:grid-cols-2">
       <section className="space-y-3">
-        <SectionTitle>My pickups</SectionTitle>
-        {pickups.length === 0 && <Card className="text-sm text-slate-500">No pickups yet. Donate or dispose of medicines above and track them here.</Card>}
+        <SectionTitle>{t('customer.activity.myPickups')}</SectionTitle>
+        {pickups.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noPickups')}</Card>}
         {pickups.map((p) => {
-          const st = pickupStatus(app, p);
+          const st = pickupStatus(app, p, t);
           return (
             <Card key={p.id} className="space-y-2">
               <div className="flex items-start gap-3">
@@ -65,12 +71,12 @@ export function CivicActivity({ user }: { user: User }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-slate-900">
-                    {p.kind === 'DONATION' ? 'Donation' : 'Yellow-Bag disposal'}: {p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}
+                    {p.kind === 'DONATION' ? t('customer.activity.donation') : t('customer.activity.disposal')}: {p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}
                   </p>
                   <Badge tone={st.tone}>{st.text}</Badge>
                 </div>
               </div>
-              {p.qaNote && <p className="rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">Pharmacist note: {p.qaNote}</p>}
+              {p.qaNote && <p className="rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">{t('customer.activity.pharmacistNote', { note: p.qaNote })}</p>}
             </Card>
           );
         })}
@@ -78,12 +84,10 @@ export function CivicActivity({ user }: { user: User }) {
 
       <div className="space-y-6">
         <section className="space-y-3">
-          <SectionTitle>My sponsorships</SectionTitle>
-          {sponsorships.length === 0 && (
-            <Card className="text-sm text-slate-500">Nothing sponsored yet. Open Deals and tap &quot;Sponsor batch for NGO&quot; to put packs into an NGO&apos;s hands.</Card>
-          )}
+          <SectionTitle>{t('customer.activity.mySponsorships')}</SectionTitle>
+          {sponsorships.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noSponsorships')}</Card>}
           {sponsorships.map((v) => {
-            const st = sponsorshipStatus(app, v);
+            const st = sponsorshipStatus(app, v, t);
             const { sponsorship: sp } = v;
             return (
               <Card key={sp.id} className="space-y-2">
@@ -93,11 +97,9 @@ export function CivicActivity({ user }: { user: User }) {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-900">
-                      {v.medicine.brand} ×{sp.qty} for {v.ngoName}
+                      {t('customer.activity.sponsorLine', { brand: v.medicine.brand, qty: sp.qty, ngo: v.ngoName })}
                     </p>
-                    <p className="truncate text-xs text-slate-500">
-                      {inr(sp.amount)} · from {v.storeName}
-                    </p>
+                    <p className="truncate text-xs text-slate-500">{t('customer.activity.sponsorFrom', { amount: inr(sp.amount), store: v.storeName })}</p>
                     <Badge tone={st.tone}>{st.text}</Badge>
                   </div>
                 </div>
@@ -107,8 +109,8 @@ export function CivicActivity({ user }: { user: User }) {
         </section>
 
         <section className="space-y-3">
-          <SectionTitle>My blood appointments</SectionTitle>
-          {bookings.length === 0 && <Card className="text-sm text-slate-500">No appointments yet.</Card>}
+          <SectionTitle>{t('customer.activity.myBlood')}</SectionTitle>
+          {bookings.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noBlood')}</Card>}
           {bookings.map((b) => (
             <Card key={b.id} className="flex items-center gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-blood">
@@ -116,16 +118,16 @@ export function CivicActivity({ user }: { user: User }) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-900">{app.bloodBanks[b.bloodBankId]?.name}</p>
-                <p className="text-xs text-slate-500">{b.date} · group {b.bloodGroup}</p>
+                <p className="text-xs text-slate-500">{b.date} · {t('admin.group', { group: b.bloodGroup })}</p>
               </div>
-              <Badge tone={b.status === 'DONATED' ? 'green' : 'amber'}>{b.status === 'DONATED' ? 'Donated' : 'Booked'}</Badge>
+              <Badge tone={b.status === 'DONATED' ? 'green' : 'amber'}>{b.status === 'DONATED' ? t('customer.activity.donated') : t('customer.activity.bookedBadge')}</Badge>
             </Card>
           ))}
         </section>
 
         <section className="space-y-3">
-          <SectionTitle>My certificates</SectionTitle>
-          {certificates.length === 0 && <Card className="text-sm text-slate-500">Complete a donation, a safe disposal or a blood donation to earn a certificate with a QR code.</Card>}
+          <SectionTitle>{t('customer.activity.myCertificates')}</SectionTitle>
+          {certificates.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noCertificates')}</Card>}
           {certificates.map((c) => (
             <Card key={c.id} className="flex items-center gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-50 text-expiry">
@@ -133,13 +135,13 @@ export function CivicActivity({ user }: { user: User }) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
-                  <span className="truncate">{CERT_TITLE[c.kind]} Certificate</span>
-                  {c.kind === 'BLOOD_DONOR' && <Badge tone="red">Lifesaver badge</Badge>}
+                  <span className="truncate">{t('customer.activity.certificate', { title: t(`customer.activity.certKinds.${c.kind}`) })}</span>
+                  {c.kind === 'BLOOD_DONOR' && <Badge tone="red">{t('customer.activity.lifesaver')}</Badge>}
                 </p>
-                <p className="truncate text-xs text-slate-500">{c.summary} · code {c.verifyCode}</p>
+                <p className="truncate text-xs text-slate-500">{c.summary} · {t('verify.code').toLowerCase()} {c.verifyCode}</p>
               </div>
               <Button size="sm" variant="ghost" onClick={() => void download(c)}>
-                <Download className="size-4" /> PDF
+                <Download className="size-4" /> {t('customer.activity.pdf')}
               </Button>
             </Card>
           ))}

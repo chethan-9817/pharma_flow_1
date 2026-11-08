@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { HeartHandshake, Leaf, Package, ShoppingBag, ShoppingCart, Store, Tag, Wallet } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
+import { useTranslation } from 'react-i18next';
 import { courseReminders, ecoListings } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { inr } from '../../components/ui';
@@ -15,28 +16,29 @@ import { ShopTab } from './ShopTab';
 
 type TabId = 'shop' | 'deals' | 'cart' | 'orders' | 'civic';
 
-/** `short` is the label used in the narrow phone navigation bar. */
+/** `short` is the translation key of the label used in the narrow phone navigation bar. */
 const TABS: { id: TabId; label: string; short?: string; icon: ComponentType<{ className?: string }> }[] = [
-  { id: 'shop', label: 'Shop', icon: Store },
-  { id: 'deals', label: 'Deals', icon: Tag },
-  { id: 'cart', label: 'Cart', icon: ShoppingCart },
-  { id: 'orders', label: 'Orders', icon: Package },
-  { id: 'civic', label: 'Civic hub', short: 'Civic', icon: HeartHandshake },
+  { id: 'shop', label: 'customer.tabs.shop', icon: Store },
+  { id: 'deals', label: 'customer.tabs.deals', icon: Tag },
+  { id: 'cart', label: 'customer.tabs.cart', icon: ShoppingCart },
+  { id: 'orders', label: 'customer.tabs.orders', icon: Package },
+  { id: 'civic', label: 'customer.tabs.civic', short: 'customer.tabs.civicShort', icon: HeartHandshake },
 ];
 
 function Stats({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   return (
     <div className="grid grid-cols-2 gap-2">
       <div className="rounded-xl bg-emerald-50 p-3">
         <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-eco-dark">
-          <Leaf className="size-3.5" /> Eco-Karma
+          <Leaf className="size-3.5" /> {t('customer.ecoKarma')}
         </div>
         <div className="mt-0.5 text-xl font-bold tabular-nums text-emerald-900">{app.karma[user.id] ?? 0}</div>
       </div>
       <div className="rounded-xl bg-sky-50 p-3">
         <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-medical-dark">
-          <Wallet className="size-3.5" /> MedWallet
+          <Wallet className="size-3.5" /> {t('customer.medWallet')}
         </div>
         <div className="mt-0.5 text-xl font-bold tabular-nums text-sky-900">{inr(app.wallet[user.id] ?? 0)}</div>
       </div>
@@ -45,6 +47,7 @@ function Stats({ user }: { user: User }) {
 }
 
 export function CustomerPage({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const embedded = useEmbedded();
   const [tab, setTab] = useState<TabId>('shop');
@@ -75,7 +78,7 @@ export function CustomerPage({ user }: { user: User }) {
         <header className="bg-white px-5 pb-4 pt-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Hello,</p>
+              <p className="text-sm text-slate-500">{t('customer.hello')}</p>
               <h1 className="text-xl font-bold text-slate-900">{user.name}</h1>
             </div>
             <ShoppingBag className="size-6 text-medical" />
@@ -87,7 +90,7 @@ export function CustomerPage({ user }: { user: User }) {
 
         <main className="@container flex-1 overflow-y-auto p-4 pb-24 sm:pb-4">{content}</main>
 
-        <nav className="sticky bottom-0 grid grid-cols-5 border-t border-slate-200 bg-white/95 backdrop-blur" aria-label="Customer sections">
+        <nav className="sticky bottom-0 grid grid-cols-5 border-t border-slate-200 bg-white/95 backdrop-blur" aria-label={t('customer.sections')}>
           {TABS.map(({ id, label, short, icon: Icon }) => {
             const active = tab === id;
             const count = badge[id] ?? 0;
@@ -99,7 +102,7 @@ export function CustomerPage({ user }: { user: User }) {
                 className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold transition-colors ${active ? 'text-medical' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 <Icon className="size-5" />
-                {short ?? label}
+                {t(short ?? label)}
                 {count > 0 && (
                   <span className="absolute right-[28%] top-1.5 grid min-w-4 place-items-center rounded-full bg-blood px-1 text-[10px] font-bold text-white">{count}</span>
                 )}
@@ -119,7 +122,7 @@ export function CustomerPage({ user }: { user: User }) {
         <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Hello,</p>
+              <p className="text-sm text-slate-500">{t('customer.hello')}</p>
               <h1 className="text-lg font-bold text-slate-900">{user.name}</h1>
             </div>
             <ShoppingBag className="size-6 text-medical" />
@@ -127,7 +130,7 @@ export function CustomerPage({ user }: { user: User }) {
           <Stats user={user} />
         </div>
 
-        <nav aria-label="Customer sections" className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200/70 lg:flex-col lg:overflow-visible">
+        <nav aria-label={t('customer.sections')} className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200/70 lg:flex-col lg:overflow-visible">
           {TABS.map(({ id, label, icon: Icon }) => {
             const active = tab === id;
             const count = badge[id] ?? 0;
@@ -141,7 +144,7 @@ export function CustomerPage({ user }: { user: User }) {
                 }`}
               >
                 <Icon className="size-5" />
-                <span className="flex-1 text-left">{label}</span>
+                <span className="flex-1 text-left">{t(label)}</span>
                 {count > 0 && (
                   <span className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold ${active ? 'bg-white/25 text-white' : 'bg-blood text-white'}`}>{count}</span>
                 )}

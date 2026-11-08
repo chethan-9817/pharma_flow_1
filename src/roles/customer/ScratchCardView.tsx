@@ -1,5 +1,6 @@
 import { Gift, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { shouldReveal } from '../../domain/rules/rewards';
 import type { ScratchCard } from '../../domain/types';
 import { report } from '../../components/toast';
@@ -19,12 +20,13 @@ const SAMPLE_STEP = 6;
  * revealed through the event log and confetti plays. A button covers keyboard and tap users.
  */
 export function ScratchCardView({ card, userId }: { card: ScratchCard; userId: string }) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scratching = useRef(false);
   const moves = useRef(0);
   const [busy, setBusy] = useState(false);
 
-  const rewardText = card.rewardCredit > 0 ? `${inr(card.rewardCredit)} MedWallet` : `${card.rewardKarma} karma`;
+  const rewardText = card.rewardCredit > 0 ? t('customer.scratch.walletReward', { amount: inr(card.rewardCredit) }) : t('customer.scratch.karma', { count: card.rewardKarma });
 
   // Paint the silver coating once per card.
   useEffect(() => {
@@ -63,7 +65,7 @@ export function ScratchCardView({ card, userId }: { card: ScratchCard; userId: s
     if (busy || card.revealed) return;
     setBusy(true);
     const result = await dispatch(userId, { type: 'SCRATCH_CARD_REVEALED', cardId: card.id });
-    if (report(result, 'Reward added')) void celebrate();
+    if (report(result, t('customer.scratch.rewardAdded'))) void celebrate();
     else setBusy(false);
   };
 
@@ -99,7 +101,7 @@ export function ScratchCardView({ card, userId }: { card: ScratchCard; userId: s
             ref={canvasRef}
             width={W}
             height={H}
-            aria-label="Scratch card. Drag to scratch, or use the Reveal button"
+            aria-label={t('customer.scratch.aria')}
             className="absolute inset-0 size-full cursor-pointer touch-none transition-opacity duration-300"
             style={{ opacity: busy ? 0 : 1 }}
             onPointerDown={(e) => {
@@ -122,10 +124,10 @@ export function ScratchCardView({ card, userId }: { card: ScratchCard; userId: s
         )}
       </div>
       {card.revealed ? (
-        <p className="text-xs text-slate-500">Added to your account</p>
+        <p className="text-xs text-slate-500">{t('customer.scratch.added')}</p>
       ) : (
         <button className="text-xs font-semibold text-medical hover:underline" onClick={() => void reveal()} disabled={busy}>
-          Can&apos;t scratch? Reveal
+          {t('customer.scratch.reveal')}
         </button>
       )}
     </div>

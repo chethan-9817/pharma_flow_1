@@ -1,7 +1,9 @@
 import { HeartHandshake } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { nearestStoreId } from '../../../domain/checkout';
 import { checkDonationEligible, checkNgoCanReceive } from '../../../domain/rules/donation';
+import { KARMA } from '../../../domain/rules/rewards';
 import type { User } from '../../../domain/types';
 import { Button, Card } from '../../../components/ui';
 import { report, toast } from '../../../components/toast';
@@ -17,6 +19,7 @@ interface Props {
 }
 
 export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
+  const { t } = useTranslation();
   const app = useApp();
   const medicines = Object.values(app.medicines).sort((a, b) => a.brand.localeCompare(b.brand));
   const ngos = Object.values(app.ngos);
@@ -49,10 +52,10 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!medicine) return toast('Choose the medicine you want to donate', 'error');
-    if (!strip.batchNo.trim()) return toast('Enter the batch number from the strip', 'error');
-    if (!strip.expiry) return toast('Enter the expiry date', 'error');
-    if (!ngoId || !qaStoreId) return toast('Choose an NGO and a pharmacy for the quality check', 'error');
+    if (!medicine) return toast(t('customer.civic.chooseMedicine'), 'error');
+    if (!strip.batchNo.trim()) return toast(t('customer.civic.enterBatch'), 'error');
+    if (!strip.expiry) return toast(t('customer.civic.enterExpiry'), 'error');
+    if (!ngoId || !qaStoreId) return toast(t('customer.civic.chooseNgoAndPharmacy'), 'error');
     setBusy(true);
     const result = await dispatch(user.id, {
       type: 'PICKUP_SCHEDULED',
@@ -71,7 +74,7 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
       },
     });
     setBusy(false);
-    if (report(result, 'Free pickup scheduled. A rider will collect it.')) {
+    if (report(result, t('customer.civic.pickupScheduled'))) {
       setStrip(emptyStrip());
       setSealed(true);
       setOpened(false);
@@ -85,8 +88,8 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
           <HeartHandshake className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">Donate unused medicines</h3>
-          <p className="text-sm text-slate-500">Sealed strips with more than 30 days left go to a verified NGO clinic after a pharmacist checks them. Pickup is free.</p>
+          <h3 className="font-bold text-slate-900">{t('customer.civic.donateTitle')}</h3>
+          <p className="text-sm text-slate-500">{t('customer.civic.donateBody')}</p>
         </div>
       </div>
 
@@ -96,28 +99,28 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700">
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={sealed} onChange={(e) => setSealed(e.target.checked)} className="size-4 accent-eco" />
-            Sealed and unopened
+            {t('customer.civic.sealed')}
           </label>
           {medicine?.form === 'SYRUP' && (
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={opened} onChange={(e) => setOpened(e.target.checked)} className="size-4 accent-eco" />
-              Bottle already opened
+              {t('customer.civic.opened')}
             </label>
           )}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Donate to">
+          <Field label={t('customer.civic.donateTo')}>
             <select className={inputCls} value={ngoId} onChange={(e) => setNgoId(e.target.value)}>
               {ngos.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.name} · {n.area}
-                  {n.hasRegisteredProfessional ? '' : ' (no doctor or pharmacist)'}
+                  {n.hasRegisteredProfessional ? '' : t('customer.civic.noProfessional')}
                 </option>
               ))}
             </select>
           </Field>
-          <Field label="Pharmacy that checks the strips">
+          <Field label={t('customer.civic.qaPharmacy')}>
             <select className={inputCls} value={qaStoreId} onChange={(e) => setQaStoreId(e.target.value)}>
               {stores.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -129,7 +132,7 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
         </div>
 
         <p className="text-xs text-slate-500">
-          Pickup from: <b>{user.address ?? 'your address'}</b>. Cold-chain medicines such as insulin cannot be donated.
+          {t('customer.civic.pickupFrom')} <b>{user.address ?? t('customer.civic.yourAddress')}</b>. {t('customer.civic.coldChain')}
         </p>
         {problem && (
           <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -137,7 +140,7 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
           </p>
         )}
         <Button type="submit" variant="eco" block disabled={busy || Boolean(problem)}>
-          Schedule free pickup · earn +200 karma
+          {t('customer.civic.schedule', { karma: KARMA.DONATION })}
         </Button>
       </form>
     </Card>

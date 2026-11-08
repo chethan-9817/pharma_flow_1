@@ -1,5 +1,6 @@
 import { HeartHandshake } from 'lucide-react';
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { planSponsorship } from '../../domain/sponsor';
 import { KARMA } from '../../domain/rules/rewards';
 import type { User } from '../../domain/types';
@@ -14,6 +15,7 @@ import { Field, inputCls } from './civic/shared';
  * Eco-Sale price, and the change tops up the NGO fund. The preview uses the same planner the reducer re-checks.
  */
 export function SponsorPanel({ user, batchId, onDone }: { user: User; batchId: string; onDone: () => void }) {
+  const { t } = useTranslation();
   const app = useApp();
   const ngos = Object.values(app.ngos);
   const [ngoId, setNgoId] = useState(ngos[0]?.id ?? '');
@@ -27,12 +29,12 @@ export function SponsorPanel({ user, batchId, onDone }: { user: User; batchId: s
     setBusy(true);
     const result = await dispatch(user.id, { type: 'SPONSORSHIP_PLACED', sponsorship: final.value });
     setBusy(false);
-    if (report(result, 'Sponsored. A rider will collect the packs from the pharmacy for the NGO.')) onDone();
+    if (report(result, t('customer.sponsor.done'))) onDone();
   };
 
   return (
     <div className="space-y-3 rounded-xl bg-emerald-50/70 p-3 ring-1 ring-emerald-200">
-      <Field label="Sponsor for">
+      <Field label={t('customer.sponsor.for')}>
         <select className={inputCls} value={ngoId} onChange={(e) => setNgoId(e.target.value)}>
           {ngos.map((n) => (
             <option key={n.id} value={n.id}>
@@ -52,33 +54,30 @@ export function SponsorPanel({ user, batchId, onDone }: { user: User; batchId: s
         <>
           <ul className="space-y-1 text-sm text-slate-700">
             <li>
-              <b>{inr(planned.value.amount)}</b> sponsors <b>{planned.value.qty}</b> {planned.value.qty === 1 ? 'pack' : 'packs'} for{' '}
-              {app.ngos[planned.value.ngoId]?.name}.
+              <Trans
+                i18nKey="customer.sponsor.buys"
+                count={planned.value.qty}
+                values={{ amount: inr(planned.value.amount), ngo: app.ngos[planned.value.ngoId]?.name }}
+                components={{ b: <b /> }}
+              />
             </li>
-            <li>
-              {inr(planned.value.storePayout)} pays {app.stores[planned.value.storeId]?.name} at the Eco-Sale price.
-            </li>
-            {planned.value.fundTopUp > 0 && (
-              <li>{inr(planned.value.fundTopUp)} tops up the NGO fund. It can only buy medicines for NGOs, never cash.</li>
-            )}
+            <li>{t('customer.sponsor.paysStore', { amount: inr(planned.value.storePayout), store: app.stores[planned.value.storeId]?.name })}</li>
+            {planned.value.fundTopUp > 0 && <li>{t('customer.sponsor.topsUp', { amount: inr(planned.value.fundTopUp) })}</li>}
           </ul>
-          <p className="text-xs text-slate-600">
-            Once the NGO has the packs you earn +{KARMA.DONATION} karma, a scratch card and an NGO Donor certificate. If the pharmacist&apos;s
-            check fails, you get {inr(planned.value.amount)} back as MedWallet credit.
-          </p>
+          <p className="text-xs text-slate-600">{t('customer.sponsor.reward', { karma: KARMA.DONATION, amount: inr(planned.value.amount) })}</p>
           <div className="flex gap-2">
             <Button variant="eco" size="sm" disabled={busy} onClick={() => void confirm()}>
-              <HeartHandshake className="size-4" /> Sponsor now · {inr(planned.value.amount)}
+              <HeartHandshake className="size-4" /> {t('customer.sponsor.confirm', { amount: inr(planned.value.amount) })}
             </Button>
             <Button variant="ghost" size="sm" onClick={onDone}>
-              Cancel
+              {t('common.cancel')}
             </Button>
           </div>
         </>
       )}
       {!planned.ok && (
         <Button variant="ghost" size="sm" onClick={onDone}>
-          Close
+          {t('common.close')}
         </Button>
       )}
     </div>

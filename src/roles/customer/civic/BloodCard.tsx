@@ -1,5 +1,6 @@
 import { Droplets } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { User } from '../../../domain/types';
 import { Badge, Button, Card } from '../../../components/ui';
 import { report, toast } from '../../../components/toast';
@@ -10,6 +11,7 @@ import { Field, inputCls } from './shared';
 const GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
 export function BloodCard({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const banks = Object.values(app.bloodBanks);
   const [bankId, setBankId] = useState(banks[0]?.id ?? '');
@@ -19,14 +21,14 @@ export function BloodCard({ user }: { user: User }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!bankId) return toast('Choose a blood bank', 'error');
+    if (!bankId) return toast(t('customer.civic.chooseBank'), 'error');
     setBusy(true);
     const result = await dispatch(user.id, {
       type: 'BLOOD_BOOKED',
       booking: { id: newId('bk'), userId: user.id, bloodBankId: bankId, date, bloodGroup: group, status: 'BOOKED' },
     });
     setBusy(false);
-    report(result, 'Appointment booked. Thank you for saving lives.');
+    report(result, t('customer.civic.booked'));
   };
 
   return (
@@ -36,16 +38,14 @@ export function BloodCard({ user }: { user: User }) {
           <Droplets className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">Donate blood</h3>
-          <p className="text-sm text-slate-500">
-            Book an appointment at a blood bank near you. In India blood donation is voluntary and unpaid, so the thank-you is +500 karma, a certificate and a badge, never cash.
-          </p>
+          <h3 className="font-bold text-slate-900">{t('customer.civic.bloodTitle')}</h3>
+          <p className="text-sm text-slate-500">{t('customer.civic.bloodBody')}</p>
         </div>
       </div>
 
       <form onSubmit={submit} className="space-y-3">
         <fieldset className="space-y-2">
-          <legend className="text-xs font-medium text-slate-600">Blood bank</legend>
+          <legend className="text-xs font-medium text-slate-600">{t('customer.civic.bloodBank')}</legend>
           {banks.map((b) => (
             <label
               key={b.id}
@@ -59,7 +59,7 @@ export function BloodCard({ user }: { user: User }) {
                 <p className="text-xs text-slate-500">{b.area}</p>
               </div>
               <div className="flex flex-wrap justify-end gap-1">
-                <span className="text-[11px] text-slate-500">Urgent:</span>
+                <span className="text-[11px] text-slate-500">{t('customer.civic.urgent')}</span>
                 {b.urgentGroups.map((g) => (
                   <Badge key={g} tone="red">{g}</Badge>
                 ))}
@@ -69,19 +69,19 @@ export function BloodCard({ user }: { user: User }) {
         </fieldset>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Your blood group">
+          <Field label={t('customer.civic.bloodGroup')}>
             <select className={inputCls} value={group} onChange={(e) => setGroup(e.target.value)}>
               {GROUPS.map((g) => (
                 <option key={g}>{g}</option>
               ))}
             </select>
           </Field>
-          <Field label="Appointment date">
+          <Field label={t('customer.civic.appointmentDate')}>
             <input type="date" className={inputCls} value={date} min={app.today} onChange={(e) => setDate(e.target.value)} />
           </Field>
         </div>
         <Button type="submit" variant="danger" block disabled={busy}>
-          Book appointment
+          {t('customer.civic.book')}
         </Button>
       </form>
     </Card>

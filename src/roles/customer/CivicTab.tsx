@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Leaf, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { courseReminders } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { Button } from '../../components/ui';
@@ -15,6 +16,7 @@ import { DonateCard } from './civic/DonateCard';
  * with a reminder when a medicine course has finished and the leftovers could help someone.
  */
 export function CivicTab({ user }: { user: User }) {
+  const { t } = useTranslation();
   const app = useApp();
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [prefill, setPrefill] = useState<{ medicineId: string; key: number } | null>(null);
@@ -42,18 +44,19 @@ export function CivicTab({ user }: { user: User }) {
               <Leaf className="size-5" />
             </span>
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-sm font-semibold text-slate-900">
-                Finished your {r.courseDays}-day course of {m.brand}?
-              </p>
+              <p className="text-sm font-semibold text-slate-900">{t('customer.civic.reminder', { days: r.courseDays, brand: m.brand })}</p>
               <p className="text-sm text-slate-600">
-                Donate the unopened {m.form === 'TABLET' || m.form === 'CAPSULE' ? 'tablets' : 'packs'} left to {ngo?.name ?? 'an NGO clinic'} and earn karma.
+                {t('customer.civic.reminderBody', {
+                  what: m.form === 'TABLET' || m.form === 'CAPSULE' ? t('customer.civic.tablets') : t('customer.civic.packs'),
+                  ngo: ngo?.name ?? t('customer.civic.anNgo'),
+                })}
               </p>
               <Button size="sm" variant="eco" onClick={() => donateLeftovers(m.id)}>
-                Donate leftovers
+                {t('customer.civic.donateLeftovers')}
               </Button>
             </div>
             <button
-              aria-label="Dismiss reminder"
+              aria-label={t('customer.civic.dismiss')}
               className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-700"
               onClick={() => setDismissed((d) => [...d, `${r.orderId}:${r.medicineId}`])}
             >
