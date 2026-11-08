@@ -40,10 +40,20 @@ export interface RiderProfile {
   trips: number;
 }
 
+/** A fixed place riders deliver to, such as the authorised bio-medical waste plant. */
+export interface Facility {
+  name: string;
+  area: string;
+  lat: number;
+  lng: number;
+}
+
 /** Everything the UI reads. Derived entirely from the event log. */
 export interface AppState {
   today: IsoDate;
   // Reference data (seeded)
+  /** The CBWTF incineration plant where Yellow-Bag pickups end. */
+  cbwtf: Facility;
   medicines: Record<string, Medicine>;
   stores: Record<string, Store>;
   ngos: Record<string, Ngo>;
@@ -65,6 +75,7 @@ export interface AppState {
 
 export interface Seed {
   today: IsoDate;
+  cbwtf: Facility;
   medicines: Medicine[];
   stores: Store[];
   ngos: Ngo[];
@@ -81,6 +92,7 @@ const byId = <T extends { id: string }>(list: T[]): Record<string, T> =>
 export function createInitialState(seed: Seed): AppState {
   return {
     today: seed.today,
+    cbwtf: seed.cbwtf,
     medicines: byId(seed.medicines),
     stores: byId(seed.stores),
     ngos: byId(seed.ngos),
