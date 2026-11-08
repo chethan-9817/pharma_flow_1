@@ -7,6 +7,8 @@ import { createInitialState, type AppState, type Seed } from './state';
 import { daysLeft } from './clock';
 
 export interface ImpactPoint {
+  /** How many events had been applied when this point was recorded (0 is the start). */
+  step: number;
   date: IsoDate;
   /** Eco-Sale revenue from delivered orders, in rupees. */
   ecoRevenue: number;
@@ -17,29 +19,42 @@ export interface ImpactPoint {
   bloodDonations: number;
 }
 
+type Metrics = Omit<ImpactPoint, 'step' | 'date'>;
+const sameMetrics = (a: Metrics, b: Metrics) =>
+  a.ecoRevenue === b.ecoRevenue && a.ngoValue === b.ngoValue && a.wasteKg === b.wasteKg && a.bloodDonations === b.bloodDonations;
+
 /**
- * Cumulative impact after each simulated day, found by replaying the event log.
- * The first point is the starting date with everything at zero, so a chart always has a baseline.
+ * Cumulative impact as the event log grows, found by replaying it. A point is recorded each time a
+ * number changes, so even a demo that stays on one simulated day draws a line that steps up with
+ * every real action. The first point is the start with everything at zero, and the last point
+ * extends the line to the newest event.
  */
 export function impactTimeline(seed: Seed, events: readonly DomainEvent[]): ImpactPoint[] {
   let state = createInitialState(seed);
-  const zero: ImpactPoint = { date: seed.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 };
-  const byDate = new Map<IsoDate, ImpactPoint>([[seed.today, zero]]);
+  const points: ImpactPoint[] = [{ step: 0, date: seed.today, ecoRevenue: 0, ngoValue: 0, wasteKg: 0, bloodDonations: 0 }];
+  let step = 0;
 
   for (const event of events) {
     const result = applyEvent(state, event);
     if (!result.ok) continue;
     state = result.value;
+    step += 1;
     const k = kpis(state);
-    byDate.set(event.at, {
-      date: event.at,
+    const next: ImpactPoint = {
+      step,
+      // The date after the event, so a time-travel event shows the day it moved to.
+      date: state.today,
       ecoRevenue: k.deadStockRecovered,
       ngoValue: k.ngoMedicineValue,
       wasteKg: k.hazardousKgDiverted,
       bloodDonations: k.bloodDonationsCompleted,
-    });
+    };
+    if (!sameMetrics(points[points.length - 1]!, next)) points.push(next);
   }
-  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+
+  const last = points[points.length - 1]!;
+  if (step > last.step) points.push({ ...last, step, date: state.today });
+  return points;
 }
 
 export type ActivityFamily = 'Inventory' | 'Orders' | 'Prescriptions' | 'Pickups' | 'Civic' | 'Admin';
