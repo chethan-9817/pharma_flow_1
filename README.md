@@ -5,7 +5,7 @@
 PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
 
 > 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> 🚧 Status: **design complete, build in progress** (see [Roadmap](#-roadmap)).
+> 🚧 Status: **steps 1–2 done; role screens (steps 3–7) have a working first version with more to come** (see [Roadmap](#-roadmap)).
 
 ---
 
@@ -362,7 +362,7 @@ pharma_flow_1/
 
 ## 🚀 Getting Started
 
-> These commands will work once the scaffold is committed (Roadmap step 1).
+> Run these commands from a fresh clone. Run `npm test` for the domain rule tests.
 
 ```bash
 git clone https://github.com/chethan-9817/pharma_flow_1.git
@@ -402,8 +402,8 @@ All of this happens **live across 4 tabs without a page refresh**:
 
 ## 🗺️ Roadmap
 
-- [ ] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
-- [ ] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
+- [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
+- [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
 - [ ] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate
 - [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card
 - [ ] **5. Rider:** mission radar, lifecycle buttons, map, backhaul
