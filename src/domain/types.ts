@@ -94,6 +94,8 @@ export const UserSchema = z.object({
   name: z.string(),
   storeId: z.string().optional(),
   address: z.string().optional(),
+  /** Demo phone number, used by the rider's Call button. */
+  phone: z.string().optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
 });
