@@ -14,11 +14,12 @@ This document explains how PharmaFlow is put together and why. For the business 
 8. [State shape](#state-shape)
 9. [Simulated clock and time travel](#simulated-clock-and-time-travel)
 10. [UI layer](#ui-layer)
-11. [Libraries that load on demand](#libraries-that-load-on-demand)
-12. [Sample database and server mode](#sample-database-and-server-mode)
-13. [Testing](#testing)
-14. [Design decisions and trade-offs](#design-decisions-and-trade-offs)
-15. [Known limits](#known-limits)
+11. [Launcher and the pharmaflow command](#launcher-and-the-pharmaflow-command)
+12. [Libraries that load on demand](#libraries-that-load-on-demand)
+13. [Sample database and server mode](#sample-database-and-server-mode)
+14. [Testing](#testing)
+15. [Design decisions and trade-offs](#design-decisions-and-trade-offs)
+16. [Known limits](#known-limits)
 
 ---
 
@@ -174,7 +175,7 @@ All rules are pure functions in `src/domain/rules/`, each with its own unit test
 | `generic.ts` | Cheaper generic offer, always labelled "Same salt, same strength" |
 | `rewards.ts` | Donation +200 karma and a scratch card; disposal +150; blood +500 with a certificate and badge only; closed-loop wallet; deterministic scratch rewards |
 | `gst.ts` | Write-off certificate with the GST ITC reversal (CGST Sec 17(5)(h)); never called 80G |
-| `gs1.ts` | Parses GS1 element strings (GTIN, batch, expiry), symbology prefixes and plain EAN barcodes |
+| `gs1.ts` | Parses GS1 element strings (GTIN, batch, expiry), symbology prefixes and plain EAN barcodes. `parseScan` is used for both camera results and typed barcodes (spaces and hyphens ignored) |
 
 State machines are in `src/domain/machines/`:
 
@@ -229,6 +230,29 @@ Going back means **Reset demo data**, which clears the log.
 
 Styling is Tailwind CSS v4 with design tokens in `src/index.css` (medical blue, emerald, amber, crimson). Framer Motion is used for short, subtle transitions only.
 
+## Launcher and the pharmaflow command
+
+`pharmaflow` is a small Windows command that starts and stops the app without a terminal window left open.
+
+```mermaid
+flowchart LR
+    A["pharmaflow (any folder)"] --> B["pharmaflow.cmd<br/>maps the word to a switch"]
+    B --> C["run.ps1<br/>bypasses the execution policy"]
+    C -->|"already up?"| D["open the browser only"]
+    C -->|"no"| E["cmd /c node vite.js > data/dev-server.log"]
+    E --> F["hidden Vite dev server on :5173"]
+    C --> G["poll http://localhost:5173 until PharmaFlow answers"]
+    G --> H["open /presenter in the browser"]
+```
+
+Details that were learned the hard way and are worth keeping:
+
+- **"Is it running?" is an HTTP check**, not a port check. On this setup Vite listens on IPv6 only (`[::1]`), and `netstat` and `Get-NetTCPConnection` report that listener unreliably. The launcher asks `http://localhost:5173/` and looks for "PharmaFlow" in the page.
+- **`stop` finds the process by command line**, and only touches `node.exe` processes whose command line contains this project's folder and `vite --port 5173`. It never kills a program that merely uses the same port.
+- **The server is started through `cmd /c ... > log 2>&1`** instead of `Start-Process -RedirectStandardOutput`. That way the hidden server inherits none of the launcher's handles, so the terminal (or any pipe reading it) is released immediately.
+- `scripts/install-command.ps1` adds the project folder to the **user** Path only (no administrator rights), keeps existing entries untouched, and `-Remove` takes it out again.
+- `Start PharmaFlow.cmd` is the double-click version and keeps its window open only if something fails.
+
 ## Libraries that load on demand
 
 Two heavy libraries are imported dynamically, so they cost nothing until used:
@@ -256,7 +280,7 @@ The `events` table is the source of truth; every other table is a projection of 
 
 ## Testing
 
-Vitest runs 149 tests in 16 files, in about a second.
+Vitest runs 153 tests in 16 files, in about a second.
 
 | Area | What is covered |
 |---|---|
