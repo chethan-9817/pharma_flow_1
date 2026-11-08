@@ -36,7 +36,7 @@ export function ShopTab({ user }: { user: User }) {
       </div>
       {store && <p className="text-xs text-slate-500">Delivering from <b>{store.name}</b>, {store.area}</p>}
 
-      <div className="space-y-3">
+      <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
         {medicines.map((m, i) => {
           const stock = storeId ? stockFor(app, storeId, m.id) : 0;
           const offer = genericOffer(m);

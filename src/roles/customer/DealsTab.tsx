@@ -21,8 +21,8 @@ export function DealsTab() {
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-slate-500">Near-expiry stock at 40–60% off. Prescription rules still apply.</p>
+    <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+      <p className="text-xs text-slate-500 @2xl:col-span-2 @5xl:col-span-3">Near-expiry stock at 40–60% off. Prescription rules still apply.</p>
       {deals.map((d, i) => (
         <motion.div key={d.batch.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
           <Card className="space-y-3">

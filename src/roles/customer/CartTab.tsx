@@ -88,8 +88,10 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
     }
   };
 
+  // One column in the phone layout; items and prescription on the left, summary on the right on a laptop.
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 @3xl:grid @3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @3xl:items-start @3xl:gap-6 @3xl:space-y-0">
+      <div className="space-y-4">
       <div className="space-y-2">
         {lines.map((l) => {
           const m = app.medicines[l.medicineId]!;
@@ -126,7 +128,9 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
       {needsRx && (
         <RxForm draft={draft} onChange={setDraft} drugs={rxNeeds.map((n) => n.medicine)} catalog={Object.values(app.medicines)} />
       )}
+      </div>
 
+      <div className="space-y-4 @3xl:sticky @3xl:top-20">
       {quote.ok && (
         <Card className="space-y-2 text-sm">
           <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span className="tabular-nums">{inr(total)}</span></div>
@@ -148,6 +152,7 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
       <Button block size="lg" disabled={!quote.ok || busy} onClick={() => void place()}>
         {needsRx ? 'Place order and send prescription' : 'Place order'}
       </Button>
+      </div>
     </div>
   );
 }
