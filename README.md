@@ -5,7 +5,9 @@
 PharmaFlow replaces the one-way "buy → use → throw away" medicine supply chain with a **closed loop** that connects four roles: **Customers**, **local Medical Stores (Chemists)**, **Delivery Riders** and **Platform Admins / NGOs / Blood Banks**.
 
 > 🎓 Project-Based Learning (PBL) project. Pilot region: **Mangaluru, Karnataka, India**.
-> 🚧 Status: **steps 1–2 done; role screens (steps 3–7) have a working first version with more to come** (see [Roadmap](#-roadmap)).
+> 🚧 Status: **domain core, sync layer and first versions of all four role screens are built and tested** (see [Roadmap](#%EF%B8%8F-roadmap)).
+>
+> 📖 More docs: [ARCHITECTURE.md](ARCHITECTURE.md) (how the code is organised and why) · [WORKFLOW.md](WORKFLOW.md) (every business flow and the demo script).
 
 ---
 
@@ -26,6 +28,7 @@ PharmaFlow replaces the one-way "buy → use → throw away" medicine supply cha
 13. [Roadmap](#-roadmap)
 14. [Research Basis](#-research-basis)
 15. [Working on This Repo with an AI Assistant](#-working-on-this-repo-with-an-ai-assistant)
+16. [Architecture](ARCHITECTURE.md) and [Workflows](WORKFLOW.md)
 
 ---
 
@@ -252,6 +255,8 @@ Bio-disposal:    SCHEDULED → COLLECTED (sealed Yellow Bag) → INCINERATED
 
 ## 🏗️ Technical Architecture
 
+> Full detail, including sync and conflict handling, is in [ARCHITECTURE.md](ARCHITECTURE.md). Every business flow is drawn out in [WORKFLOW.md](WORKFLOW.md).
+
 ### The core idea: everything is an event
 
 Every action (scanning a batch, placing an order, approving a prescription, collecting a pickup) is stored as an **immutable domain event** in one event log.
@@ -319,6 +324,7 @@ Why this design:
 | Server (later) | **Hono / Fastify + better-sqlite3 + Drizzle ORM + ws** |
 | PWA / i18n | **vite-plugin-pwa**, **react-i18next** (English, ಕನ್ನಡ, हिन्दी) |
 | Testing | **Vitest** (domain rules) + **Playwright** (multi-tab sync) |
+| Sample database | **node:sqlite** (built into Node 22+), schema in `scripts/schema.sql` |
 | Hosting | Vercel / Netlify (demo) · Render / Railway (server) |
 
 ### Design tokens
@@ -337,32 +343,64 @@ Why this design:
 ## 📁 Folder Structure
 
 ```
-pharma_flow_1/
+Pharma-flow/
 ├── src/
-│   ├── domain/          # Pure TS: types, Zod schemas, events, reducer, rules, state machines
-│   │   ├── events.ts
-│   │   ├── reducer.ts
-│   │   ├── rules/       # expiry.ts, ecoSale.ts, donation.ts, prescription.ts, rewards.ts, gst.ts
-│   │   └── machines/    # order.ts, pickup.ts
-│   ├── store/           # Zustand store, Dexie persistence, transport (BroadcastChannel / WS)
+│   ├── domain/              # Pure TypeScript. No React, no Date.now(), no storage
+│   │   ├── types.ts         # Zod schemas + types (medicines, batches, orders, pickups…)
+│   │   ├── state.ts         # AppState shape + createInitialState(seed)
+│   │   ├── events.ts        # Typed domain events
+│   │   ├── reducer.ts       # applyEvent / reduce: validates every event
+│   │   ├── ledger.ts        # SHA-256 hash chain + verify
+│   │   ├── clock.ts         # Simulated-date helpers
+│   │   ├── checkout.ts      # Cart quote, FEFO batch picking, order planning
+│   │   ├── selectors.ts     # Inventory, Eco-Sale, KPIs, missions, backhaul
+│   │   ├── rules/           # expiry, ecoSale, donation, prescription, rxText, generic, rewards, gst, gs1
+│   │   ├── machines/        # order.ts, pickup.ts (state machines)
+│   │   └── handlers/        # One module per event family (inventory, orders, pickups, civic, payouts)
+│   ├── store/               # Zustand store, Dexie + in-memory storage, BroadcastChannel transport
 │   ├── roles/
-│   │   ├── customer/
-│   │   ├── chemist/
-│   │   ├── rider/
-│   │   └── admin/
-│   ├── components/      # Shared UI (PresenterBar, ScratchCard, Map, Stepper, CertificatePDF…)
-│   ├── seed/            # Demo medicines, stores, NGOs, blood banks, users
-│   └── main.tsx
-├── server/              # (later) Hono API + SQLite
-├── tests/               # Vitest + Playwright
-└── README.md            # Full project documentation + AI brief
+│   │   ├── customer/        # Shop, Deals, Cart, Orders tabs, Rx form with OCR
+│   │   ├── chemist/         # Dashboard, camera scanner, demo barcodes
+│   │   ├── rider/           # Mission radar and lifecycle
+│   │   └── admin/           # KYC queue, KPIs, audit trail
+│   ├── components/          # PresenterBar, RoleGate, toast, UI primitives
+│   ├── lib/                 # ocr.ts (Tesseract), scanner.ts (ZXing), image.ts, id.ts
+│   ├── seed/                # Medicines, stores, NGOs, blood banks, users, preset barcodes
+│   ├── App.tsx · main.tsx · index.css
+├── scripts/
+│   ├── schema.sql           # Sample SQLite schema (preview of server mode)
+│   └── sample-db.ts         # Runs a full scenario and writes data/pharmaflow-sample.db
+├── tests/                   # Vitest: rules, machines, reducer, store sync, walkthrough
+├── data/                    # Generated sample database (git-ignored)
+├── run.ps1                  # PowerShell launcher
+├── ARCHITECTURE.md          # How the code is organised and why
+├── WORKFLOW.md              # Every business flow, plus the demo script
+└── README.md                # This file
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-> Run these commands from a fresh clone. Run `npm test` for the domain rule tests.
+**Requirements:** Node.js 22 or newer (the sample database uses Node's built-in `node:sqlite`) and a Chromium-based browser (Chrome or Edge) for the camera features.
+
+### Windows PowerShell (recommended)
+
+```powershell
+cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
+.\run.ps1
+```
+
+`run.ps1` installs dependencies on the first run, starts the dev server and opens the presenter view. If PowerShell blocks scripts, run `powershell -ExecutionPolicy Bypass -File .\run.ps1`.
+
+| Command | What it does |
+|---|---|
+| `.\run.ps1` / `npm run dev` | Start the app at `http://localhost:5173` |
+| `.\run.ps1 -Test` / `npm test` | Run the 149 domain and sync tests |
+| `.\run.ps1 -Db` / `npm run db:sample` | Build and print the sample SQLite database |
+| `.\run.ps1 -Build` / `npm run build` | Typecheck and create a production build |
+
+### Any shell
 
 ```bash
 git clone https://github.com/chethan-9817/pharma_flow_1.git
@@ -382,21 +420,36 @@ Then open, **each in its own tab**:
 
 Use the **1-tap demo login** buttons; no sign-up is needed.
 
+### Before you present
+
+| Feature | Needs | Notes |
+|---|---|---|
+| Everything except the two items below | Nothing | Works offline. All data stays in your browser |
+| **Camera barcode scanning** | Camera permission + `http://localhost` | No download. Browsers only allow the camera on `localhost` or HTTPS, so a plain `http://192.168…` address will not work. Open `/demo-barcodes` on a phone or print it, then point the chemist camera at a QR code |
+| **Prescription OCR** (Tesseract.js) | Internet **once** | The first "Read with OCR" downloads about 10 MB of English language data, then the browser caches it. Press it once on wifi before the demo. If OCR is unavailable, the form falls back to typing the details |
+| Inter font | Internet (optional) | Loaded from Google Fonts. Without internet the browser uses a system font |
+
+### Sample database
+
+`npm run db:sample` runs a full scenario through the real rules (scan, time travel, Eco-Sale, prescription order, delivery, donation, disposal, blood booking, KYC) and writes `data/pharmaflow-sample.db`. It prints the tables and the hash-chained `events` log. Open the file in any SQLite viewer. See [ARCHITECTURE.md](ARCHITECTURE.md#sample-database-and-server-mode) for how it maps to server mode.
+
 ---
 
 ## 🎬 Demo Walkthrough (for Evaluators)
 
-All of this happens **live across 4 tabs without a page refresh**:
+All of this happens **live across 4 tabs without a page refresh**. A step-by-step presenter script with timings is in [WORKFLOW.md](WORKFLOW.md#demo-script).
 
-1. **Chemist** scans a batch of Dolo 650 → it lands in **SAFE**.
+1. **Chemist** scans a batch of Dolo 650 and one of Augmentin (camera on a demo QR code, or a preset) → confirms batch and expiry → Dolo lands in **SAFE**.
 2. Presenter drags the **Time-Travel slider** +5 months → the batch moves to **LOCKOUT** (amber).
-3. **Chemist** clicks **Put on Eco-Sale** → the batch **instantly appears** in the Customer Eco-Sale tab at 50% off.
+3. **Chemist** clicks **Put on Eco-Sale** → the batch **instantly appears** in the Customer Deals tab at 50% off.
 4. **Customer** adds Eco-Sale Dolo + **Augmentin** → checkout is **locked: prescription required** → uploads an Rx → OCR fills in the fields.
 5. **Chemist** reviews and **approves the Rx** → **Pack & Summon Rider**.
-6. **Rider** sees a 🔵 mission → Accept → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
-7. **Customer** gets a **scratch card** → scratches → confetti + reward.
-8. **Customer** donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate** PDF with QR.
+6. **Rider** sees a 🔵 mission → Accept → Arrived → Collected → Delivered (OTP). The **backhaul** prompt shows a pending 🟢 donation pickup next door.
+7. **Customer** gets a **scratch card** → reveals it → reward.
+8. **Customer** donates leftover strips → **Rider** collects → **Chemist QA** verifies → handed over to the NGO → **Donor certificate**.
 9. **Admin** sees the KPIs update and clicks **Verify Ledger Integrity** → ✅ chain intact.
+
+> Steps 7 (canvas scratch card and confetti) and 8 (customer donate screen and PDF certificate) are still being built. See the roadmap.
 
 ---
 
@@ -404,12 +457,12 @@ All of this happens **live across 4 tabs without a page refresh**:
 
 - [x] **1. Domain core:** types, events, reducer, rules (incl. prescription), state machines + Vitest tests
 - [x] **2. Store & sync:** Zustand + Dexie + BroadcastChannel, presenter bar, time travel, seed data
-- [ ] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate
-- [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card
-- [ ] **5. Rider:** mission radar, lifecycle buttons, map, backhaul
-- [ ] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder
-- [ ] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail
-- [ ] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test
+- [ ] **3. Chemist:** scan → expiry ledger → Eco-Sale / Donate / Dispose → write-off certificate *(built: camera + GS1 scanning with confirm step, expiry ledger, Eco-Sale / Donate / Dispose, packing desk with Rx review, QA desk. Pending: write-off certificate PDF)*
+- [ ] **4. Customer:** catalog, generic switch, Eco-Sale, cart, **Rx upload + OCR**, checkout, scratch card *(built: all except the canvas scratch card and "Sponsor batch for NGO")*
+- [ ] **5. Rider:** mission radar, lifecycle buttons, map, backhaul *(built: radar, lifecycle with OTP, backhaul, earnings. Pending: map)*
+- [ ] **6. Civic Hub:** donate, dispose, blood booking, certificates, course-end reminder *(built: all rules, events, rewards and certificates in the domain. Pending: customer screens, PDF certificates, reminder)*
+- [ ] **7. Admin:** KYC queue, KPI charts, hash-chained audit trail *(built: KYC queue, KPI cards, audit trail with ledger verification. Pending: charts)*
+- [ ] **8. Extras:** server mode, PWA, i18n (en/kn/hi), Playwright multi-tab test *(built: PowerShell launcher, sample SQLite database)*
 
 ---
 
