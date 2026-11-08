@@ -10,7 +10,7 @@ import type { Entry } from '../../store/persistence';
 const BUCKET_COLOR: Record<ExpiryBucket, string> = { SAFE: '#10B981', LOCKOUT: '#F59E0B', CRITICAL: '#F97316', EXPIRED: '#E11D48' };
 const AXIS = { fontSize: 11, fill: '#64748b' };
 
-const rupee = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+const rupee = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
 /**
  * Charts for the admin portal. Every number is derived from the event log:
@@ -74,6 +74,7 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Line type="stepAfter" dataKey="ecoRevenue" name="Eco-Sale revenue" stroke="#0284C7" strokeWidth={2.5} dot={{ r: 3 }} />
                 <Line type="stepAfter" dataKey="ngoValue" name="Medicines to NGOs" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ngoFund" name="NGO fund" stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

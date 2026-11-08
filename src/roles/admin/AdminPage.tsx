@@ -6,6 +6,7 @@ import type { User } from '../../domain/types';
 import { Badge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
 import { report, toast } from '../../components/toast';
 import { dispatch, pharma, useApp, usePharma } from '../../store';
+import { NgoFundCard } from './NgoFundCard';
 
 // Recharts is a large library, so it only loads when the admin portal opens.
 const AdminCharts = lazy(() => import('./AdminCharts'));
@@ -80,6 +81,8 @@ export function AdminPage({ user }: { user: User }) {
             <Droplets className="ml-2 size-3.5" /> Blood rewards carry no money value
           </p>
         </section>
+
+        <NgoFundCard />
 
         <section>
           <SectionTitle>Blood donation bookings</SectionTitle>
