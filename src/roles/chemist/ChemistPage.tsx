@@ -9,6 +9,7 @@ import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { AddInventory, type AddMode } from './AddInventory';
+import { WriteOffSection } from './WriteOffSection';
 
 const NGO_ID = 'ngo-seva';
 
@@ -244,6 +245,8 @@ export function ChemistPage({ user }: { user: User }) {
           </table>
         </Card>
       </section>
+
+      <WriteOffSection user={user} />
     </div>
   );
 }
