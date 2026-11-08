@@ -9,6 +9,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { appendEntry, verifyChain, type LedgerEntry } from '../src/domain/ledger';
 import { ecoPrice } from '../src/domain/rules/ecoSale';
 import { parseGs1 } from '../src/domain/rules/gs1';
+import { planSponsorship } from '../src/domain/sponsor';
 import type { AppState } from '../src/domain/state';
 import type { Batch, Order, Prescription } from '../src/domain/types';
 import { BARCODE_PRESETS } from '../src/seed/barcodes';
@@ -18,7 +19,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 const dbPath = join(root, 'data', 'pharmaflow-sample.db');
 
-/** A day in the life: scan, time travel, Eco-Sale, Rx order, delivery, donation, disposal, blood, KYC. */
+/** A day in the life: scan, time travel, Eco-Sale, Rx order, delivery, donation, sponsorship, disposal, blood, KYC. */
 function runScenario(): Sim {
   const sim = new Sim();
   const scan = (preset: number, id: string, qty: number): Batch => {
@@ -71,6 +72,18 @@ function runScenario(): Sim {
   sim.must(RIDER, { type: 'PICKUP_COLLECTED', pickupId: 'pk-2001' });
   sim.must(CHEMIST, { type: 'PICKUP_QA_VERIFIED', pickupId: 'pk-2001', note: 'Seal intact, batch matches' });
   sim.must(RIDER, { type: 'PICKUP_DELIVERED_TO_NGO', pickupId: 'pk-2001' });
+
+  // The customer sponsors the Eco-Sale Dolo for an NGO: the store hands the packs over, the pharmacist checks them,
+  // the store is paid and the change tops up the NGO fund.
+  const sponsorship = planSponsorship(sim.state, { id: 'sp-4001', customerId: CUSTOMER, batchId: dolo.id, ngoId: 'ngo-seva' });
+  if (!sponsorship.ok) throw new Error(sponsorship.error);
+  sim.must(CUSTOMER, { type: 'SPONSORSHIP_PLACED', sponsorship: sponsorship.value });
+  const sponsorPickup = sponsorship.value.pickupId;
+  sim.must(RIDER, { type: 'PICKUP_ACCEPTED', pickupId: sponsorPickup, riderId: RIDER });
+  sim.must(RIDER, { type: 'PICKUP_ARRIVED', pickupId: sponsorPickup });
+  sim.must(RIDER, { type: 'PICKUP_COLLECTED', pickupId: sponsorPickup });
+  sim.must(CHEMIST, { type: 'PICKUP_QA_VERIFIED', pickupId: sponsorPickup, note: 'Sealed strips, batch matches' });
+  sim.must(RIDER, { type: 'PICKUP_DELIVERED_TO_NGO', pickupId: sponsorPickup });
 
   sim.must(CUSTOMER, {
     type: 'PICKUP_SCHEDULED',
@@ -126,8 +139,14 @@ function writeState(db: DatabaseSync, s: AppState): void {
   }))));
   insert(db, 'pickups', Object.values(s.pickups).map((p) => ({
     id: p.id, kind: p.kind, status: p.status, source_user_id: p.sourceUserId ?? null, source_store_id: p.sourceStoreId ?? null, qa_store_id: p.qaStoreId ?? null,
-    ngo_id: p.ngoId ?? null, rider_id: p.riderId ?? null, batch_id: p.batchId ?? null, address: p.address, scheduled_at: p.scheduledAt, qa_note: p.qaNote ?? null,
+    ngo_id: p.ngoId ?? null, rider_id: p.riderId ?? null, batch_id: p.batchId ?? null, sponsorship_id: p.sponsorshipId ?? null,
+    address: p.address, scheduled_at: p.scheduledAt, qa_note: p.qaNote ?? null,
   })));
+  insert(db, 'sponsorships', Object.values(s.sponsorships).map((x) => ({
+    id: x.id, customer_id: x.customerId, store_id: x.storeId, batch_id: x.batchId, medicine_id: x.medicineId, ngo_id: x.ngoId, qty: x.qty,
+    unit_price: x.unitPrice, amount: x.amount, store_payout: x.storePayout, fund_top_up: x.fundTopUp, status: x.status, pickup_id: x.pickupId, placed_at: x.placedAt,
+  })));
+  insert(db, 'ngo_fund_entries', s.ngoFund.entries.map((e) => ({ id: e.id, kind: e.kind, amount: e.amount, ref_id: e.refId, entry_date: e.date })));
   insert(db, 'pickup_items', Object.values(s.pickups).flatMap((p) => p.items.map((i) => ({
     pickup_id: p.id, medicine_id: i.medicineId, batch_no: i.batchNo, expiry: i.expiry, qty: i.qty, sealed: bool(i.sealed),
   }))));
@@ -142,7 +161,7 @@ function writeState(db: DatabaseSync, s: AppState): void {
     id: b.id, user_id: b.userId, blood_bank_id: b.bloodBankId, booking_date: b.date, blood_group: b.bloodGroup, status: b.status,
   })));
   insert(db, 'rider_profiles', Object.entries(s.riders).map(([id, r]) => ({ user_id: id, online: bool(r.online), earnings: r.earnings, incentives: r.incentives, trips: r.trips })));
-  insert(db, 'meta', [{ key: 'sim_today', value: s.today }, { key: 'schema', value: 'pharmaflow-sample-v1' }]);
+  insert(db, 'meta', [{ key: 'sim_today', value: s.today }, { key: 'schema', value: 'pharmaflow-sample-v2' }]);
 }
 
 async function main(): Promise<void> {
@@ -176,7 +195,10 @@ async function main(): Promise<void> {
   show('v_expiry_ledger (soonest expiry first)', `SELECT brand, batch_no, expiry, qty, status, days_left, bucket FROM v_expiry_ledger ORDER BY days_left LIMIT 8`);
   show('v_order_summary', `SELECT * FROM v_order_summary`);
   show('prescriptions', `SELECT id, doctor_name, registration_no, rx_date, patient_name, used_by_order_id FROM prescriptions`);
-  show('pickups', `SELECT id, kind, status, ngo_id, rider_id, qa_note FROM pickups`);
+  show('pickups', `SELECT id, kind, status, ngo_id, rider_id, sponsorship_id, qa_note FROM pickups`);
+  show('sponsorships (store is paid the Eco-Sale price, the change tops up the NGO fund)', `SELECT id, store_id, ngo_id, qty, unit_price, amount, store_payout, fund_top_up, status FROM sponsorships`);
+  show('ngo_fund_entries', `SELECT id, kind, amount, ref_id, entry_date FROM ngo_fund_entries`);
+  show('v_ngo_fund', `SELECT * FROM v_ngo_fund`);
   show('certificates', `SELECT id, kind, user_id, verify_code, summary FROM certificates`);
   show('rider_profiles', `SELECT * FROM rider_profiles`);
   show('events (hash-chained audit log, first 8)', `SELECT idx, type, actor_id, sim_date, substr(hash, 1, 12) AS hash, substr(prev_hash, 1, 12) AS prev_hash FROM events LIMIT 8`);

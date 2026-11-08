@@ -116,6 +116,7 @@ CREATE TABLE pickups (
   ngo_id          TEXT REFERENCES ngos(id),
   rider_id        TEXT REFERENCES users(id),
   batch_id        TEXT REFERENCES batches(id),
+  sponsorship_id  TEXT,  -- set when a customer sponsored the packs; the pickup then starts at the store
   address         TEXT NOT NULL,
   scheduled_at    TEXT NOT NULL,
   qa_note         TEXT
@@ -128,6 +129,34 @@ CREATE TABLE pickup_items (
   expiry      TEXT NOT NULL,
   qty         INTEGER NOT NULL,
   sealed      INTEGER NOT NULL
+);
+
+-- "Sponsor batch for NGO": a customer pays a flat amount, packs leave a store's Eco-Sale batch for an NGO,
+-- the store is paid the Eco-Sale price on delivery and the change tops up the NGO fund.
+CREATE TABLE sponsorships (
+  id           TEXT PRIMARY KEY,
+  customer_id  TEXT NOT NULL REFERENCES users(id),
+  store_id     TEXT NOT NULL REFERENCES stores(id),
+  batch_id     TEXT NOT NULL REFERENCES batches(id),
+  medicine_id  TEXT NOT NULL REFERENCES medicines(id),
+  ngo_id       TEXT NOT NULL REFERENCES ngos(id),
+  qty          INTEGER NOT NULL CHECK (qty > 0),
+  unit_price   REAL NOT NULL,
+  amount       REAL NOT NULL,
+  store_payout REAL NOT NULL,
+  fund_top_up  REAL NOT NULL,
+  status       TEXT NOT NULL CHECK (status IN ('PLACED','DELIVERED','REFUNDED')),
+  pickup_id    TEXT NOT NULL REFERENCES pickups(id),
+  placed_at    TEXT NOT NULL
+);
+
+-- Money set aside for medicines for NGOs. It is never paid out as cash.
+CREATE TABLE ngo_fund_entries (
+  id      TEXT PRIMARY KEY,
+  kind    TEXT NOT NULL CHECK (kind IN ('PLATFORM_SHARE','SPONSOR_CHANGE')),
+  amount  REAL NOT NULL CHECK (amount > 0),
+  ref_id  TEXT NOT NULL,  -- the order or sponsorship that put the money in
+  entry_date TEXT NOT NULL
 );
 
 CREATE TABLE h1_register (
@@ -206,6 +235,11 @@ SELECT s.name AS store, m.brand, b.batch_no, b.expiry, b.qty, b.status,
 FROM batches b
 JOIN medicines m ON m.id = b.medicine_id
 JOIN stores s ON s.id = b.store_id;
+
+CREATE VIEW v_ngo_fund AS
+SELECT kind, COUNT(*) AS entries, ROUND(SUM(amount), 2) AS total
+FROM ngo_fund_entries
+GROUP BY kind;
 
 CREATE VIEW v_order_summary AS
 SELECT o.id, u.name AS customer, o.status, o.rx_status, o.total,
