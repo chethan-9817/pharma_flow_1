@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { FileCheck, Gift, PackageCheck, ShieldCheck, Tag, Trash2 } from 'lucide-react';
+import { FileCheck, Gift, PackageCheck, PackagePlus, ShieldCheck, Tag, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
 import type { User } from '../../domain/types';
@@ -7,7 +8,7 @@ import { Badge, BucketBadge, Button, Card, SectionTitle, Stat, inr } from '../..
 import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
-import { StockScanner } from './StockScanner';
+import { AddInventory, type AddMode } from './AddInventory';
 
 const NGO_ID = 'ngo-seva';
 
@@ -17,6 +18,13 @@ export function ChemistPage({ user }: { user: User }) {
   const store = app.stores[storeId]!;
   const inventory = storeInventory(app, storeId);
   const counts = bucketCounts(inventory);
+  const [addMode, setAddMode] = useState<AddMode>('scan');
+
+  /** Jump to the Add inventory card, optionally on a specific tab. */
+  const openAddInventory = (mode?: AddMode) => {
+    if (mode) setAddMode(mode);
+    document.getElementById('add-inventory')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   const orders = Object.values(app.orders)
     .filter((o) => o.storeId === storeId && (o.status === 'PLACED' || o.status === 'RX_APPROVED'))
     .reverse();
@@ -70,7 +78,15 @@ export function ChemistPage({ user }: { user: User }) {
             <h1 className="text-xl font-bold">{store.name}</h1>
             <p className="text-sm text-sky-100">{store.area} · Licence {store.drugLicence}</p>
           </div>
-          <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? 'KYC approved' : 'Awaiting KYC'}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? 'KYC approved' : 'Awaiting KYC'}</Badge>
+            <button
+              onClick={() => openAddInventory()}
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3.5 text-sm font-semibold text-medical-dark shadow-sm hover:bg-sky-50"
+            >
+              <PackagePlus className="size-4" /> Add inventory
+            </button>
+          </div>
         </div>
         <p className="mt-3 text-sm font-medium">₹0 licence · ₹0 add-ons · ₹0 AMC — saved ₹35,000/yr vs legacy ERPs</p>
       </motion.section>
@@ -82,7 +98,7 @@ export function ChemistPage({ user }: { user: User }) {
         <Stat label="Expired" value={counts.EXPIRED} hint="Bio-hazard" tone="red" />
       </div>
 
-      <StockScanner user={user} />
+      <AddInventory user={user} mode={addMode} onModeChange={setAddMode} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
@@ -159,7 +175,15 @@ export function ChemistPage({ user }: { user: User }) {
       </div>
 
       <section>
-        <SectionTitle>Expiry ledger</SectionTitle>
+        <SectionTitle
+          action={
+            <Button size="sm" variant="eco" onClick={() => openAddInventory('pick')}>
+              <PackagePlus className="size-4" /> Add inventory
+            </Button>
+          }
+        >
+          Expiry ledger
+        </SectionTitle>
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
