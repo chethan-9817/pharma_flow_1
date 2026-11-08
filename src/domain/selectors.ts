@@ -1,6 +1,7 @@
 import { addDays, daysBetween, daysLeft, type IsoDate } from './clock';
 import { ecoPrice, checkEcoSaleEligible } from './rules/ecoSale';
 import { bucketForDaysLeft, type ExpiryBucket } from './rules/expiry';
+import { buildWriteOffCertificate, type WriteOffCertificate } from './rules/gst';
 import type { AppState } from './state';
 import type { Batch, Medicine, Order, Pickup } from './types';
 
@@ -165,4 +166,37 @@ export function courseReminders(s: AppState, userId: string): CourseReminder[] {
     }
   }
   return out.sort((a, b) => b.endedOn.localeCompare(a.endedOn));
+}
+
+export interface StoreWriteOff {
+  pickup: Pickup;
+  certificate: WriteOffCertificate;
+}
+
+/**
+ * Write-off receipts for a store's finished donations and disposals. Each carries the GST ITC
+ * reversal (CGST Sec 17(5)(h)). A donation that failed the pharmacist's check ends in incineration,
+ * so it is written off as bio-disposal instead.
+ */
+export function storeWriteOffs(s: AppState, storeId: string): StoreWriteOff[] {
+  return Object.values(s.pickups)
+    .filter((p) => p.sourceStoreId === storeId && (p.status === 'DELIVERED_TO_NGO' || p.status === 'INCINERATED'))
+    .map((pickup) => {
+      const donated = pickup.status === 'DELIVERED_TO_NGO';
+      const recipient = donated ? (pickup.ngoId ? s.ngos[pickup.ngoId]?.name : undefined) ?? 'NGO' : s.cbwtf.name;
+      const certificate = buildWriteOffCertificate({
+        reason: donated ? 'NGO_DONATION' : 'BIO_DISPOSAL',
+        recipient,
+        issuedOn: s.today,
+        lines: pickup.items.map((i) => ({
+          brand: s.medicines[i.medicineId]?.brand ?? i.medicineId,
+          batchNo: i.batchNo,
+          expiry: i.expiry,
+          qty: i.qty,
+          mrp: s.medicines[i.medicineId]?.mrp ?? 0,
+        })),
+      });
+      return { pickup, certificate };
+    })
+    .reverse();
 }
