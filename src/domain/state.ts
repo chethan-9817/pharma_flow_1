@@ -33,6 +33,8 @@ export interface Certificate {
   /** Short code encoded in the certificate QR. */
   verifyCode: string;
   summary: string;
+  /** True for an NGO Donor certificate earned by sponsoring a batch rather than donating strips. */
+  sponsored?: boolean;
 }
 
 export interface RiderProfile {

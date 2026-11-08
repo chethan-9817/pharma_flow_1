@@ -152,7 +152,7 @@ describe('a sponsorship through to the NGO', () => {
     expect(s.karma[CUSTOMER]).toBe(200);
     expect(s.scratchCards['sc-sp1']).toMatchObject({ userId: CUSTOMER, source: 'DONATION', revealed: false });
     expect(s.certificates).toEqual([
-      expect.objectContaining({ kind: 'NGO_DONOR', userId: CUSTOMER, refId: 'sp1', summary: 'Sponsored 8 packs of Okacet for Seva NGO Clinic' }),
+      expect.objectContaining({ kind: 'NGO_DONOR', userId: CUSTOMER, refId: 'sp1', sponsored: true, summary: 'Sponsored 8 packs of Okacet for Seva NGO Clinic' }),
     ]);
     // The rider is paid like any pickup, and the NGO value counts the packs at MRP.
     expect(s.riders[RIDER]).toMatchObject({ trips: 1, earnings: 30, incentives: 10 });

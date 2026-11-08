@@ -19,6 +19,14 @@ const BODY: Record<Certificate['kind'], string> = {
   BLOOD_DONOR: 'for donating blood voluntarily. Blood donation in India is voluntary and unpaid, so this certificate carries no cash value.',
 };
 
+/** What the certificate says it is for. A sponsorship certificate says so and names the sponsored packs. */
+export function certificateBody(cert: Pick<Certificate, 'kind' | 'summary' | 'sponsored'>): string {
+  if (cert.kind === 'NGO_DONOR' && cert.sponsored) {
+    return `for sponsoring medicines for a verified NGO clinic through PharmaFlow, so they reach people who need them. ${cert.summary}.`;
+  }
+  return BODY[cert.kind];
+}
+
 const ACCENT: Record<Certificate['kind'], [number, number, number]> = {
   NGO_DONOR: [16, 185, 129],
   GREEN_CITIZEN: [5, 150, 105],
@@ -84,7 +92,7 @@ export async function buildCertificatePdf(cert: Certificate, { holderName, origi
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(14);
   doc.setTextColor(51, 65, 85);
-  doc.text(doc.splitTextToSize(BODY[cert.kind], 200), W / 2, 120, { align: 'center' });
+  doc.text(doc.splitTextToSize(certificateBody(cert), 200), W / 2, 120, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setTextColor(100, 116, 139);

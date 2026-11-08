@@ -49,9 +49,15 @@ const CERT_SUMMARY: Record<NonNullable<Certificate['kind']>, string> = {
 
 /**
  * Applies the standard reward (karma, scratch card, certificate) for a civic action.
- * `summary` replaces the certificate's usual one-line description, for example for a sponsorship.
+ * `sponsorship` replaces the certificate's usual one-line description and marks it as earned by sponsoring.
  */
-export function applyCivicReward(s: AppState, userId: string, source: RewardSource, refId: string, summary?: string): AppState {
+export function applyCivicReward(
+  s: AppState,
+  userId: string,
+  source: RewardSource,
+  refId: string,
+  sponsorship?: { summary: string },
+): AppState {
   const reward = rewardFor(source);
   let next = addKarma(s, userId, reward.karma);
   if (reward.scratchCard) next = grantScratchCard(next, userId, `sc-${refId}`, source);
@@ -63,7 +69,8 @@ export function applyCivicReward(s: AppState, userId: string, source: RewardSour
       refId,
       issuedOn: s.today,
       verifyCode: verifyCode(`cert-${refId}`),
-      summary: summary ?? CERT_SUMMARY[reward.certificate],
+      summary: sponsorship?.summary ?? CERT_SUMMARY[reward.certificate],
+      ...(sponsorship ? { sponsored: true } : {}),
     };
     next = { ...next, certificates: [...next.certificates, cert] };
   }

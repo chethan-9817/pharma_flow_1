@@ -78,7 +78,7 @@ export function sponsorshipDelivered(s: AppState, pickup: Pickup): AppState {
   const summary = `Sponsored ${sp.qty} ${sp.qty === 1 ? 'pack' : 'packs'} of ${medicine?.brand ?? 'medicine'} for ${ngo?.name ?? 'an NGO'}`;
   let next = withSponsorship(s, { ...sp, status: 'DELIVERED' });
   next = creditFund(next, 'SPONSOR_CHANGE', sp.fundTopUp, sp.id);
-  return applyCivicReward(next, sp.customerId, 'DONATION', sp.id, summary);
+  return applyCivicReward(next, sp.customerId, 'DONATION', sp.id, { summary });
 }
 
 /**

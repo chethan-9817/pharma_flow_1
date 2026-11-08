@@ -31,6 +31,16 @@ describe('certificate PDF', () => {
     expect(text).toContain('/Subtype /Image'); // the QR code
   });
 
+  it('says a sponsorship certificate is for sponsoring, and names the packs', async () => {
+    const sponsored: Certificate = { ...cert('NGO_DONOR'), sponsored: true, summary: 'Sponsored 10 packs of Okacet for Seva NGO Clinic' };
+    const text = (await buildCertificatePdf(sponsored, { holderName: 'Asha Shetty', origin: 'http://localhost:5173' })).output();
+    expect(text).toContain('for sponsoring medicines');
+    expect(text).toContain('Sponsored 10 packs of Okacet');
+    expect(text).not.toContain('for donating unused');
+    // A normal donation certificate keeps its own wording.
+    expect((await buildCertificatePdf(cert('NGO_DONOR'), { holderName: 'Asha Shetty', origin: 'http://localhost:5173' })).output()).toContain('for donating unused');
+  });
+
   it('says a blood certificate carries no cash value', async () => {
     const doc = await buildCertificatePdf(cert('BLOOD_DONOR'), { holderName: 'Asha Shetty', origin: 'http://localhost:5173' });
     expect(doc.output()).toContain('no cash value');
