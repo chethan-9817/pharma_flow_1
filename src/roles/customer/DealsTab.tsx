@@ -1,16 +1,21 @@
 import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { HeartHandshake, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { SPONSOR_AMOUNT } from '../../domain/rules/sponsor';
 import { requiresRx } from '../../domain/rules/prescription';
 import { ecoListings } from '../../domain/selectors';
+import type { User } from '../../domain/types';
 import { Badge, Button, Card, inr } from '../../components/ui';
 import { toast } from '../../components/toast';
 import { useApp } from '../../store';
 import { useCart } from './cart';
+import { SponsorPanel } from './SponsorPanel';
 
-export function DealsTab() {
+export function DealsTab({ user }: { user: User }) {
   const app = useApp();
   const add = useCart((s) => s.add);
   const deals = ecoListings(app);
+  const [sponsoring, setSponsoring] = useState<string | null>(null);
 
   if (deals.length === 0) {
     return (
@@ -21,8 +26,10 @@ export function DealsTab() {
   }
 
   return (
-    <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
-      <p className="text-xs text-slate-500 @2xl:col-span-2 @5xl:col-span-3">Near-expiry stock at 40–60% off. Prescription rules still apply.</p>
+    <div className="grid items-start gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+      <p className="text-xs text-slate-500 @2xl:col-span-2 @5xl:col-span-3">
+        Near-expiry stock at 40–60% off. Prescription rules still apply. Or sponsor a batch: {inr(SPONSOR_AMOUNT)} puts packs into an NGO&apos;s hands.
+      </p>
       {deals.map((d, i) => (
         <motion.div key={d.batch.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
           <Card className="space-y-3">
@@ -52,6 +59,13 @@ export function DealsTab() {
                 <Plus className="size-4" /> Buy for myself
               </Button>
             </div>
+            {sponsoring === d.batch.id ? (
+              <SponsorPanel user={user} batchId={d.batch.id} onDone={() => setSponsoring(null)} />
+            ) : (
+              <Button size="sm" variant="eco" block onClick={() => setSponsoring(d.batch.id)}>
+                <HeartHandshake className="size-4" /> Sponsor batch for NGO ({inr(SPONSOR_AMOUNT)})
+              </Button>
+            )}
           </Card>
         </motion.div>
       ))}

@@ -1,7 +1,8 @@
-import { Award, Download, Droplets, Truck } from 'lucide-react';
+import { Award, Download, Droplets, HeartHandshake, Truck } from 'lucide-react';
+import { customerSponsorships, type SponsorshipView } from '../../../domain/selectors';
 import type { AppState, Certificate } from '../../../domain/state';
 import type { Pickup, PickupStatus, User } from '../../../domain/types';
-import { Badge, Button, Card, SectionTitle } from '../../../components/ui';
+import { Badge, Button, Card, SectionTitle, inr } from '../../../components/ui';
 import { toast } from '../../../components/toast';
 import { downloadCertificate } from '../../../lib/certificatePdf';
 import { useApp } from '../../../store';
@@ -25,9 +26,19 @@ function pickupStatus(app: AppState, p: Pickup): { text: string; tone: 'blue' | 
   return map[p.status];
 }
 
+type Tone = 'blue' | 'green' | 'amber' | 'orange' | 'red';
+
+function sponsorshipStatus(app: AppState, v: SponsorshipView): { text: string; tone: Tone } {
+  const { sponsorship: sp, pickup } = v;
+  if (sp.status === 'DELIVERED') return { text: `Delivered to ${v.ngoName}`, tone: 'green' };
+  if (sp.status === 'REFUNDED') return { text: `Did not pass the pharmacist's check. ${inr(sp.amount)} is back in your MedWallet`, tone: 'orange' };
+  return pickup ? pickupStatus(app, pickup) : { text: 'Waiting for a rider', tone: 'blue' };
+}
+
 export function CivicActivity({ user }: { user: User }) {
   const app = useApp();
   const pickups = Object.values(app.pickups).filter((p) => p.sourceUserId === user.id).reverse();
+  const sponsorships = customerSponsorships(app, user.id);
   const bookings = Object.values(app.bloodBookings).filter((b) => b.userId === user.id).reverse();
   const certificates = app.certificates.filter((c) => c.userId === user.id).reverse();
 
@@ -66,6 +77,35 @@ export function CivicActivity({ user }: { user: User }) {
       </section>
 
       <div className="space-y-6">
+        <section className="space-y-3">
+          <SectionTitle>My sponsorships</SectionTitle>
+          {sponsorships.length === 0 && (
+            <Card className="text-sm text-slate-500">Nothing sponsored yet. Open Deals and tap &quot;Sponsor batch for NGO&quot; to put packs into an NGO&apos;s hands.</Card>
+          )}
+          {sponsorships.map((v) => {
+            const st = sponsorshipStatus(app, v);
+            const { sponsorship: sp } = v;
+            return (
+              <Card key={sp.id} className="space-y-2">
+                <div className="flex items-start gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-eco-dark">
+                    <HeartHandshake className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900">
+                      {v.medicine.brand} ×{sp.qty} for {v.ngoName}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">
+                      {inr(sp.amount)} · from {v.storeName}
+                    </p>
+                    <Badge tone={st.tone}>{st.text}</Badge>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </section>
+
         <section className="space-y-3">
           <SectionTitle>My blood appointments</SectionTitle>
           {bookings.length === 0 && <Card className="text-sm text-slate-500">No appointments yet.</Card>}

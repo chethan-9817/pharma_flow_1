@@ -60,7 +60,7 @@ export function CustomerPage({ user }: { user: User }) {
     <AnimatePresence mode="wait">
       <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
         {tab === 'shop' && <ShopTab user={user} />}
-        {tab === 'deals' && <DealsTab />}
+        {tab === 'deals' && <DealsTab user={user} />}
         {tab === 'cart' && <CartTab user={user} onPlaced={() => setTab('orders')} />}
         {tab === 'orders' && <OrdersTab user={user} />}
         {tab === 'civic' && <CivicTab user={user} />}
