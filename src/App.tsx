@@ -1,9 +1,10 @@
-import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { PresenterBar } from './components/PresenterBar';
 import { RoleGate } from './components/RoleGate';
 import { Toaster } from './components/toast';
 import { AdminPage } from './roles/admin/AdminPage';
 import { ChemistPage } from './roles/chemist/ChemistPage';
+import { DemoBarcodes } from './roles/chemist/DemoBarcodes';
 import { CustomerPage } from './roles/customer/CustomerPage';
 import { RiderPage } from './roles/rider/RiderPage';
 
@@ -31,7 +32,8 @@ function Presenter() {
 export default function App() {
   // Embedded panes (inside /presenter) hide the bar; the presenter bar above controls them all.
   const [params] = useSearchParams();
-  const embedded = params.get('embed') === '1';
+  const { pathname } = useLocation();
+  const embedded = params.get('embed') === '1' || pathname === '/demo-barcodes';
 
   return (
     <>
@@ -43,6 +45,7 @@ export default function App() {
         <Route path="/rider" element={<RoleGate role="rider" dark>{(u) => <RiderPage user={u} />}</RoleGate>} />
         <Route path="/admin" element={<RoleGate role="admin">{(u) => <AdminPage user={u} />}</RoleGate>} />
         <Route path="/presenter" element={<Presenter />} />
+        <Route path="/demo-barcodes" element={<DemoBarcodes />} />
         <Route path="*" element={<Navigate to="/presenter" replace />} />
       </Routes>
       <Toaster />
