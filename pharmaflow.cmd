@@ -8,6 +8,7 @@ rem   pharmaflow status   say whether the app is running
 rem   pharmaflow test     run the tests
 rem   pharmaflow db       build and print the sample database
 rem   pharmaflow build    typecheck and create a production build
+rem   pharmaflow server   run server mode: real logins, data kept on the server (Ctrl+C to stop)
 rem   pharmaflow help     show this list
 rem
 rem Add -NoBrowser to skip opening the browser, for example: pharmaflow -NoBrowser
@@ -19,6 +20,7 @@ if /i "%~1"=="status" set "PF_FLAG=-Status"
 if /i "%~1"=="test" set "PF_FLAG=-Test"
 if /i "%~1"=="db" set "PF_FLAG=-Db"
 if /i "%~1"=="build" set "PF_FLAG=-Build"
+if /i "%~1"=="server" set "PF_FLAG=-Server"
 if /i "%~1"=="help" goto help
 if /i "%~1"=="-h" goto help
 if /i "%~1"=="/?" goto help
@@ -38,5 +40,6 @@ echo   pharmaflow status   say whether the app is running
 echo   pharmaflow test     run the tests
 echo   pharmaflow db       build and print the sample database
 echo   pharmaflow build    typecheck and create a production build
+echo   pharmaflow server   run server mode: real logins, data kept on the server
 echo.
 exit /b 0

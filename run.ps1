@@ -8,11 +8,13 @@
   .\run.ps1 -Test         run the tests
   .\run.ps1 -Db           build the sample SQLite database and print its tables
   .\run.ps1 -Build        typecheck and create a production build
+  .\run.ps1 -Server       run server mode in this window: real logins, the data kept on the server
+                          (builds the server version of the app first when the source is newer)
   Add -NoBrowser to any start command to skip opening the browser.
 
   The same options are available from anywhere through the "pharmaflow" command
   (see pharmaflow.cmd): pharmaflow, pharmaflow dev, pharmaflow stop, pharmaflow status,
-  pharmaflow test, pharmaflow db, pharmaflow build.
+  pharmaflow test, pharmaflow db, pharmaflow build, pharmaflow server.
 
   If PowerShell blocks scripts, use pharmaflow.cmd or run:
     powershell -ExecutionPolicy Bypass -File .\run.ps1
@@ -24,6 +26,7 @@ param(
   [switch]$Test,
   [switch]$Db,
   [switch]$Build,
+  [switch]$Server,
   [switch]$NoBrowser
 )
 
@@ -91,6 +94,42 @@ if (-not (Test-Path -LiteralPath 'node_modules')) {
 if ($Test)  { npm test;          exit $LASTEXITCODE }
 if ($Db)    { npm run db:sample; exit $LASTEXITCODE }
 if ($Build) { npm run build;     exit $LASTEXITCODE }
+
+# Server mode: the API, the live socket and the app on one port, with real logins and a SQLite file.
+if ($Server) {
+  $ServerPort = 8787
+  $ServerUrl = "http://localhost:$ServerPort/presenter"
+  $built = 'dist-server\index.html'
+  $stale = -not (Test-Path -LiteralPath $built)
+  if (-not $stale) {
+    $newest = Get-ChildItem -Recurse -File -Path 'src', 'index.html', 'vite.config.ts' |
+      Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    $stale = $newest.LastWriteTime -gt (Get-Item -LiteralPath $built).LastWriteTime
+  }
+  if ($stale) {
+    Write-Host 'Building the server version of the app...' -ForegroundColor Cyan
+    npm run build:server
+    if ($LASTEXITCODE -ne 0) { throw 'npm run build:server failed' }
+  }
+  Write-Host "Starting PharmaFlow server mode at $ServerUrl  (Ctrl+C to stop)" -ForegroundColor Green
+  Write-Host 'Data is kept in data\pharmaflow.db. Demo users sign in with the password: pharmaflow' -ForegroundColor DarkGray
+  if (-not $NoBrowser) {
+    Start-Job -ScriptBlock {
+      param($u, $port)
+      for ($i = 0; $i -lt 120; $i++) {
+        try {
+          $r = Invoke-WebRequest -UseBasicParsing "http://localhost:$port/api/health" -TimeoutSec 2
+          if ($r.StatusCode -eq 200) { break }
+        } catch {
+          Start-Sleep -Milliseconds 500
+        }
+      }
+      Start-Process $u
+    } -ArgumentList $ServerUrl, $ServerPort | Out-Null
+  }
+  npm run server
+  exit $LASTEXITCODE
+}
 
 # Already running? Just open it.
 if (Test-PharmaFlowUp) {
