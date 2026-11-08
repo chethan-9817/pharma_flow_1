@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { backhaulSuggestions, bucketCounts, distanceKm, ecoListings, kpis, openMissions, storeInventory } from '../src/domain/selectors';
+import { backhaulSuggestions, bucketCounts, courseReminders, distanceKm, ecoListings, kpis, openMissions, storeInventory } from '../src/domain/selectors';
 import { ADMIN, CHEMIST, CUSTOMER, RIDER, STORE, Sim } from './helpers';
 
 describe('selectors', () => {
@@ -75,5 +75,43 @@ describe('selectors', () => {
   it('measures distance', () => {
     expect(distanceKm({ lat: 12.87, lng: 74.84 }, { lat: 12.87, lng: 74.84 })).toBe(0);
     expect(distanceKm({ lat: 12.87, lng: 74.84 }, { lat: 12.97, lng: 74.84 })).toBeCloseTo(11.1, 0);
+  });
+});
+
+describe('course reminders', () => {
+  const deliver = (sim: Sim) => {
+    sim.must(CUSTOMER, {
+      type: 'ORDER_PLACED',
+      order: {
+        id: 'o1', customerId: CUSTOMER, storeId: STORE, status: 'PLACED', rxStatus: 'NOT_REQUIRED', deliveryOtp: '1234', total: 31, placedAt: sim.state.today,
+        items: [{ medicineId: 'med-dolo650', batchId: 'b-dolo-1', qty: 1, unitPrice: 31, ecoSale: false }],
+      },
+    });
+    sim.must(CHEMIST, { type: 'ORDER_PACKED', orderId: 'o1' });
+    sim.must(RIDER, { type: 'RIDER_SHIFT_CHANGED', riderId: RIDER, online: true });
+    sim.must(RIDER, { type: 'ORDER_ACCEPTED', orderId: 'o1', riderId: RIDER });
+    sim.must(RIDER, { type: 'ORDER_ARRIVED', orderId: 'o1' });
+    sim.must(RIDER, { type: 'ORDER_OUT_FOR_DELIVERY', orderId: 'o1' });
+    sim.must(RIDER, { type: 'ORDER_DELIVERED', orderId: 'o1', otp: '1234' });
+  };
+
+  it('appears only after the course length has passed on the simulated clock', () => {
+    const sim = new Sim();
+    deliver(sim);
+    expect(courseReminders(sim.state, CUSTOMER)).toEqual([]);
+    sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-12' }); // 4 days in, Dolo course is 5
+    expect(courseReminders(sim.state, CUSTOMER)).toEqual([]);
+    sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-14' });
+    expect(courseReminders(sim.state, CUSTOMER)).toEqual([
+      { orderId: 'o1', medicineId: 'med-dolo650', endedOn: '2026-11-13', courseDays: 5 },
+    ]);
+  });
+
+  it('is empty for other customers and for undelivered orders', () => {
+    const sim = new Sim();
+    deliver(sim);
+    sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-11-20' });
+    expect(courseReminders(sim.state, 'u-ravi')).toEqual([]);
+    expect(courseReminders(new Sim().state, CUSTOMER)).toEqual([]);
   });
 });
