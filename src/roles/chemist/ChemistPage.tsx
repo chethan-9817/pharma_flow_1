@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { Gift, ScanLine, Tag, Trash2 } from 'lucide-react';
+import { FileCheck, Gift, PackageCheck, ScanLine, ShieldCheck, Tag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseGs1 } from '../../domain/rules/gs1';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
 import type { Batch, User } from '../../domain/types';
-import { Badge, BucketBadge, Button, Card, SectionTitle, Stat } from '../../components/ui';
+import { Badge, BucketBadge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { BARCODE_PRESETS } from '../../seed/barcodes';
@@ -20,6 +20,20 @@ export function ChemistPage({ user }: { user: User }) {
   const inventory = storeInventory(app, storeId);
   const counts = bucketCounts(inventory);
   const [preset, setPreset] = useState(0);
+  const orders = Object.values(app.orders)
+    .filter((o) => o.storeId === storeId && (o.status === 'PLACED' || o.status === 'RX_APPROVED'))
+    .reverse();
+  const qaQueue = Object.values(app.pickups).filter((p) => p.qaStoreId === storeId && p.status === 'COLLECTED');
+
+  const rejectRx = async (orderId: string) => {
+    const reason = window.prompt('Reason for rejecting the prescription', 'Unreadable prescription');
+    if (reason) report(await dispatch(user.id, { type: 'RX_REJECTED', orderId, reason }), 'Prescription rejected. The customer can re-upload');
+  };
+
+  const rejectQa = async (pickupId: string) => {
+    const note = window.prompt('Why are these medicines rejected?', 'Seal broken');
+    if (note) report(await dispatch(user.id, { type: 'PICKUP_QA_REJECTED', pickupId, note }), 'Rejected. A rider will take it to the CBWTF');
+  };
 
   const scan = async () => {
     const parsed = parseGs1(BARCODE_PRESETS[preset]!.code);
@@ -110,6 +124,80 @@ export function ChemistPage({ user }: { user: User }) {
         <p className="font-mono text-xs text-slate-500">{BARCODE_PRESETS[preset]!.code}</p>
         <p className="text-xs text-slate-500">GS1 parsing fills GTIN, batch and expiry automatically. Camera scanning arrives with the next roadmap step.</p>
       </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section>
+          <SectionTitle>Order packing desk</SectionTitle>
+          <div className="space-y-3">
+            {orders.length === 0 && <Card className="text-sm text-slate-500">No orders waiting. New customer orders appear here live.</Card>}
+            {orders.map((o) => {
+              const rx = o.prescriptionId ? app.prescriptions[o.prescriptionId] : undefined;
+              const canPack = o.status === 'RX_APPROVED' || (o.status === 'PLACED' && o.rxStatus === 'NOT_REQUIRED');
+              return (
+                <Card key={o.id} className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-slate-900">{o.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
+                      <p className="text-xs text-slate-500">{app.users[o.customerId]?.name} · {inr(o.total)}</p>
+                    </div>
+                    {o.rxStatus === 'NOT_REQUIRED' && <Badge tone="green">OTC</Badge>}
+                    {o.rxStatus === 'PENDING' && <Badge tone="amber">Rx to review</Badge>}
+                    {o.rxStatus === 'APPROVED' && <Badge tone="green">Rx approved</Badge>}
+                    {o.rxStatus === 'REJECTED' && <Badge tone="red">Rx rejected</Badge>}
+                  </div>
+                  {rx && (
+                    <dl className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs">
+                      <div><dt className="text-slate-500">Doctor</dt><dd className="font-semibold">{rx.doctorName}</dd></div>
+                      <div><dt className="text-slate-500">Reg. no</dt><dd className="font-mono font-semibold">{rx.registrationNo}</dd></div>
+                      <div><dt className="text-slate-500">Patient</dt><dd className="font-semibold">{rx.patientName}</dd></div>
+                      <div><dt className="text-slate-500">Date</dt><dd className="font-semibold">{rx.date}</dd></div>
+                    </dl>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {o.rxStatus === 'PENDING' && (
+                      <>
+                        <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'RX_APPROVED', orderId: o.id }), 'Prescription approved')}>
+                          <FileCheck className="size-4" /> Approve Rx
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => void rejectRx(o.id)}>Reject Rx</Button>
+                      </>
+                    )}
+                    {canPack && (
+                      <Button size="sm" onClick={async () => report(await dispatch(user.id, { type: 'ORDER_PACKED', orderId: o.id }), 'Packed. Riders can see the mission')}>
+                        <PackageCheck className="size-4" /> Pack &amp; summon rider
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle>Returned-medicine QA desk</SectionTitle>
+          <div className="space-y-3">
+            {qaQueue.length === 0 && <Card className="text-sm text-slate-500">Nothing to inspect. Donated strips arrive here after a rider collects them.</Card>}
+            {qaQueue.map((p) => (
+              <Card key={p.id} className="space-y-3">
+                <div>
+                  <p className="font-semibold text-slate-900">{p.items.map((i) => `${app.medicines[i.medicineId]?.brand} ×${i.qty}`).join(', ')}</p>
+                  <p className="text-xs text-slate-500">
+                    Batch {p.items[0]?.batchNo} · expires {p.items[0]?.expiry} · for {p.ngoId ? app.ngos[p.ngoId]?.name : 'NGO'}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-500">Check the seal, batch and expiry before releasing.</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'PICKUP_QA_VERIFIED', pickupId: p.id }), 'QA verified. Released to NGO')}>
+                    <ShieldCheck className="size-4" /> QA verified, release to NGO
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => void rejectQa(p.id)}>Reject, send to bio-disposal</Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      </div>
 
       <section>
         <SectionTitle>Expiry ledger</SectionTitle>
