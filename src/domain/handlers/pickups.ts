@@ -1,7 +1,5 @@
-import { daysLeft } from '../clock';
 import { checkPickupTransition } from '../machines/pickup';
-import { checkDonationEligible, checkNgoCanReceive } from '../rules/donation';
-import { isBlocked } from '../rules/prescription';
+import { checkDisposalEligible, checkDonationEligible, checkNgoCanReceive } from '../rules/donation';
 import type { AppState } from '../state';
 import type { Batch, Pickup } from '../types';
 import {
@@ -49,10 +47,8 @@ export function pickupScheduled(s: AppState, e: Ev<'PICKUP_SCHEDULED'>): Step {
       const bad = failed(checkDonationEligible(medicine, item, s.today));
       if (bad) return err(`${medicine.brand}: ${bad.ok ? '' : bad.error}`);
     } else {
-      if (isBlocked(medicine)) return err(`${medicine.brand} is Schedule X / NDPS and is blocked on the platform`);
-      if (daysLeft(item.expiry, s.today) > 0) {
-        return err(`${medicine.brand} has not expired. Donate it or keep using it; Yellow-Bag pickup is for expired medicines`);
-      }
+      const bad = failed(checkDisposalEligible(medicine, item.expiry, s.today));
+      if (bad) return bad;
     }
   }
 

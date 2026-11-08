@@ -37,6 +37,18 @@ export function checkDonationEligible(
   return ok;
 }
 
+/**
+ * Yellow-Bag disposal is for medicines that have expired. Anything still in date should be donated or used,
+ * and Schedule X / NDPS drugs are blocked on the platform completely.
+ */
+export function checkDisposalEligible(medicine: Pick<Medicine, 'schedule' | 'brand'>, expiry: IsoDate, today: IsoDate): Check {
+  if (medicine.schedule === 'X') return fail(`${medicine.brand} is Schedule X / NDPS and is blocked on the platform`);
+  if (daysLeft(expiry, today) > 0) {
+    return fail(`${medicine.brand} has not expired. Donate it or keep using it; Yellow-Bag pickup is for expired medicines`);
+  }
+  return ok;
+}
+
 /** Donated medicines must pass chemist QA; rejected items go to bio-disposal. */
 export function routeAfterQa(passed: boolean): 'DELIVERED_TO_NGO' | 'INCINERATED' {
   return passed ? 'DELIVERED_TO_NGO' : 'INCINERATED';
