@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkDonationEligible, checkNgoCanReceive, routeAfterQa } from '../src/domain/rules/donation';
+import { checkDisposalEligible, checkDonationEligible, checkNgoCanReceive, routeAfterQa } from '../src/domain/rules/donation';
 
 const today = '2026-06-01';
 const otc = { schedule: 'OTC', coldChain: false, form: 'TABLET' } as const;
@@ -38,5 +38,20 @@ describe('QA routing', () => {
   it('rejected items go to bio-disposal', () => {
     expect(routeAfterQa(true)).toBe('DELIVERED_TO_NGO');
     expect(routeAfterQa(false)).toBe('INCINERATED');
+  });
+});
+
+describe('disposal eligibility', () => {
+  const dolo = { brand: 'Dolo 650', schedule: 'OTC' } as const;
+  it('accepts expired medicines, including ones that expire today', () => {
+    expect(checkDisposalEligible(dolo, '2026-05-31', today).ok).toBe(true);
+    expect(checkDisposalEligible(dolo, today, today).ok).toBe(true);
+  });
+  it('sends in-date medicines to donation instead', () => {
+    const r = checkDisposalEligible(dolo, '2026-06-02', today);
+    expect(r).toEqual({ ok: false, reason: expect.stringMatching(/has not expired/) });
+  });
+  it('blocks Schedule X even when expired', () => {
+    expect(checkDisposalEligible({ brand: 'Narcotic', schedule: 'X' }, '2026-01-01', today).ok).toBe(false);
   });
 });
