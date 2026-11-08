@@ -13,6 +13,8 @@ interface Props {
   legKey: string;
   /** Taller map for the laptop layout. */
   tall?: boolean;
+  /** Light map for the customer app. */
+  light?: boolean;
 }
 
 /**

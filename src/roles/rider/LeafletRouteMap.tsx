@@ -12,6 +12,8 @@ interface Props {
   /** Changes when the leg changes, so the map re-centres on the new route. */
   legKey: string;
   tall?: boolean;
+  /** Normal-coloured tiles for the light customer app; riders get the dark map. */
+  light?: boolean;
   /** Called when street tiles keep failing (for example, no internet). */
   onTilesFailed: () => void;
 }
@@ -50,12 +52,12 @@ function FitRoute({ points, trigger }: { points: LatLng[]; trigger: string }) {
   return null;
 }
 
-export default function LeafletRouteMap({ from, stops, rider, legKey, tall, onTilesFailed }: Props) {
+export default function LeafletRouteMap({ from, stops, rider, legKey, tall, light, onTilesFailed }: Props) {
   const errors = useRef(0);
   const route = useMemo(() => [from, ...stops].map((p) => [p.lat, p.lng] as [number, number]), [from, stops]);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl ring-1 ring-slate-800" data-testid="leaflet-map">
+    <div className={`relative overflow-hidden rounded-2xl ring-1 ${light ? 'ring-slate-200' : 'ring-slate-800'}`} data-testid="leaflet-map">
       <MapContainer
         center={[from.lat, from.lng]}
         zoom={14}
@@ -63,12 +65,12 @@ export default function LeafletRouteMap({ from, stops, rider, legKey, tall, onTi
         zoomControl
         attributionControl
         className={tall ? 'h-96 w-full lg:h-[30rem]' : 'h-64 w-full sm:h-72'}
-        style={{ background: '#0f172a' }}
+        style={{ background: light ? '#e2e8f0' : '#0f172a' }}
       >
         <TileLayer
           url={MAP_TILES}
           attribution={TILE_ATTRIBUTION}
-          className={TILE_CLASS}
+          className={light ? undefined : TILE_CLASS}
           maxZoom={19}
           eventHandlers={{
             tileerror: () => {
