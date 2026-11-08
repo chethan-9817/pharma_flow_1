@@ -8,6 +8,7 @@ import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { RxForm, draftToPrescription, emptyDraft, type RxDraft } from './RxForm';
 import { ScratchCardView } from './ScratchCardView';
+import { TrackOrder } from './TrackOrder';
 
 const STATUS_LABEL: Record<string, string> = {
   PLACED: 'Order placed',
@@ -82,6 +83,7 @@ export function OrdersTab({ user }: { user: User }) {
                   {o.rxStatus === 'PENDING' && <Badge tone="amber">Rx under review</Badge>}
                   {o.status === 'DELIVERED' && <Badge tone="green">Done</Badge>}
                 </div>
+                {open && !rejected && <TrackOrder order={o} />}
                 {rejected && (
                   <div className="space-y-3">
                     <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">Reason: {o.rxRejectReason}. Upload a clearer or correct prescription.</p>
