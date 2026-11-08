@@ -156,7 +156,7 @@ export function StockScanner({ user }: { user: User }) {
             aria-invalid={typedError ? true : undefined}
             className={`${input} font-mono`}
           />
-          <Button type="submit" variant="ghost">
+          <Button type="submit" variant="ghost" className="shrink-0 whitespace-nowrap">
             Look up
           </Button>
         </div>
