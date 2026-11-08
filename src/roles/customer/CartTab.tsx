@@ -32,14 +32,23 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
   }, [quote, app.medicines]);
 
   const [draft, setDraft] = useState<RxDraft>(() => emptyDraft(user.name, app.today, []));
+  // A stable key, so the effect below runs only when the Rx drugs or their quantities really change.
+  const rxKey = rxNeeds.map((n) => `${n.medicine.id}:${n.qty}`).join('|');
   useEffect(() => {
     // Keep one quantity per Rx drug, never below what is in the cart.
     setDraft((d) => {
       const qty: Record<string, number> = {};
-      for (const n of rxNeeds) qty[n.medicine.id] = Math.max(d.qty[n.medicine.id] ?? 0, n.qty);
-      return { ...d, qty };
+      let changed = Object.keys(d.qty).length !== rxNeeds.length;
+      for (const n of rxNeeds) {
+        const next = Math.max(d.qty[n.medicine.id] ?? 0, n.qty);
+        if (next !== d.qty[n.medicine.id]) changed = true;
+        qty[n.medicine.id] = next;
+      }
+      // Returning the same object tells React nothing changed, so there is no re-render.
+      return changed ? { ...d, qty } : d;
     });
-  }, [rxNeeds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rxKey]);
 
   if (lines.length === 0) {
     return (
