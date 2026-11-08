@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-medical: #0284c7;
+  --color-medical-dark: #0369a1;
+  --color-eco: #10b981;
+  --color-eco-dark: #059669;
+  --color-expiry: #f59e0b;
+  --color-blood: #e11d48;
+  --color-canvas: #f8fafc;
+  --animate-fade-up: fade-up 0.35s ease-out both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: #0f172a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+button { cursor: pointer; transition: all 0.15s ease; }
+button:active:not(:disabled) { transform: scale(0.97); }
+button:disabled { cursor: not-allowed; opacity: 0.5; }
