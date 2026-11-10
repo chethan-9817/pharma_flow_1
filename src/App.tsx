@@ -21,8 +21,8 @@ function Presenter() {
   return (
     <div className="grid gap-3 p-3 md:grid-cols-2 2xl:grid-cols-4">
       {PANES.map((p) => (
-        <section key={p.role} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          <h2 className="border-b border-slate-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{p.label}</h2>
+        <section key={p.role} className="overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-slate-200">
+          <h2 className="border-b border-slate-100 px-3 py-2 text-[13px] font-semibold text-slate-600">{p.label}</h2>
           <iframe title={p.label} src={`/${p.role}?embed=1`} className="h-[78vh] w-full border-0" />
         </section>
       ))}
@@ -43,7 +43,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/presenter" replace />} />
         <Route path="/customer" element={<RoleGate role="customer">{(u) => <CustomerPage user={u} />}</RoleGate>} />
         <Route path="/chemist" element={<RoleGate role="chemist">{(u) => <ChemistPage user={u} />}</RoleGate>} />
-        <Route path="/rider" element={<RoleGate role="rider" dark>{(u) => <RiderPage user={u} />}</RoleGate>} />
+        <Route path="/rider" element={<RoleGate role="rider">{(u) => <RiderPage user={u} />}</RoleGate>} />
         <Route path="/admin" element={<RoleGate role="admin">{(u) => <AdminPage user={u} />}</RoleGate>} />
         <Route path="/presenter" element={<Presenter />} />
         <Route path="/demo-barcodes" element={<DemoBarcodes />} />

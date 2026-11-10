@@ -52,12 +52,12 @@ export function Toaster() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-            className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg ${
-              t.kind === 'error' ? 'bg-rose-600' : 'bg-slate-900'
+            className={`pointer-events-auto flex max-w-md items-start gap-2.5 rounded-xl bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-pop ring-1 ${
+              t.kind === 'error' ? 'ring-rose-200' : 'ring-slate-200'
             }`}
             role="status"
           >
-            {t.kind === 'error' ? <AlertCircle className="mt-0.5 size-4 shrink-0" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />}
+            {t.kind === 'error' ? <AlertCircle className="mt-0.5 size-4 shrink-0 text-rose-600" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />}
             <span>{t.message}</span>
           </motion.div>
         ))}

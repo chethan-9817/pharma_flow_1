@@ -52,11 +52,11 @@ export function PresenterBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-medical text-sm font-bold text-white">Rx</span>
-          <span className="text-base font-bold tracking-tight text-slate-900">PharmaFlow</span>
+          <span className="text-base font-semibold tracking-tight text-slate-900">PharmaFlow</span>
         </div>
 
         <nav className="flex gap-1 rounded-xl bg-slate-100 p-1" aria-label={t('nav.switchRole')}>
@@ -65,8 +65,8 @@ export function PresenterBar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                  isActive ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  isActive ? 'bg-white text-slate-900 shadow-card ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'
                 }`
               }
             >
@@ -77,7 +77,7 @@ export function PresenterBar() {
           <NavLink
             to="/presenter"
             className={({ isActive }) =>
-              `rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${isActive ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`
+              `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'bg-white text-slate-900 shadow-card ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`
             }
           >
             {t('nav.all4')}
@@ -106,7 +106,7 @@ export function PresenterBar() {
               <button
                 key={j.key}
                 onClick={() => void travel(offset + j.days)}
-                className="flex items-center gap-0.5 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                className="flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg bg-white px-2 text-xs font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50"
               >
                 <ChevronsRight className="size-3" />
                 {t(j.key)}
@@ -119,7 +119,7 @@ export function PresenterBar() {
 
         <button
           onClick={() => void reset()}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-rose-50 hover:text-rose-700"
+          className="flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-200"
         >
           <RotateCcw className="size-4" />
           <span className="hidden md:inline">{t('nav.resetDemo')}</span>

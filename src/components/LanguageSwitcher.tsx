@@ -6,7 +6,7 @@ import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n';
 export function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
   return (
-    <label className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-slate-600 ring-1 ring-slate-200">
+    <label className="flex h-9 items-center gap-1.5 rounded-lg bg-white px-2.5 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50">
       <Languages className="size-4" aria-hidden />
       <span className="sr-only">{t('common.language')}</span>
       <select

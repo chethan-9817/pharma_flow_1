@@ -6,10 +6,10 @@ import { DEMO_PASSWORD } from '../store/server';
 import { Button } from './ui';
 
 const field =
-  'mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-medical focus:ring-4 focus:ring-medical/15';
+  'mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-medical focus:ring-4 focus:ring-medical/15';
 
 /** The sign-in form for server mode: a real password, checked by the server. */
-export function ServerLogin({ choices, dark, onSignedIn }: { choices: User[]; dark?: boolean; onSignedIn: (userId: string) => void }) {
+export function ServerLogin({ choices, onSignedIn }: { choices: User[]; onSignedIn: (userId: string) => void }) {
   const { t } = useTranslation();
   const [userId, setUserId] = useState(choices[0]?.id ?? '');
   const [password, setPassword] = useState('');
@@ -36,7 +36,7 @@ export function ServerLogin({ choices, dark, onSignedIn }: { choices: User[]; da
     else setError(result.error);
   };
 
-  const muted = dark ? 'text-slate-400' : 'text-slate-500';
+  const muted = 'text-slate-500';
   return (
     <form onSubmit={(e) => void submit(e)} className="space-y-4">
       <label className={`block text-xs font-medium ${muted}`}>
@@ -66,11 +66,11 @@ export function ServerLogin({ choices, dark, onSignedIn }: { choices: User[]; da
           {error}
         </p>
       )}
-      <Button type="submit" block size="lg" variant={dark ? 'dark' : 'primary'} disabled={busy || !password}>
+      <Button type="submit" block size="lg" disabled={busy || !password}>
         {busy ? t('gate.signingIn') : t('gate.signIn')}
       </Button>
       {showHint && <p className={`text-center text-xs ${muted}`}>{t('gate.demoPasswordHint', { password: DEMO_PASSWORD })}</p>}
-      <p className={`text-center text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{t('gate.serverNote')}</p>
+      <p className="text-center text-xs text-slate-400">{t('gate.serverNote')}</p>
     </form>
   );
 }
