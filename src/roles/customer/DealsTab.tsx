@@ -36,17 +36,18 @@ export function DealsTab({ user }: { user: User }) {
               </div>
               <Badge tone="amber">{t('customer.deals.off', { pct: d.discountPct })}</Badge>
             </div>
-            <p className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+            <p className="rounded-lg bg-amber-50/70 px-3 py-2 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200/60">
               {t('customer.deals.expires', { days: d.daysLeft, course: Math.min(d.fitsCourseDays, d.medicine.courseDays), qty: d.batch.qty })}
             </p>
             <div className="flex items-end justify-between">
               <div>
-                <span className="text-xl font-bold text-slate-900">{inr(d.price)}</span>{' '}
+                <span className="text-xl font-semibold tabular-nums text-slate-900">{inr(d.price)}</span>{' '}
                 <span className="text-sm text-slate-400 line-through">{inr(d.medicine.mrp)}</span>
                 {requiresRx(d.medicine) && <div className="mt-1"><Badge tone="red">{t('customer.deals.rxRequired')}</Badge></div>}
               </div>
               <Button
                 size="sm"
+                variant="soft"
                 onClick={() => {
                   add({ medicineId: d.medicine.id, qty: 1, batchId: d.batch.id });
                   toast(t('customer.shop.added', { brand: d.medicine.brand }));
@@ -58,7 +59,7 @@ export function DealsTab({ user }: { user: User }) {
             {sponsoring === d.batch.id ? (
               <SponsorPanel user={user} batchId={d.batch.id} onDone={() => setSponsoring(null)} />
             ) : (
-              <Button size="sm" variant="eco" block onClick={() => setSponsoring(d.batch.id)}>
+              <Button size="sm" variant="ecoSoft" block onClick={() => setSponsoring(d.batch.id)}>
                 <HeartHandshake className="size-4" /> {t('customer.deals.sponsorButton', { amount: inr(SPONSOR_AMOUNT) })}
               </Button>
             )}

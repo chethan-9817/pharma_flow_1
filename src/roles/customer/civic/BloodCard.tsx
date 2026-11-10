@@ -38,7 +38,7 @@ export function BloodCard({ user }: { user: User }) {
           <Droplets className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">{t('customer.civic.bloodTitle')}</h3>
+          <h3 className="font-semibold text-slate-900">{t('customer.civic.bloodTitle')}</h3>
           <p className="text-sm text-slate-500">{t('customer.civic.bloodBody')}</p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export function BloodCard({ user }: { user: User }) {
             <input type="date" className={inputCls} value={date} min={app.today} onChange={(e) => setDate(e.target.value)} />
           </Field>
         </div>
-        <Button type="submit" variant="danger" block disabled={busy}>
+        <Button type="submit" block disabled={busy}>
           {t('customer.civic.book')}
         </Button>
       </form>

@@ -89,11 +89,11 @@ export function ScratchCardView({ card, userId }: { card: ScratchCard; userId: s
 
   return (
     <div className="space-y-2 text-center">
-      <div className="relative mx-auto aspect-[2/1] w-full max-w-[260px] overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-emerald-50 ring-1 ring-slate-200">
+      <div className="relative mx-auto aspect-[2/1] w-full max-w-[260px] overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200">
         <div className="absolute inset-0 grid place-items-center" aria-hidden={!card.revealed}>
           <div>
             {card.revealed ? <Sparkles className="mx-auto size-7 text-expiry" /> : <Gift className="mx-auto size-7 text-eco" />}
-            <p className="mt-1 text-base font-bold text-slate-900">{rewardText}</p>
+            <p className="mt-1 text-base font-semibold text-slate-900">{rewardText}</p>
           </div>
         </div>
         {!card.revealed && (

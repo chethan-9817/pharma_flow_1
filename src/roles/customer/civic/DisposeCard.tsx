@@ -55,7 +55,7 @@ export function DisposeCard({ user }: { user: User }) {
           <ShieldAlert className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">{t('customer.civic.disposeTitle')}</h3>
+          <h3 className="font-semibold text-slate-900">{t('customer.civic.disposeTitle')}</h3>
           <p className="text-sm text-slate-500">{t('customer.civic.disposeBody')}</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function DisposeCard({ user }: { user: User }) {
             {problem}
           </p>
         )}
-        <Button type="submit" variant="danger" block disabled={busy || Boolean(problem)}>
+        <Button type="submit" block disabled={busy || Boolean(problem)}>
           {t('customer.civic.disposeButton', { karma: KARMA.DISPOSAL })}
         </Button>
       </form>

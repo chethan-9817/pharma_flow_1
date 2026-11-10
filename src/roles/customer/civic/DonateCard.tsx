@@ -88,7 +88,7 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
           <HeartHandshake className="size-5" />
         </span>
         <div>
-          <h3 className="font-bold text-slate-900">{t('customer.civic.donateTitle')}</h3>
+          <h3 className="font-semibold text-slate-900">{t('customer.civic.donateTitle')}</h3>
           <p className="text-sm text-slate-500">{t('customer.civic.donateBody')}</p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export function DonateCard({ user, prefillMedicineId, prefillKey }: Props) {
             {problem}
           </p>
         )}
-        <Button type="submit" variant="eco" block disabled={busy || Boolean(problem)}>
+        <Button type="submit" block disabled={busy || Boolean(problem)}>
           {t('customer.civic.schedule', { karma: KARMA.DONATION })}
         </Button>
       </form>

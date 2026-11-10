@@ -109,11 +109,11 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <button aria-label={t('customer.cart.decrease')} className="grid size-8 place-items-center rounded-lg ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => setQty(lineKey(l), l.qty - 1)}>
+                <button aria-label={t('customer.cart.decrease')} className="grid size-8 place-items-center rounded-lg bg-white ring-1 ring-inset ring-slate-300 hover:bg-slate-50" onClick={() => setQty(lineKey(l), l.qty - 1)}>
                   <Minus className="size-3.5" />
                 </button>
                 <span className="w-7 text-center text-sm font-semibold tabular-nums">{l.qty}</span>
-                <button aria-label={t('customer.cart.increase')} className="grid size-8 place-items-center rounded-lg ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => setQty(lineKey(l), l.qty + 1)}>
+                <button aria-label={t('customer.cart.increase')} className="grid size-8 place-items-center rounded-lg bg-white ring-1 ring-inset ring-slate-300 hover:bg-slate-50" onClick={() => setQty(lineKey(l), l.qty + 1)}>
                   <Plus className="size-3.5" />
                 </button>
               </div>
@@ -146,7 +146,7 @@ export function CartTab({ user, onPlaced }: { user: User; onPlaced: () => void }
             </label>
           )}
           {walletUsed > 0 && <div className="flex justify-between text-medical-dark"><span>{t('customer.cart.walletCredit')}</span><span className="tabular-nums">−{inr(walletUsed)}</span></div>}
-          <div className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold"><span>{t('customer.cart.toPay')}</span><span className="tabular-nums">{inr(total - walletUsed)}</span></div>
+          <div className="flex justify-between border-t border-slate-100 pt-2 text-base font-semibold"><span>{t('customer.cart.toPay')}</span><span className="tabular-nums">{inr(total - walletUsed)}</span></div>
           <p className="text-xs text-slate-500">{t('customer.cart.payNote')}</p>
         </Card>
       )}

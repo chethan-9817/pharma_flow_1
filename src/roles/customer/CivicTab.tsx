@@ -38,9 +38,9 @@ export function CivicTab({ user }: { user: User }) {
             key={`${r.orderId}:${r.medicineId}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-sky-50 p-4 ring-1 ring-emerald-200"
+            className="flex items-start gap-3 rounded-2xl bg-emerald-50/60 p-4 ring-1 ring-emerald-200/80"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-eco-dark shadow-sm">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-eco ring-1 ring-inset ring-emerald-200/80">
               <Leaf className="size-5" />
             </span>
             <div className="min-w-0 flex-1 space-y-2">
