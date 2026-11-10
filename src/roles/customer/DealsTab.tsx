@@ -7,6 +7,7 @@ import { requiresRx } from '../../domain/rules/prescription';
 import { ecoListings } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { Badge, Button, Card, inr } from '../../components/ui';
+import { ProductArt } from '../../components/ProductArt';
 import { toast } from '../../components/toast';
 import { useApp } from '../../store';
 import { useCart } from './cart';
@@ -29,12 +30,13 @@ export function DealsTab({ user }: { user: User }) {
       {deals.map((d, i) => (
         <motion.div key={d.batch.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
           <Card className="space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <div>
+            <div className="flex items-start gap-3">
+              <ProductArt medicine={d.medicine} className="size-14" />
+              <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-slate-900">{d.medicine.brand}</h3>
                 <p className="text-xs text-slate-500">{d.medicine.salt} · {d.medicine.packSize}</p>
               </div>
-              <Badge tone="amber">{t('customer.deals.off', { pct: d.discountPct })}</Badge>
+              <Badge tone="amber" className="shrink-0">{t('customer.deals.off', { pct: d.discountPct })}</Badge>
             </div>
             <p className="rounded-lg bg-amber-50/70 px-3 py-2 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200/60">
               {t('customer.deals.expires', { days: d.daysLeft, course: Math.min(d.fitsCourseDays, d.medicine.courseDays), qty: d.batch.qty })}
