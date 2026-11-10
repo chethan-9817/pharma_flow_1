@@ -68,9 +68,12 @@ describe('activityByFamily', () => {
 });
 
 describe('stockByBucket', () => {
+  /** Units in the fresh batch every medicine has (one to two years left). */
+  const FRESH = 1474;
+
   it('sums units by expiry bucket for approved stores', () => {
     const sim = new Sim();
-    expect(stockByBucket(sim.state)).toEqual({ SAFE: 120 + 50 + 80 + 25, LOCKOUT: 12 + 20 + 40 + 30 + 20 + 60, CRITICAL: 25, EXPIRED: 18 });
+    expect(stockByBucket(sim.state)).toEqual({ SAFE: 120 + 50 + 80 + 25 + FRESH, LOCKOUT: 12 + 20 + 40 + 30 + 20 + 60, CRITICAL: 25, EXPIRED: 18 });
   });
 
   it('moves units into the expired bucket as time passes while the total stays the same', () => {
@@ -78,6 +81,8 @@ describe('stockByBucket', () => {
     sim.must(ADMIN, { type: 'TIME_TRAVELLED', to: '2027-04-07' });
     const later = stockByBucket(sim.state);
     expect(later.EXPIRED).toBeGreaterThan(18);
-    expect(Object.values(later).reduce((n, c) => n + c, 0)).toBe(120 + 50 + 80 + 25 + 12 + 20 + 40 + 30 + 20 + 60 + 25 + 18);
+    // Five months on, the fresh batches are still safe to sell.
+    expect(later.SAFE).toBeGreaterThanOrEqual(FRESH);
+    expect(Object.values(later).reduce((n, c) => n + c, 0)).toBe(120 + 50 + 80 + 25 + 12 + 20 + 40 + 30 + 20 + 60 + 25 + 18 + FRESH);
   });
 });

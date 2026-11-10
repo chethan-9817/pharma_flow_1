@@ -6,10 +6,23 @@ import { BARCODE_PRESETS } from '../src/seed/barcodes';
 import { SEED } from '../src/seed';
 
 describe('seed data', () => {
-  it('has a 12-item catalog with unique GTINs and ids', () => {
-    expect(SEED.medicines).toHaveLength(12);
-    expect(new Set(SEED.medicines.map((m) => m.gtin)).size).toBe(12);
-    expect(new Set(SEED.medicines.map((m) => m.id)).size).toBe(12);
+  it('has a 22-item catalog with unique GTINs and ids', () => {
+    expect(SEED.medicines).toHaveLength(22);
+    expect(new Set(SEED.medicines.map((m) => m.gtin)).size).toBe(22);
+    expect(new Set(SEED.medicines.map((m) => m.id)).size).toBe(22);
+  });
+
+  it('stocks every medicine with a fresh batch, so the shop never shows it out of stock', () => {
+    for (const m of SEED.medicines) {
+      const fresh = SEED.batches.filter((b) => b.medicineId === m.id && daysLeft(b.expiry, SEED.today) > 365);
+      expect(fresh.length, m.brand).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps most stock safe: only one expired batch to begin with', () => {
+    const buckets = SEED.batches.map((b) => expiryBucket(b.expiry, SEED.today));
+    expect(buckets.filter((b) => b === 'EXPIRED')).toHaveLength(1);
+    expect(buckets.filter((b) => b === 'SAFE').length).toBeGreaterThan(SEED.batches.length / 2);
   });
 
   it('classifies drugs as the README describes', () => {
@@ -29,7 +42,7 @@ describe('seed data', () => {
   it('covers every expiry bucket and one 38-day Okacet batch', () => {
     const buckets = new Set(SEED.batches.map((b) => expiryBucket(b.expiry, SEED.today)));
     expect(buckets).toEqual(new Set(['SAFE', 'LOCKOUT', 'CRITICAL', 'EXPIRED']));
-    const okacet = SEED.batches.find((b) => b.medicineId === 'med-okacet')!;
+    const okacet = SEED.batches.find((b) => b.id === 'b-okacet-1')!;
     expect(daysLeft(okacet.expiry, SEED.today)).toBe(38);
   });
 

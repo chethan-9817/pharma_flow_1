@@ -43,14 +43,24 @@ describe('quoteCart', () => {
 
   it('fails clearly when stock is short, the cart is empty or the deal vanished', () => {
     const sim = new Sim();
-    expect(quoteCart(sim.state, STORE, [{ medicineId: 'med-dolo650', qty: 500 }])).toMatchObject({ ok: false, error: expect.stringMatching(/Only 120/) });
+    // Dolo has two batches on the shelf: 120 + 200 strips.
+    expect(quoteCart(sim.state, STORE, [{ medicineId: 'med-dolo650', qty: 500 }])).toMatchObject({ ok: false, error: expect.stringMatching(/Only 320/) });
     expect(quoteCart(sim.state, STORE, [])).toMatchObject({ ok: false });
     expect(quoteCart(sim.state, STORE, [{ medicineId: 'med-okacet', qty: 1, batchId: 'nope' }])).toMatchObject({ ok: false });
   });
 
   it('never sells expired batches', () => {
     const sim = new Sim();
-    expect(stockFor(sim.state, STORE, 'med-becosules')).toBe(0);
+    // Becosules has an expired batch of 18 and a fresh batch of 60: only the fresh one counts.
+    expect(stockFor(sim.state, STORE, 'med-becosules')).toBe(60);
+  });
+
+  it('sells the oldest batch first (FEFO), never the expired one', () => {
+    const sim = new Sim();
+    const quote = quoteCart(sim.state, STORE, [{ medicineId: 'med-dolo650', qty: 130 }]);
+    expect(quote.ok && quote.value.items.map((i) => [i.batchId, i.qty])).toEqual([['b-dolo-1', 120], ['b-dolo-2', 10]]);
+    const beco = quoteCart(sim.state, STORE, [{ medicineId: 'med-becosules', qty: 1 }]);
+    expect(beco.ok && beco.value.items[0]!.batchId).toBe('b-becosules-2');
   });
 });
 
