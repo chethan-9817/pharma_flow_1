@@ -38,7 +38,7 @@
   --color-blood-tint: #ffe4e6;
 
   /* Surfaces and text. The canvas is a cool blue-grey so white cards stand out from it. */
-  --color-canvas: #eaf0f6;
+  --color-canvas: #f2f6fb;
   --color-surface: #ffffff;
   --color-subtle: #f9fafb;
   --color-line: #eaecf0;
@@ -46,8 +46,15 @@
   --color-ink: #101828;
 
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.04);
+  --shadow-lift: 0 6px 16px -6px rgb(16 24 40 / 0.12), 0 2px 4px rgb(16 24 40 / 0.04);
   --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
-  --animate-fade-up: fade-up 0.35s ease-out both;
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.25s ease-out both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fade-up {
@@ -58,7 +65,8 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: var(--color-canvas);
+  /* A soft blue wash at the top that fades into the canvas, so pages do not start on a flat grey. */
+  background: var(--color-canvas) linear-gradient(180deg, #e3effa 0, var(--color-canvas) 340px) no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -71,6 +79,13 @@ button {
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 button:active:not(:disabled) { transform: scale(0.98); }
+input, select, textarea, a { transition: box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+
+/* Slim, quiet scrollbars. */
+* { scrollbar-width: thin; scrollbar-color: var(--color-slate-300) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--color-slate-300); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-slate-400); }
 button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 @media (prefers-reduced-motion: reduce) {

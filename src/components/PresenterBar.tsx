@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronsRight, RotateCcw, Stethoscope, Truck, Shield, User } from 'lucide-react';
+import { CalendarClock, ChevronsRight, RotateCcw, Stethoscope, Truck, Shield, User, Warehouse } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
@@ -17,6 +17,7 @@ const ROLES = [
   { to: '/chemist', key: 'chemist', icon: Stethoscope },
   { to: '/rider', key: 'rider', icon: Truck },
   { to: '/admin', key: 'admin', icon: Shield },
+  { to: '/dealer', key: 'dealer', icon: Warehouse },
 ] as const;
 
 const JUMPS = [
@@ -52,21 +53,21 @@ export function PresenterBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 shadow-[0_1px_0_rgb(16_24_40/0.02)] backdrop-blur-md">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-medical text-sm font-bold text-white">Rx</span>
           <span className="text-base font-semibold tracking-tight text-slate-900">PharmaFlow</span>
         </div>
 
-        <nav className="flex gap-1 rounded-xl bg-sky-50 p-1 ring-1 ring-inset ring-sky-100" aria-label={t('nav.switchRole')}>
+        <nav className="flex gap-1 rounded-xl bg-slate-100/80 p-1" aria-label={t('nav.switchRole')}>
           {ROLES.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-sky-100 hover:text-medical-dark'
+                  isActive ? 'bg-white text-medical-dark shadow-card ring-1 ring-slate-200' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900'
                 }`
               }
             >
@@ -77,7 +78,7 @@ export function PresenterBar() {
           <NavLink
             to="/presenter"
             className={({ isActive }) =>
-              `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-sky-100 hover:text-medical-dark'}`
+              `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'bg-white text-medical-dark shadow-card ring-1 ring-slate-200' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900'}`
             }
           >
             {t('nav.all4')}
@@ -101,12 +102,12 @@ export function PresenterBar() {
             aria-label={t('nav.timeTravel')}
             className="h-1.5 min-w-24 flex-1 cursor-pointer accent-medical"
           />
-          <div className="hidden gap-1 lg:flex">
+          <div className="hidden gap-1 2xl:flex">
             {JUMPS.map((j) => (
               <button
                 key={j.key}
                 onClick={() => void travel(offset + j.days)}
-                className="flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg bg-amber-50 px-2 text-xs font-medium text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
+                className="flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg px-2 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-amber-50 hover:text-amber-800 hover:ring-amber-200"
               >
                 <ChevronsRight className="size-3" />
                 {t(j.key)}

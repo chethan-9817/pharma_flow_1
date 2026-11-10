@@ -1,4 +1,4 @@
-import { LogOut, Shield, Stethoscope, Truck, User as UserIcon, Warehouse, type LucideIcon } from 'lucide-react';
+import { ChevronRight, LogOut, Shield, Stethoscope, Truck, User as UserIcon, Warehouse, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Role, User } from '../domain/types';
@@ -7,7 +7,7 @@ import { pharma, usePharma } from '../store';
 import { SERVER_MODE } from '../store/server';
 import { useEmbedded } from './layout';
 import { ServerLogin } from './ServerLogin';
-import { Button, Card } from './ui';
+import { Card } from './ui';
 
 const ROLE_ICON: Record<Role, LucideIcon> = { customer: UserIcon, chemist: Stethoscope, rider: Truck, admin: Shield, dealer: Warehouse };
 
@@ -20,6 +20,8 @@ export function RoleGate({ role, children }: { role: Role; children: (user: User
   const embedded = useEmbedded();
   const ready = usePharma((s) => s.ready);
   const users = usePharma((s) => s.app.users);
+  const stores = usePharma((s) => s.app.stores);
+  const dealers = usePharma((s) => s.app.dealers);
   const userId = usePharma((s) => s.sessions[role]);
   const user = userId ? users[userId] : undefined;
 
@@ -46,18 +48,28 @@ export function RoleGate({ role, children }: { role: Role; children: (user: User
             <ServerLogin choices={choices} onSignedIn={(id) => pharma.getState().login(role, id)} />
           ) : (
             <>
-              <div className="space-y-2">
-                {choices.map((u) => (
-                  <Button
-                    key={u.id}
-                    block
-                    size="lg"
-                    variant={choices.length > 1 ? 'soft' : 'primary'}
-                    onClick={() => pharma.getState().login(role, u.id)}
-                  >
-                    {t('gate.continueAs', { name: u.name })}
-                  </Button>
-                ))}
+              <div className="-mr-2 max-h-[52vh] space-y-2 overflow-y-auto pr-2">
+                {choices.map((u) => {
+                  // Where this person belongs: their store, their dealership or their address.
+                  const where = (u.storeId && stores[u.storeId]?.name) || (u.dealerId && dealers[u.dealerId]?.name) || u.address || u.phone;
+                  return (
+                    <button
+                      key={u.id}
+                      aria-label={t('gate.continueAs', { name: u.name })}
+                      onClick={() => pharma.getState().login(role, u.id)}
+                      className="group flex w-full items-center gap-3 rounded-xl bg-white px-3 py-2.5 text-left ring-1 ring-inset ring-slate-200 hover:bg-medical-tint/50 hover:ring-medical-ring"
+                    >
+                      <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-medical-tint text-[13px] font-semibold text-medical-dark">
+                        {u.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-slate-900">{u.name}</span>
+                        {where && <span className="block truncate text-xs text-slate-500">{where}</span>}
+                      </span>
+                      <ChevronRight aria-hidden className="size-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-medical" />
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-center text-xs text-slate-400">{t('gate.noSignup')}</p>
             </>

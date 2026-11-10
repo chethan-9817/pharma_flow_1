@@ -104,7 +104,7 @@ type IconType = ComponentType<{ className?: string }>;
 export function Stat({ label, value, hint, tone = 'slate', icon: Icon }: { label: string; value: ReactNode; hint?: string; tone?: Tone; icon?: IconType }) {
   const s = STAT[tone];
   return (
-    <div className={cx('flex items-start justify-between gap-3 rounded-2xl p-4 shadow-card ring-1', s.tile)}>
+    <div className={cx('flex items-start justify-between gap-3 rounded-2xl p-4 shadow-card ring-1 transition-shadow duration-200 hover:shadow-lift', s.tile)}>
       <div className="flex min-w-0 flex-col gap-1">
         <span className={cx('text-[13px] font-medium', s.label)}>{label}</span>
         <span className="text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{value}</span>
@@ -124,7 +124,7 @@ export function Stat({ label, value, hint, tone = 'slate', icon: Icon }: { label
 /** The header of a role page: a light brand-blue card with a solid icon chip. */
 export function PageHero({ icon: Icon, title, subtitle, aside, children }: { icon: IconType; title: ReactNode; subtitle?: ReactNode; aside?: ReactNode; children?: ReactNode }) {
   return (
-    <section className="rounded-2xl bg-sky-100/70 p-5 shadow-card ring-1 ring-sky-200">
+    <section className="rounded-2xl bg-linear-to-br from-white via-sky-50 to-sky-100/80 p-5 shadow-card ring-1 ring-sky-200/80">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
           <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-xl bg-medical text-white shadow-card">
@@ -150,6 +150,40 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
         {children}
       </h2>
       {action}
+    </div>
+  );
+}
+
+/** A row of pill tabs that splits a long page into views. */
+export function Tabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+}: {
+  tabs: { id: T; label: string; icon?: IconType; count?: number }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div role="tablist" className="inline-flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-white p-1 shadow-card ring-1 ring-slate-200">
+      {tabs.map(({ id, label, icon: Icon, count }) => (
+        <button
+          key={id}
+          role="tab"
+          aria-selected={value === id}
+          onClick={() => onChange(id)}
+          className={cx(
+            'flex h-9 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-sm font-medium',
+            value === id ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+          )}
+        >
+          {Icon && <Icon className="size-4" />}
+          {label}
+          {count ? (
+            <span className={cx('rounded-full px-1.5 text-[11px] font-semibold tabular-nums', value === id ? 'bg-white/20' : 'bg-medical-tint text-medical-dark')}>{count}</span>
+          ) : null}
+        </button>
+      ))}
     </div>
   );
 }

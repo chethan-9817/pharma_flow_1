@@ -7,6 +7,7 @@ import { AdminPage } from './roles/admin/AdminPage';
 import { ChemistPage } from './roles/chemist/ChemistPage';
 import { DemoBarcodes } from './roles/chemist/DemoBarcodes';
 import { CustomerPage } from './roles/customer/CustomerPage';
+import { DealerPage } from './roles/dealer/DealerPage';
 import { RiderPage } from './roles/rider/RiderPage';
 
 const PANES = [
@@ -39,17 +40,21 @@ export default function App() {
   return (
     <>
       {!embedded && <PresenterBar />}
+      {/* Keyed by path, so every page fades in softly when you switch role. */}
+      <main key={pathname} className="animate-fade-in">
       <Routes>
         <Route path="/" element={<Navigate to="/presenter" replace />} />
         <Route path="/customer" element={<RoleGate role="customer">{(u) => <CustomerPage user={u} />}</RoleGate>} />
         <Route path="/chemist" element={<RoleGate role="chemist">{(u) => <ChemistPage user={u} />}</RoleGate>} />
         <Route path="/rider" element={<RoleGate role="rider">{(u) => <RiderPage user={u} />}</RoleGate>} />
         <Route path="/admin" element={<RoleGate role="admin">{(u) => <AdminPage user={u} />}</RoleGate>} />
+        <Route path="/dealer" element={<RoleGate role="dealer">{(u) => <DealerPage user={u} />}</RoleGate>} />
         <Route path="/presenter" element={<Presenter />} />
         <Route path="/demo-barcodes" element={<DemoBarcodes />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="*" element={<Navigate to="/presenter" replace />} />
       </Routes>
+      </main>
       <Toaster />
     </>
   );
