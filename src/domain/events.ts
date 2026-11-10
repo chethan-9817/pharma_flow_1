@@ -1,3 +1,4 @@
+import type { BulkQuote } from './bulk';
 import type { IsoDate } from './clock';
 import type {
   BloodBooking,
@@ -48,6 +49,14 @@ export type DomainEventPayload =
   | { type: 'ORDER_DELIVERED'; orderId: string; otp: string }
   // Sponsor a batch for an NGO (the packs then travel as a pickup that starts at the store)
   | { type: 'SPONSORSHIP_PLACED'; sponsorship: Sponsorship }
+  // Pooled bulk buying: stores ask, dealers quote, agents negotiate, the admin awards, the dealer delivers
+  | { type: 'BULK_DEMAND_POSTED'; tenderId: string; storeId: string; medicineId: string; qty: number }
+  | { type: 'BULK_TENDER_OPENED'; tenderId: string; targetPrice: number; ceilingPrice: number }
+  | { type: 'BULK_QUOTE_SUBMITTED'; tenderId: string; quote: Omit<BulkQuote, 'submittedAt'> }
+  | { type: 'BULK_NEGOTIATED'; tenderId: string }
+  | { type: 'BULK_AWARDED'; tenderId: string; quoteId: string }
+  | { type: 'BULK_DELIVERED'; tenderId: string; batchNo: string; expiry: IsoDate }
+  | { type: 'BULK_CANCELLED'; tenderId: string }
   // Rewards
   | { type: 'SCRATCH_CARD_REVEALED'; cardId: string }
   // Blood

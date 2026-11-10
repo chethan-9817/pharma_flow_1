@@ -1,4 +1,4 @@
-import { LogOut, Shield, Stethoscope, Truck, User as UserIcon, type LucideIcon } from 'lucide-react';
+import { LogOut, Shield, Stethoscope, Truck, User as UserIcon, Warehouse, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Role, User } from '../domain/types';
@@ -9,7 +9,7 @@ import { useEmbedded } from './layout';
 import { ServerLogin } from './ServerLogin';
 import { Button, Card } from './ui';
 
-const ROLE_ICON: Record<Role, LucideIcon> = { customer: UserIcon, chemist: Stethoscope, rider: Truck, admin: Shield };
+const ROLE_ICON: Record<Role, LucideIcon> = { customer: UserIcon, chemist: Stethoscope, rider: Truck, admin: Shield, dealer: Warehouse };
 
 /**
  * Shows 1-tap demo logins until someone is signed in for this role (a password form in server mode),

@@ -1,6 +1,7 @@
 import type { DomainEvent } from './events';
 import type { Result } from './result';
 import type { AppState } from './state';
+import * as bulk from './handlers/bulk';
 import * as civic from './handlers/civic';
 import * as inventory from './handlers/inventory';
 import * as orders from './handlers/orders';
@@ -73,6 +74,21 @@ function dispatch(s: AppState, e: DomainEvent): Step {
 
     case 'SPONSORSHIP_PLACED':
       return sponsor.sponsorshipPlaced(s, e);
+
+    case 'BULK_DEMAND_POSTED':
+      return bulk.bulkDemandPosted(s, e);
+    case 'BULK_TENDER_OPENED':
+      return bulk.bulkTenderOpened(s, e);
+    case 'BULK_QUOTE_SUBMITTED':
+      return bulk.bulkQuoteSubmitted(s, e);
+    case 'BULK_NEGOTIATED':
+      return bulk.bulkNegotiated(s, e);
+    case 'BULK_AWARDED':
+      return bulk.bulkAwarded(s, e);
+    case 'BULK_DELIVERED':
+      return bulk.bulkDelivered(s, e);
+    case 'BULK_CANCELLED':
+      return bulk.bulkCancelled(s, e);
 
     case 'SCRATCH_CARD_REVEALED':
       return civic.scratchCardRevealed(s, e);
