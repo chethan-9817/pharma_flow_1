@@ -24,7 +24,7 @@ export function NgoFundCard() {
             <Landmark className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold tabular-nums text-slate-900">{inr(f.balance)}</p>
+            <p className="text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{inr(f.balance)}</p>
             <p className="text-xs text-slate-500">{t('admin.fund.closedLoop')}</p>
           </div>
         </div>

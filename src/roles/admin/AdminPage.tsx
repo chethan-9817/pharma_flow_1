@@ -39,7 +39,7 @@ export function AdminPage({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <h1 className="text-xl font-bold text-slate-900">{t('admin.title')}</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900">{t('admin.title')}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t('admin.deadStock')} value={inr(k.deadStockRecovered)} hint={t('admin.ecoRevenue')} tone="blue" />
@@ -103,7 +103,7 @@ export function AdminPage({ user }: { user: User }) {
                   <p className="truncate text-xs text-slate-500">{app.bloodBanks[b.bloodBankId]?.name} · {b.date}</p>
                 </div>
                 {b.status === 'BOOKED' ? (
-                  <Button size="sm" variant="danger" onClick={() => void confirmBlood(b.id)}>{t('admin.confirmDonation')}</Button>
+                  <Button size="sm" variant="soft" onClick={() => void confirmBlood(b.id)}>{t('admin.confirmDonation')}</Button>
                 ) : (
                   <Badge tone="green">{t('admin.donated')}</Badge>
                 )}

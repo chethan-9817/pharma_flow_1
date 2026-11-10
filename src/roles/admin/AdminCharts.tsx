@@ -8,8 +8,14 @@ import { Card, SectionTitle, useBucketLabel } from '../../components/ui';
 import { SEED } from '../../seed';
 import type { Entry } from '../../store/persistence';
 
-const BUCKET_COLOR: Record<ExpiryBucket, string> = { SAFE: '#10B981', LOCKOUT: '#F59E0B', CRITICAL: '#F97316', EXPIRED: '#E11D48' };
-const AXIS = { fontSize: 11, fill: '#64748b' };
+/** Same colours as the expiry badges elsewhere in the app, deep enough to read on white. */
+const BUCKET_COLOR: Record<ExpiryBucket, string> = { SAFE: '#059669', LOCKOUT: '#D97706', CRITICAL: '#EA580C', EXPIRED: '#BE123C' };
+const AXIS = { fontSize: 11, fill: '#667085' };
+const GRID = '#eaecf0';
+const TOOLTIP = {
+  contentStyle: { borderRadius: 12, border: '1px solid #eaecf0', boxShadow: '0 12px 32px -8px rgb(16 24 40 / 0.14)', fontSize: 12 },
+  labelStyle: { color: '#475467', fontWeight: 500 },
+} as const;
 
 const rupee = (n: number) => `₹${n.toLocaleString('en-IN', { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 
@@ -45,12 +51,12 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
                     <Cell key={d.bucket} fill={BUCKET_COLOR[d.bucket]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => [`${v} ${t('admin.charts.units')}`, '']} />
+                <Tooltip {...TOOLTIP} formatter={(v) => [`${v} ${t('admin.charts.units')}`, '']} />
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
               <div>
-                <p className="text-2xl font-bold tabular-nums text-slate-900">{totalUnits}</p>
+                <p className="text-2xl font-semibold tabular-nums text-slate-900">{totalUnits}</p>
                 <p className="text-[11px] text-slate-500">{t('admin.charts.units')}</p>
               </div>
             </div>
@@ -72,14 +78,14 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={timeline} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
                 <XAxis dataKey="step" type="number" domain={[0, 'dataMax']} allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} />
                 <YAxis tickFormatter={rupee} tick={AXIS} tickLine={false} axisLine={false} width={56} />
-                <Tooltip formatter={(v) => rupee(Number(v))} labelFormatter={(l) => t('admin.charts.afterEvent', { n: l })} />
+                <Tooltip {...TOOLTIP} formatter={(v) => rupee(Number(v))} labelFormatter={(l) => t('admin.charts.afterEvent', { n: l })} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="stepAfter" dataKey="ecoRevenue" name={t('admin.charts.ecoLine')} stroke="#0284C7" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="stepAfter" dataKey="ngoValue" name={t('admin.charts.ngoLine')} stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="stepAfter" dataKey="ngoFund" name={t('admin.charts.fundLine')} stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ecoRevenue" name={t('admin.charts.ecoLine')} stroke="#0369A1" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ngoValue" name={t('admin.charts.ngoLine')} stroke="#059669" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="stepAfter" dataKey="ngoFund" name={t('admin.charts.fundLine')} stroke="#7C3AED" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -92,11 +98,11 @@ export default function AdminCharts({ app, chain }: { app: AppState; chain: Entr
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={activityRows} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID} horizontal={false} />
                 <XAxis type="number" allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} />
                 <YAxis type="category" dataKey="label" tick={AXIS} tickLine={false} axisLine={false} width={86} />
-                <Tooltip formatter={(v) => [t('admin.charts.eventsCount', { count: Number(v) }), '']} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="count" fill="#0284C7" radius={[0, 6, 6, 0]} barSize={14} />
+                <Tooltip {...TOOLTIP} formatter={(v) => [t('admin.charts.eventsCount', { count: Number(v) }), '']} cursor={{ fill: '#f2f4f7' }} />
+                <Bar dataKey="count" fill="#0369A1" radius={[0, 6, 6, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
           </div>
