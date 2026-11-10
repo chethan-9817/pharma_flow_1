@@ -43,6 +43,8 @@ export function ShopTab({ user }: { user: User }) {
           const stock = storeId ? stockFor(app, storeId, m.id) : 0;
           const offer = genericOffer(m);
           const eco = ecoListings(app).find((d) => d.medicine.id === m.id);
+          // No full-price stock left, but an Eco-Sale batch is: sell that instead of showing "out of stock".
+          const ecoOnly = stock === 0 && eco ? eco : undefined;
           return (
             <motion.div key={m.id} className="h-full" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.03 }}>
               <Card className="flex h-full flex-col gap-3">
@@ -73,15 +75,25 @@ export function ShopTab({ user }: { user: User }) {
 
                 <div className="mt-auto flex items-center justify-between pt-1">
                   <div>
-                    <span className="text-lg font-semibold tabular-nums text-slate-900">{inr(m.mrp)}</span>
-                    <span className="ml-2 text-xs text-slate-500">{stock > 0 ? t('customer.shop.inStock', { count: stock }) : t('customer.shop.outOfStock')}</span>
+                    {ecoOnly ? (
+                      <>
+                        <span className="text-lg font-semibold tabular-nums text-eco-dark">{inr(ecoOnly.price)}</span>
+                        <s className="ml-1.5 text-xs tabular-nums text-slate-400">{inr(m.mrp)}</s>
+                        <span className="ml-2 text-xs text-slate-500">{t('customer.shop.ecoOnly', { count: ecoOnly.batch.qty })}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-lg font-semibold tabular-nums text-slate-900">{inr(m.mrp)}</span>
+                        <span className="ml-2 text-xs text-slate-500">{stock > 0 ? t('customer.shop.inStock', { count: stock }) : t('customer.shop.outOfStock')}</span>
+                      </>
+                    )}
                   </div>
                   <Button
                     size="sm"
-                    variant="soft"
-                    disabled={stock === 0}
+                    variant={ecoOnly ? 'ecoSoft' : 'soft'}
+                    disabled={stock === 0 && !ecoOnly}
                     onClick={() => {
-                      add({ medicineId: m.id, qty: 1 });
+                      add(ecoOnly ? { medicineId: m.id, qty: 1, batchId: ecoOnly.batch.id } : { medicineId: m.id, qty: 1 });
                       toast(t('customer.shop.added', { brand: m.brand }));
                     }}
                   >
