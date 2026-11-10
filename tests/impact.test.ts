@@ -72,12 +72,15 @@ describe('stockByBucket', () => {
   const FRESH = 2586;
   /** Two skin-care batches within 6 months of expiry (sunscreen 12, vitamin C serum 10). */
   const NEAR_EXPIRY_PRODUCTS = 12 + 10;
+  /** The five newer stores: the whole catalogue with over a year left, plus two near-expiry batches each. */
+  const BRANCH_SAFE = 11185;
+  const BRANCH_LOCKOUT = 170;
 
   it('sums units by expiry bucket for approved stores', () => {
     const sim = new Sim();
     expect(stockByBucket(sim.state)).toEqual({
-      SAFE: 120 + 50 + 80 + 25 + FRESH,
-      LOCKOUT: 12 + 20 + 40 + 30 + 20 + 60 + NEAR_EXPIRY_PRODUCTS,
+      SAFE: 120 + 50 + 80 + 25 + FRESH + BRANCH_SAFE,
+      LOCKOUT: 12 + 20 + 40 + 30 + 20 + 60 + NEAR_EXPIRY_PRODUCTS + BRANCH_LOCKOUT,
       CRITICAL: 25,
       EXPIRED: 18,
     });
@@ -90,6 +93,6 @@ describe('stockByBucket', () => {
     expect(later.EXPIRED).toBeGreaterThan(18);
     // Five months on, the fresh batches are still safe to sell.
     expect(later.SAFE).toBeGreaterThanOrEqual(FRESH);
-    expect(Object.values(later).reduce((n, c) => n + c, 0)).toBe(120 + 50 + 80 + 25 + 12 + 20 + 40 + 30 + 20 + 60 + 25 + 18 + FRESH + NEAR_EXPIRY_PRODUCTS);
+    expect(Object.values(later).reduce((n, c) => n + c, 0)).toBe(120 + 50 + 80 + 25 + 12 + 20 + 40 + 30 + 20 + 60 + 25 + 18 + FRESH + NEAR_EXPIRY_PRODUCTS + BRANCH_SAFE + BRANCH_LOCKOUT);
   });
 });

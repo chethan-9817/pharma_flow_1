@@ -1,8 +1,10 @@
 import type { IsoDate } from './clock';
+import type { BulkTender } from './bulk';
 import type { FundEntryKind } from './rules/fund';
 import type {
   Batch,
   BloodBank,
+  Dealer,
   H1Entry,
   Medicine,
   Ngo,
@@ -77,6 +79,8 @@ export interface AppState {
   stores: Record<string, Store>;
   ngos: Record<string, Ngo>;
   bloodBanks: Record<string, BloodBank>;
+  /** Wholesale dealers that quote on pooled bulk orders. */
+  dealers: Record<string, Dealer>;
   users: Record<string, User>;
   // Transactional data (built by events)
   batches: Record<string, Batch>;
@@ -92,6 +96,8 @@ export interface AppState {
   riders: Record<string, RiderProfile>;
   sponsorships: Record<string, Sponsorship>;
   ngoFund: NgoFund;
+  /** Pooled bulk orders: stores ask, dealers quote, agents negotiate, the admin awards. */
+  bulkTenders: Record<string, BulkTender>;
 }
 
 export interface Seed {
@@ -101,6 +107,7 @@ export interface Seed {
   stores: Store[];
   ngos: Ngo[];
   bloodBanks: BloodBank[];
+  dealers?: Dealer[];
   users: User[];
   batches: Batch[];
   /** Starting MedWallet credit per user id. */
@@ -118,6 +125,7 @@ export function createInitialState(seed: Seed): AppState {
     stores: byId(seed.stores),
     ngos: byId(seed.ngos),
     bloodBanks: byId(seed.bloodBanks),
+    dealers: byId(seed.dealers ?? []),
     users: byId(seed.users),
     batches: byId(seed.batches),
     orders: {},
@@ -136,5 +144,6 @@ export function createInitialState(seed: Seed): AppState {
     ),
     sponsorships: {},
     ngoFund: { balance: 0, entries: [] },
+    bulkTenders: {},
   };
 }

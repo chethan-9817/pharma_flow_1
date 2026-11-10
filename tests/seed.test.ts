@@ -56,8 +56,26 @@ describe('seed data', () => {
     expect(daysLeft(okacet.expiry, SEED.today)).toBe(38);
   });
 
-  it('starts one store pending KYC and one approved', () => {
-    expect(SEED.stores.map((s) => s.kyc).sort()).toEqual(['APPROVED', 'PENDING_KYC']);
+  it('starts with six approved stores and one pending KYC', () => {
+    expect(SEED.stores.filter((s) => s.kyc === 'APPROVED')).toHaveLength(6);
+    expect(SEED.stores.filter((s) => s.kyc === 'PENDING_KYC')).toHaveLength(1);
+  });
+
+  it('has six demo customers, a chemist for every store, three riders and three dealers', () => {
+    const count = (role: string) => SEED.users.filter((u) => u.role === role).length;
+    expect(count('customer')).toBe(6);
+    expect(count('rider')).toBe(3);
+    expect(count('dealer')).toBe(3);
+    for (const store of SEED.stores) expect(SEED.users.some((u) => u.role === 'chemist' && u.storeId === store.id), store.name).toBe(true);
+    for (const u of SEED.users.filter((x) => x.role === 'dealer')) expect(SEED.dealers!.some((d) => d.id === u.dealerId)).toBe(true);
+  });
+
+  it('gives every approved store the whole catalogue in stock', () => {
+    for (const store of SEED.stores.filter((s) => s.kyc === 'APPROVED')) {
+      for (const m of SEED.medicines) {
+        expect(SEED.batches.some((b) => b.storeId === store.id && b.medicineId === m.id && daysLeft(b.expiry, SEED.today) > 365), `${store.name}: ${m.brand}`).toBe(true);
+      }
+    }
   });
 
   it('has one NGO with and one without a registered professional', () => {

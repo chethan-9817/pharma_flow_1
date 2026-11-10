@@ -90,6 +90,19 @@ export const NgoSchema = z.object({
 });
 export type Ngo = z.infer<typeof NgoSchema>;
 
+/** A licensed wholesale dealer (distributor) that quotes on pooled bulk orders. */
+export const DealerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  area: z.string(),
+  /** Wholesale drug licence (Form 20B / 21B). */
+  wholesaleLicence: z.string(),
+  gstin: z.string(),
+  /** Past-performance rating out of 5, used as a tie-breaker when quotes are compared. */
+  rating: z.number().min(1).max(5),
+});
+export type Dealer = z.infer<typeof DealerSchema>;
+
 export const BloodBankSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -98,7 +111,7 @@ export const BloodBankSchema = z.object({
 });
 export type BloodBank = z.infer<typeof BloodBankSchema>;
 
-export const RoleSchema = z.enum(['customer', 'chemist', 'rider', 'admin']);
+export const RoleSchema = z.enum(['customer', 'chemist', 'rider', 'admin', 'dealer']);
 export type Role = z.infer<typeof RoleSchema>;
 
 export const UserSchema = z.object({
@@ -106,6 +119,8 @@ export const UserSchema = z.object({
   role: RoleSchema,
   name: z.string(),
   storeId: z.string().optional(),
+  /** The wholesale dealer this user quotes for (dealer role). */
+  dealerId: z.string().optional(),
   address: z.string().optional(),
   /** Demo phone number, used by the rider's Call button. */
   phone: z.string().optional(),

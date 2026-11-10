@@ -1,18 +1,18 @@
 import { z } from 'zod';
 import { addDays } from '../domain/clock';
 import type { Seed } from '../domain/state';
-import { BatchSchema, BloodBankSchema, MedicineSchema, NgoSchema, StoreSchema, UserSchema } from '../domain/types';
+import { BatchSchema, BloodBankSchema, DealerSchema, MedicineSchema, NgoSchema, StoreSchema, UserSchema } from '../domain/types';
 import { MEDICINES } from './medicines';
-import { BLOOD_BANKS, CBWTF, NGOS, STORES, USERS } from './parties';
+import { BLOOD_BANKS, CBWTF, DEALERS, NGOS, STORES, USERS } from './parties';
 
 /** The demo starts on this simulated date. The presenter can time-travel forward. */
 export const DEMO_START = '2026-11-08';
 
 const STORE = 'store-ganesh';
-const batch = (id: string, medicineId: string, daysFromStart: number, qty: number, batchNo: string) =>
+const batch = (id: string, medicineId: string, daysFromStart: number, qty: number, batchNo: string, storeId: string = STORE) =>
   ({
     id,
-    storeId: STORE,
+    storeId,
     medicineId,
     batchNo,
     expiry: addDays(DEMO_START, daysFromStart),
@@ -100,11 +100,47 @@ const BATCHES = [
   batch('b-becosules-1', 'med-becosules', -7, 18, 'BC25K12'),
 ];
 
+/**
+ * Stock for the five newer stores. Each carries the whole catalogue with more than a year of shelf
+ * life, plus two batches inside the 6-month window so its expiry alerts have something to show.
+ * Quantities and dates are spread with simple arithmetic, so the seed is the same on every run.
+ * Syringes are kept low on purpose: they are the pooled bulk-order example.
+ */
+const BRANCH_STORES = [
+  { id: 'store-surathkal', code: 'SK' },
+  { id: 'store-ullal', code: 'UL' },
+  { id: 'store-kulshekar', code: 'KS' },
+  { id: 'store-kavoor', code: 'KV' },
+  { id: 'store-jeppu', code: 'JP' },
+] as const;
+
+const BRANCH_BATCHES = BRANCH_STORES.flatMap((store, k) => {
+  const key = store.id.replace('store-', '');
+  const fresh = MEDICINES.map((m, i) =>
+    batch(
+      `b-${key}-${m.id}`,
+      m.id,
+      400 + ((i * 37 + k * 53) % 400),
+      m.id === 'prd-dispovan' ? 8 : 20 + ((i * 7 + k * 11) % 60),
+      `${store.code}28${String(i + 1).padStart(3, '0')}`,
+      store.id,
+    ),
+  );
+  const nearA = MEDICINES[(k * 5 + 3) % 29]!;
+  const nearB = MEDICINES[(k * 7 + 11) % 29]!;
+  return [
+    ...fresh,
+    batch(`b-${key}-near-1`, nearA.id, 150 - k * 12, 14 + k * 3, `${store.code}26N01`, store.id),
+    batch(`b-${key}-near-2`, nearB.id, 96 - k * 9, 10 + k * 2, `${store.code}26N02`, store.id),
+  ];
+});
+
 export function validateSeed(seed: Seed): Seed {
   z.array(MedicineSchema).parse(seed.medicines);
   z.array(StoreSchema).parse(seed.stores);
   z.array(NgoSchema).parse(seed.ngos);
   z.array(BloodBankSchema).parse(seed.bloodBanks);
+  z.array(DealerSchema).parse(seed.dealers ?? []);
   z.array(UserSchema).parse(seed.users);
   z.array(BatchSchema).parse(seed.batches);
   return seed;
@@ -117,9 +153,10 @@ export const SEED: Seed = validateSeed({
   stores: STORES,
   ngos: NGOS,
   bloodBanks: BLOOD_BANKS,
+  dealers: DEALERS,
   users: USERS,
-  batches: BATCHES,
+  batches: [...BATCHES, ...BRANCH_BATCHES],
   wallet: {},
 });
 
-export { MEDICINES, STORES, NGOS, BLOOD_BANKS, USERS, CBWTF };
+export { MEDICINES, STORES, NGOS, BLOOD_BANKS, DEALERS, USERS, CBWTF };
