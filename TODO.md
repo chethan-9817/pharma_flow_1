@@ -11,6 +11,8 @@ Last updated: 2026-11-10 (light-theme refresh, 6-month Eco-Sale alerts). Roadmap
 - **6-month Eco-Sale alerts and more stock (2026-11-10).** Your model: 6 months before expiry the chemist is alerted and the medicine goes on Eco-Sale; a ₹200 strip sells for ₹170, PharmaFlow keeps ₹20 and the store gets ₹150. Eco-Sale now opens only inside that window. The store has 22 medicines (10 new), each with a fresh batch, so the customer shop no longer shows "out of stock" when an old batch goes on Eco-Sale; if the Eco-Sale batch is the only stock, the shop sells it at the Eco-Sale price.
 - **Pharmacy products and pictures (2026-11-10).** 46 items in six aisles: 29 medicines, plus sanitary pads, sunscreens, face serums, face washes, toothbrushes, toothpaste, diaper pants, syringes, bandages, antiseptic and a thermometer. Every item has a drawn picture, and aisle chips filter the shop.
 
+- **Pooled bulk orders and dealers (2026-11-11).** A fifth role, **Dealer**. Stores pool bulk requests, the admin sets a target and a ceiling, dealers quote, rule-based agents negotiate in up to 3 rounds, the admin awards and the dealer delivers a fresh batch to each store. The admin portal now has tabs: Overview, **Stores and orders** (every store, its chemist, stock and orders; recent orders with their rider) and **Bulk orders**. Demo data grew to 6 customers, 7 stores, 3 riders and 3 dealers.
+
 ## Decisions I made without a final answer from you
 
 These are written into the code and the docs. Change them if they are wrong.
@@ -26,6 +28,8 @@ These are written into the code and the docs. Change them if they are wrong.
 | Sponsor batch payout | Unchanged: the store is paid the full Eco-Sale price for sponsored packs, with no PharmaFlow fee taken from it | `src/domain/rules/sponsor.ts` |
 | Failed pharmacist check on sponsored packs | The sponsor gets the full ₹99 back as MedWallet credit, the store is not paid | `sponsorshipRefunded` |
 | Server database | Node's built-in `node:sqlite`, not better-sqlite3 + Drizzle, so nothing needs compiling | `server/db.ts` |
+| Bulk negotiation | **Rule-based agents, not an AI model**: replayable, explainable and offline. Usual trade price = 80% of MRP, default target = 65%. Effective price adds 0.5% per delivery day and 2% per rating star below five. Needs 2+ stores before dealers are asked | `src/domain/rules/bulk.ts` |
+| Bulk delivery | The dealer's stock goes straight onto each store's shelf as a fresh batch. Payments between stores and the dealer are not modelled | `src/domain/handlers/bulk.ts` |
 | Server demo password | Every demo user shares `pharmaflow` (shown on the login screen only while it still works) | `server/auth.ts` |
 
 ## Not done yet

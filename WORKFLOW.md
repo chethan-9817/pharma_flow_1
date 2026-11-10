@@ -18,9 +18,10 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 12. [Rewards and certificates](#10-rewards-and-certificates)
 13. [Time travel](#11-time-travel)
 14. [Sponsoring a batch for an NGO, and the NGO fund](#12-sponsoring-a-batch-for-an-ngo-and-the-ngo-fund)
-15. [Demo script](#demo-script)
-16. [Developer workflow](#developer-workflow)
-17. [Troubleshooting](#troubleshooting)
+15. [Pooled bulk orders and dealer negotiation](#13-pooled-bulk-orders-and-dealer-negotiation)
+16. [Demo script](#demo-script)
+17. [Developer workflow](#developer-workflow)
+18. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -28,10 +29,11 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 
 | Role | Demo login | Can do |
 |---|---|---|
-| **Customer** | Asha Shetty, Ravi Kumar | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards, donate, dispose, book blood, sponsor an Eco-Sale batch for an NGO |
-| **Chemist** | Ganesh Prabhu (Sri Ganesh Medicals) | Ingest stock, Eco-Sale, donate and dispose batches, review prescriptions, pack orders, run the QA desk (including sponsored packs) |
-| **Rider** | Kiran Poojary | Go online, accept and complete deliveries and pickups |
-| **Admin** | PharmaFlow Admin | Approve or reject pharmacies, verify the ledger (the domain also lets admins confirm blood donations; screen to come) |
+| **Customer** | Asha Shetty, Ravi Kumar, Meera D'Souza, Imran Khan, Lakshmi Bhat, Joseph Pinto | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards, donate, dispose, book blood, sponsor an Eco-Sale batch for an NGO |
+| **Chemist** | One per store: Ganesh Prabhu (Sri Ganesh Medicals), Suresh Kamath (Surathkal), Fathima Banu (Ullal), Prakash Rai (Kulshekar), Deepa Nayak (Kavoor), Vinod Shenoy (Jeppu), Anand Pai (Carstreet, pending KYC) | Ingest stock, Eco-Sale, donate and dispose batches, review prescriptions, pack orders, run the QA desk (including sponsored packs), request pooled bulk stock |
+| **Rider** | Kiran Poojary, Sandeep Gowda, Naveen Kotian | Go online, accept and complete deliveries and pickups |
+| **Admin** | PharmaFlow Admin | Approve or reject pharmacies, confirm blood donations, see every store and order, run bulk orders, verify the ledger |
+| **Dealer** | Ramesh Hegde (Coastal Pharma), Shwetha Rao (Malnad Surgicals), Harish Acharya (Udupi MedSupply) | Quote on pooled bulk orders, see the negotiation for their own quote, deliver orders they win |
 
 The reducer enforces these roles. For example, only a chemist of the same store can pack that store's orders.
 
@@ -376,6 +378,39 @@ stateDiagram-v2
 **Not built yet (designed):** an NGO login with a *needs list*, a chemist **NGO price** opt-in, and bulk buying from distributors at a cheaper rate, all paid from this fund. See [TODO.md](TODO.md).
 
 ---
+
+## 13. Pooled bulk orders and dealer negotiation
+
+Several stores often need the same item in bulk (for example 100 to 200 packs of syringes each). Alone, each store pays its distributor's usual trade price. Pooled, dealers compete for one large order.
+
+```mermaid
+sequenceDiagram
+    participant C as Chemists (2+ stores)
+    participant A as Admin
+    participant D as Dealers
+    participant B as Buyer's agent
+    C->>A: Request bulk stock (joins one pool per item)
+    A->>D: Ask for quotes, with a target and a ceiling price
+    D->>A: Quote: asking price, lowest price, delivery days
+    A->>B: Run the negotiation
+    B-->>D: Up to 3 rounds with each dealer's agent
+    A->>D: Award the best offer
+    D->>C: Deliver: each store gets its share as a fresh batch
+```
+
+| Step | Who | Rule |
+|---|---|---|
+| Request | Chemist of an approved store | 10 to 5,000 packs. One open pool per item; asking again replaces your quantity |
+| Ask for quotes | Admin | At least 2 stores. Target > 0, ceiling between target and MRP. Defaults: target 65% of MRP, ceiling = usual trade price (80% of MRP) |
+| Quote | Dealer | Asking price ≤ MRP, lowest price ≤ asking price, delivery 1 to 30 days. One quote per dealer, which it can update while the order is open |
+| Negotiate | Admin starts it; agents run it | Round by round, the buyer's agent moves from the target to the ceiling (0%, 50%, 100% of the gap) and each dealer's agent moves from its asking price to its lowest price (40%, 75%, 100%). A deal closes as soon as the dealer's offer is no higher than the buyer's |
+| Award | Admin | Only an agreed offer can win. The recommended one has the lowest **effective price**: agreed price + 0.5% per delivery day + 2% per rating star below five. The admin may choose another agreed offer |
+| Deliver | The winning dealer | Batch number and at least 180 days of shelf life. Each store's share lands in its expiry ledger |
+| Cancel | Admin | Any time before an award |
+
+**Why the agents are rule-based, not an AI model:** the result has to be the same on every replay of the event log, it must be explainable to a chemist ("round 2: we offered ₹43.50, they offered ₹42.72"), and the app has no cloud services or API keys. The round-by-round table is shown to the admin and to each dealer for its own quote.
+
+Screens: chemist dashboard → *Bulk orders with other stores*; the new **Dealer** role (`/dealer`); admin → **Bulk orders** tab. The admin's **Stores and orders** tab lists every store with its chemist, stock and orders, and every recent order with its rider.
 
 ## Demo script
 
