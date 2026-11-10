@@ -23,28 +23,29 @@
   /* Brand blue and the colours that carry meaning. Solid fills are deep enough for white text (WCAG AA). */
   --color-medical: #0369a1;
   --color-medical-dark: #075985;
-  --color-medical-tint: #f0f9ff;
+  /* Tints are the 100 step of each hue: light, but clearly coloured, so soft buttons and chips read as colour. */
+  --color-medical-tint: #e0f2fe;
   --color-medical-ring: #bae6fd;
   --color-eco: #047857;
   --color-eco-dark: #065f46;
-  --color-eco-tint: #ecfdf5;
+  --color-eco-tint: #d1fae5;
   --color-expiry: #d97706;
   --color-expiry-ink: #92400e;
-  --color-expiry-tint: #fffbeb;
+  --color-expiry-tint: #fef3c7;
   --color-critical-ink: #c2410c;
-  --color-critical-tint: #fff7ed;
+  --color-critical-tint: #ffedd5;
   --color-blood: #be123c;
-  --color-blood-tint: #fff1f2;
+  --color-blood-tint: #ffe4e6;
 
-  /* Surfaces and text. The canvas is a soft gray so white cards read without heavy shadows. */
-  --color-canvas: #f2f4f7;
+  /* Surfaces and text. The canvas is a cool blue-grey so white cards stand out from it. */
+  --color-canvas: #eaf0f6;
   --color-surface: #ffffff;
   --color-subtle: #f9fafb;
   --color-line: #eaecf0;
   --color-line-strong: #d0d5dd;
   --color-ink: #101828;
 
-  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.04);
   --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
   --animate-fade-up: fade-up 0.35s ease-out both;
 }
