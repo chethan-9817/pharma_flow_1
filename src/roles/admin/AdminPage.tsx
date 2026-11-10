@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Droplets, Package, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
+import { CheckCircle2, Droplets, HeartHandshake, Landmark, Package, Recycle, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
 import { Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { kpis } from '../../domain/selectors';
 import type { User } from '../../domain/types';
-import { Badge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
+import { Badge, Button, Card, PageHero, SectionTitle, Stat, inr } from '../../components/ui';
 import { report, toast } from '../../components/toast';
 import { dispatch, pharma, useApp, usePharma } from '../../store';
 import { NgoFundCard } from './NgoFundCard';
@@ -39,13 +39,13 @@ export function AdminPage({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900">{t('admin.title')}</h1>
+      <PageHero icon={Landmark} title={t('admin.title')} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label={t('admin.deadStock')} value={inr(k.deadStockRecovered)} hint={t('admin.ecoRevenue')} tone="blue" />
-        <Stat label={t('admin.waste')} value={`${k.hazardousKgDiverted} kg`} hint={t('admin.viaCbwtf')} tone="orange" />
-        <Stat label={t('admin.toNgos')} value={inr(k.ngoMedicineValue)} hint={t('admin.atMrp')} tone="green" />
-        <Stat label={t('admin.bloodDonations')} value={`${k.bloodDonationsCompleted}/${k.bloodDonationsBooked}`} hint={t('admin.completedBooked')} tone="red" />
+        <Stat label={t('admin.deadStock')} value={inr(k.deadStockRecovered)} hint={t('admin.ecoRevenue')} tone="blue" icon={TrendingUp} />
+        <Stat label={t('admin.waste')} value={`${k.hazardousKgDiverted} kg`} hint={t('admin.viaCbwtf')} tone="orange" icon={Recycle} />
+        <Stat label={t('admin.toNgos')} value={inr(k.ngoMedicineValue)} hint={t('admin.atMrp')} tone="green" icon={HeartHandshake} />
+        <Stat label={t('admin.bloodDonations')} value={`${k.bloodDonationsCompleted}/${k.bloodDonationsBooked}`} hint={t('admin.completedBooked')} tone="red" icon={Droplets} />
       </div>
 
       <Suspense fallback={<Card className="h-72 animate-pulse bg-slate-100" />}>
@@ -128,7 +128,9 @@ export function AdminPage({ user }: { user: User }) {
             {recent.length === 0 && <p className="p-4 text-sm text-slate-500">{t('admin.noEvents')}</p>}
             {recent.map((e) => (
               <div key={e.hash} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                <TrendingUp className="size-4 shrink-0 text-slate-400" />
+                <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-lg bg-sky-100 text-medical">
+                  <TrendingUp className="size-3.5" />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-slate-900">{e.event.type.replaceAll('_', ' ').toLowerCase()}</p>
                   <p className="truncate text-xs text-slate-500">{app.users[e.event.actorId]?.name ?? e.event.actorId} · {e.event.at}</p>
