@@ -44,7 +44,7 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 | OTC order | ✅ | ✅ |
 | Prescription order and OCR | ✅ | ✅ |
 | Rider delivery with OTP | ✅ | ✅ |
-| Rider navigation map, ETA and Call | ✅ | ✅ dark street map, offline route diagram |
+| Rider navigation map, ETA and Call | ✅ | ✅ street map, offline route diagram |
 | Chemist donates or disposes a batch | ✅ | ✅ |
 | Customer donates or disposes (Civic hub) | ✅ | ✅ |
 | Backhaul pickup suggestion | ✅ | ✅ appears when a customer-scheduled pickup is within about 600 m of a delivery |
@@ -194,7 +194,7 @@ Rules the reducer enforces:
 
 ## 5. Delivery by a rider
 
-**Actor:** Rider. **Screen:** Rider (dark mode).
+**Actor:** Rider. **Screen:** Rider.
 
 ```mermaid
 flowchart LR
@@ -208,7 +208,7 @@ flowchart LR
     F -->|"disposal"| I["Hand to CBWTF"]
 ```
 
-- **Navigation:** as soon as a rider has a mission, a dark street map shows every stop in order (store or pickup point, then the customer, QA store, NGO or CBWTF plant) as numbered pins, with the rider as a pulsing yellow dot. Below it: the next stop, distance, ETA (at about 25 km/h), a **Call** button (a made-up demo number) and an **Open in Maps** link. After a backhaul pickup is added the route simply grows. The dot glides toward the next stop while the rider is travelling and waits when the rider has arrived.
+- **Navigation:** as soon as a rider has a mission, a street map shows every stop in order (store or pickup point, then the customer, QA store, NGO or CBWTF plant) as numbered pins, with the rider as a pulsing yellow dot. Below it: the next stop, distance, ETA (at about 25 km/h), a **Call** button (a made-up demo number) and an **Open in Maps** link. After a backhaul pickup is added the route simply grows. The dot glides toward the next stop while the rider is travelling and waits when the rider has arrived.
 - **Offline:** if the device loses internet, or street tiles keep failing, the map switches to a plain route diagram with the same stops and ETA, and returns when the connection is back.
 - A rider must be **online** to accept. A rider cannot go offline with an active mission.
 - Only the assigned rider can progress a mission.

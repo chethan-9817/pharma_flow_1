@@ -107,6 +107,7 @@ Full script with timings: [WORKFLOW.md → Demo script](WORKFLOW.md#demo-script)
 
 **Frontend:** React 18 · TypeScript · Vite · Tailwind + shadcn/ui · Zustand · Dexie (IndexedDB) · Zod · React Router
 **Features:** ZXing (barcode) · Tesseract.js (OCR) · Leaflet + OpenStreetMap · jsPDF + QR · Recharts · canvas scratch cards
+**Design:** calm light theme · Inter (Noto for Kannada and Hindi) · tokens in `src/index.css`, mirrored in Figma
 **Sync:** event-sourced core, BroadcastChannel across tabs (demo) or WebSocket (server)
 **Server:** Hono · `node:sqlite` · bcrypt + JWT
 **Other:** PWA (Workbox) · react-i18next (en / kn / hi) · Vitest · Playwright

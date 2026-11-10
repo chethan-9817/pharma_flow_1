@@ -1,11 +1,12 @@
 # PharmaFlow: what is left to do
 
-Last updated: end of the session on 2026-11-08. Roadmap steps 1 to 8 are built and tested: 275 unit tests and 14 browser tests. This file lists what is **not** done, the decisions that were made without you, and what to know before continuing.
+Last updated: 2026-11-10 (light-theme refresh). Roadmap steps 1 to 8 are built and tested: 275 unit tests and 14 browser tests. This file lists what is **not** done, the decisions that were made without you, and what to know before continuing.
 
 ## Done since the last version of this file
 
 - **Sponsor batch for NGO (₹99)** and the **NGO fund** (Phase A of the NGO plan).
 - **Server mode** (`pharmaflow server`), the installable **PWA**, **English / Kannada / Hindi**, and the **Playwright** tests.
+- **Light-theme refresh (2026-11-10).** All four roles and the shared pieces (top bar, sign-in gate, toasts, dialogs) use one calm light design. The rider screen is no longer dark, the chemist banner is a white card, and repeated actions use soft tinted buttons. Tokens and the rules are in ARCHITECTURE.md → Design system. Logic, text and layouts (including the All 4 view) were not changed.
 
 ## Decisions I made without a final answer from you
 
@@ -44,7 +45,15 @@ Still English: the chemist's **Add inventory** card and camera scanner, the cust
 ### 3. Server mode: beyond demo grade
 Not built: registering new accounts, password reset, per-role views of the log (any signed-in user can read every event, including prescriptions), HTTPS (put it behind a proxy), backups of `data/pharmaflow.db`, and the extra projection tables from `scripts/schema.sql` (the server keeps only the `events` table, which is the source of truth).
 
-### 4. Smaller loose ends
+### 4. Figma file: components and "after" screens
+The file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) has the variable collections (`Primitives`, `Color`, `Shape and spacing`), the `Type/*` text styles, the shadow styles and the four "before" captures. The Figma Starter plan's limit on MCP tool calls was reached, so these are **not** in the file yet:
+- Component sets for **Button** (8 styles × 2 sizes), **Badge** (6 tones), **Card** and **Stat**, bound to the variables. An empty page named *Design system - light theme* is waiting for them.
+- "After" captures of the four roles, to sit next to the "before" ones.
+- The Type/Button, Type/Button small and Type/Badge text styles (they were part of the same step).
+
+Run them again once the limit resets or the plan is upgraded. Nothing in the app depends on the Figma file.
+
+### 5. Smaller loose ends
 - The message you started an earlier session with, "and one more thing", was cut off. If there was a further request, say it again.
 - Real GPS is not planned: the rider dot is a simulation.
 - Map tiles use the public OpenStreetMap servers (fine for a demo). A real deployment needs its own tile provider.
@@ -63,6 +72,7 @@ npm run test:e2e:server   # builds and starts the real server, checks logins and
 ```
 Project folder: `C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow` (quote the path, it has parentheses).
 Repo: https://github.com/chethan-9817/pharma_flow_1
+Figma: https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd
 
 ## Rules to keep following
 - **Keep the docs current.** Keep `README.md` a short overview; put feature detail in `ARCHITECTURE.md` and `WORKFLOW.md`, and update them with every feature.
@@ -74,7 +84,9 @@ Repo: https://github.com/chethan-9817/pharma_flow_1
 
 ## Gotchas learned
 - Vite listens on IPv6 only on this machine, so detect the running app with an HTTP check, not `netstat`. The server binds to `localhost` for the same reason.
-- CARTO's dark map tiles now need an API key. The rider map uses free OpenStreetMap tiles darkened with a CSS filter.
+- CARTO's map tiles now need an API key. The rider and order-tracker maps use free OpenStreetMap tiles in their normal colours.
+- Figma capture from a local page: do not `await` `window.figma.captureForDesign(...)` in Playwright, its promise never resolves and the script hangs. Fire it, wait about 15 seconds, then poll `generate_figma_design` with the capture id. Each id is single-use.
+- The Figma MCP on a Starter plan has a call limit. A library build (variables, styles, component sets) plus captures uses a lot of calls, so batch work per call.
 - jsPDF's built-in fonts cannot draw the rupee sign, so PDFs write "Rs.".
 - In headless browser tests only the front tab animates: call `bringToFront()` before clicking in a page.
 - Chrome never offers to install an app in an incognito-like context, which is what Playwright uses, so the PWA test accepts that one reason (`in-incognito`) and nothing else.

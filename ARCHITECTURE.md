@@ -235,12 +235,34 @@ Going back means **Reset demo data**, which clears the log.
 | `ui.tsx` | Button, Card, Badge, Stat primitives with the design tokens |
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
 | `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk (sponsored packs are marked), **Sponsored for NGOs** (what the store is paid and what is on the way) |
-| `roles/rider` | Dark mission radar with large lifecycle buttons, plus the navigation panel and map |
+| `roles/rider` | Mission radar with large lifecycle buttons, plus the navigation panel and map |
 | `roles/admin` | KYC queue, KPI cards, three charts (the money chart has an NGO fund line), the NGO fund card, blood donation confirmations, audit trail |
 
 **Two layouts, one codebase.** `components/layout.ts` exports `useEmbedded()`, which is true for `?embed=1`, the URL each pane of the `/presenter` page loads. A role opened on its own gets the wide **laptop layout** (customer sidebar, rider missions beside a large map). Embedded panes keep the compact **phone-style** layout so four fit side by side. Inside a layout, content adapts to the width it is actually given using Tailwind container queries (`@container`, `@2xl:`, `@3xl:`), so the same Shop, Cart or Civic components are one column in a phone frame and two or three on a laptop.
 
-Styling is Tailwind CSS v4 with design tokens in `src/index.css` (medical blue, emerald, amber, crimson). Framer Motion is used for short, subtle transitions only.
+### Design system
+
+Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a calm **light theme**: a soft gray canvas, white cards with a hairline ring, one brand blue for the main action, and colour only where it carries meaning (expiry buckets, money, hazards). Framer Motion is used for short, subtle transitions only, and `prefers-reduced-motion` is respected.
+
+| Token (CSS variable) | Value | Used for |
+|---|---|---|
+| `--color-canvas` | `#F2F4F7` | Page background |
+| `--color-surface` | `#FFFFFF` | Cards, inputs, the top bar |
+| `--color-line` / `--color-line-strong` | `#EAECF0` / `#D0D5DD` | Card rings, input borders |
+| `--color-ink` | `#101828` | Primary text |
+| `--color-medical` / `-dark` / `-tint` | `#0369A1` / `#075985` / `#F0F9FF` | Brand blue: the main action, active navigation, links |
+| `--color-eco` / `-dark` / `-tint` | `#047857` / `#065F46` / `#ECFDF5` | Safe stock, donations, approvals |
+| `--color-expiry` (`-ink`, `-tint`) | `#D97706` | Lockout and Eco-Sale |
+| `--color-critical-ink` / `-tint` | `#C2410C` / `#FFF7ED` | Critical stock, hazardous waste |
+| `--color-blood` / `-tint` | `#BE123C` / `#FFF1F2` | Expired stock, Rx-only, blood donation |
+
+- **Neutrals.** `--color-slate-50` to `-950` are overridden with a cleaner gray, so every `text-slate-*`, `bg-slate-*` and `ring-slate-*` in the app follows it.
+- **Contrast.** Solid fills (`primary`, `eco`, `danger`) are deep enough for white text at WCAG AA. The earlier sky and emerald fills were not.
+- **One main action per view.** `Button` has solid variants (`primary`, `eco`, `danger`) for that action, and tinted variants (`soft`, `ecoSoft`, `dangerSoft`, `amber`) for repeated or secondary actions, so a list of them stays calm. `ghost` is white with a border.
+- **Stats.** `Stat` shows its meaning with a small coloured dot; the number stays in the ink colour.
+- **No dark surfaces.** There is no dark theme. The rider screen, toasts and dialogs are light too; only the camera preview is dark.
+
+**Figma.** The tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, and captures of the four role screens from before the refresh. The Button, Badge, Card and Stat component sets and "after" captures are not in the file yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.
 
 ## Launcher and the pharmaflow command
 
@@ -278,7 +300,7 @@ Heavy libraries are imported dynamically, so they cost nothing until used:
 | **canvas-confetti** | `src/lib/confetti.ts` | A scratch card is revealed | None. Skipped when the user prefers reduced motion |
 | **Tesseract.js** | `src/lib/ocr.ts` | The customer presses "Read with OCR" | Downloads about 10 MB of English language data on first use, then the browser caches it |
 
-The map darkens OpenStreetMap tiles with a CSS filter (`.pf-dark-tiles`) because CARTO's dark basemap now answers with an "API KEY REQUIRED" watermark, and the project must work with no keys. The rider's moving dot is a local animation (`useRiderPosition`) and is never written to the event log.
+The map uses OpenStreetMap tiles in their normal colours, because CARTO's basemaps now answer with an "API KEY REQUIRED" watermark and the project must work with no keys. The rider's moving dot is a local animation (`useRiderPosition`) and is never written to the event log.
 
 All three fail gracefully: the scanner dialog explains camera problems and offers typing the barcode (or a preset), the map falls back to a route diagram, and the Rx form falls back to typing. Prescription photos are shrunk (`src/lib/image.ts`) before they enter the event log.
 
