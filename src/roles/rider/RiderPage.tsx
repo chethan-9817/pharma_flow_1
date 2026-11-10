@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Leaf, MapPin, Package, Power, Skull, Wallet } from 'lucide-react';
+import { Bike, Leaf, MapPin, Package, Power, Radar, Skull, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTerminal } from '../../domain/machines/pickup';
@@ -15,9 +15,9 @@ import { NavigationPanel } from './NavigationPanel';
 
 /** Each kind of mission has its own tinted icon tile and label; the card itself stays white. */
 const KIND = {
-  DELIVERY: { chip: 'bg-sky-50 text-sky-700 ring-sky-600/15', icon: Package },
-  NGO_PICKUP: { chip: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15', icon: Leaf },
-  BIO_PICKUP: { chip: 'bg-orange-50 text-orange-700 ring-orange-600/15', icon: Skull },
+  DELIVERY: { chip: 'bg-sky-100 text-sky-800 ring-sky-600/20', icon: Package },
+  NGO_PICKUP: { chip: 'bg-emerald-100 text-emerald-800 ring-emerald-600/20', icon: Leaf },
+  BIO_PICKUP: { chip: 'bg-orange-100 text-orange-800 ring-orange-600/20', icon: Skull },
 } as const;
 
 function MissionHeader({ kind, title, where }: { kind: keyof typeof KIND; title: string; where: string }) {
@@ -64,16 +64,21 @@ export function RiderPage({ user }: { user: User }) {
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Compact single column in the "All 4" panes; two columns (missions left, big map right) on a laptop. */}
       <div className={embedded ? 'mx-auto max-w-lg space-y-5 p-4' : 'mx-auto max-w-6xl space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0'}>
-        <header className={`space-y-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200 ${embedded ? '' : 'lg:col-span-2'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500">{t('rider.title')}</p>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-900">{user.name}</h1>
+        <header className={`space-y-4 rounded-2xl bg-sky-100/70 p-4 shadow-card ring-1 ring-sky-200 ${embedded ? '' : 'lg:col-span-2'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-xl bg-medical text-white shadow-card">
+                <Bike className="size-5" />
+              </span>
+              <div>
+                <p className="text-xs text-slate-600">{t('rider.title')}</p>
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900">{user.name}</h1>
+              </div>
             </div>
             <button
               onClick={() => act({ type: 'RIDER_SHIFT_CHANGED', riderId: user.id, online: !profile.online })}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset transition-colors ${
-                profile.online ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100' : 'bg-white text-slate-600 ring-slate-300 hover:bg-slate-50'
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition-colors ${
+                profile.online ? 'bg-eco text-white ring-eco hover:bg-eco-dark' : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50'
               }`}
               aria-pressed={profile.online}
             >
@@ -82,20 +87,20 @@ export function RiderPage({ user }: { user: User }) {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
-              <Wallet className="mx-auto size-4 text-medical" />
-              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.earnings)}</div>
-              <div className="text-[11px] text-slate-500">{t('rider.earnings')}</div>
+            <div className="rounded-xl bg-white p-3 ring-1 ring-inset ring-sky-200">
+              <span aria-hidden className="mx-auto grid size-7 place-items-center rounded-lg bg-sky-600 text-white"><Wallet className="size-4" /></span>
+              <div className="mt-1.5 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.earnings)}</div>
+              <div className="text-[11px] font-medium text-sky-800">{t('rider.earnings')}</div>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
-              <Leaf className="mx-auto size-4 text-eco" />
-              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.incentives)}</div>
-              <div className="text-[11px] text-slate-500">{t('rider.greenBonus')}</div>
+            <div className="rounded-xl bg-white p-3 ring-1 ring-inset ring-emerald-200">
+              <span aria-hidden className="mx-auto grid size-7 place-items-center rounded-lg bg-emerald-600 text-white"><Leaf className="size-4" /></span>
+              <div className="mt-1.5 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.incentives)}</div>
+              <div className="text-[11px] font-medium text-emerald-800">{t('rider.greenBonus')}</div>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
-              <Package className="mx-auto size-4 text-orange-600" />
-              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{profile.trips}</div>
-              <div className="text-[11px] text-slate-500">{t('rider.trips')}</div>
+            <div className="rounded-xl bg-white p-3 ring-1 ring-inset ring-orange-200">
+              <span aria-hidden className="mx-auto grid size-7 place-items-center rounded-lg bg-orange-500 text-white"><Package className="size-4" /></span>
+              <div className="mt-1.5 text-lg font-semibold tabular-nums text-slate-900">{profile.trips}</div>
+              <div className="text-[11px] font-medium text-orange-800">{t('rider.trips')}</div>
             </div>
           </div>
         </header>
@@ -172,7 +177,14 @@ export function RiderPage({ user }: { user: User }) {
 
         <section className="space-y-3">
           <SectionTitle>{t('rider.radar')}</SectionTitle>
-          {open.length === 0 && <Card className="text-center text-sm text-slate-500">{t('rider.nothingNearby')}</Card>}
+          {open.length === 0 && (
+            <Card className="flex flex-col items-center gap-2 py-8 text-center text-sm text-slate-600">
+              <span aria-hidden className="grid size-11 place-items-center rounded-full bg-sky-100 text-medical ring-4 ring-sky-50">
+                <Radar className="size-5" />
+              </span>
+              {t('rider.nothingNearby')}
+            </Card>
+          )}
           {open.map((m) => {
             const id = m.kind === 'DELIVERY' ? m.order.id : m.pickup.id;
             const title = m.kind === 'DELIVERY' ? orderLabel(m.order) : itemsLabel(m.pickup);
