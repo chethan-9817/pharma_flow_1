@@ -4,22 +4,31 @@ import type { ExpiryBucket } from '../domain/rules/expiry';
 
 const cx = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(' ');
 
-type Variant = 'primary' | 'eco' | 'danger' | 'ghost' | 'dark' | 'amber';
+/**
+ * solid: primary, eco, danger (one main action per view).
+ * soft: tinted versions for repeated or secondary actions, so a list of them stays calm.
+ * ghost: white with a hairline border.
+ * `dark` is kept only until the rider screen moves to the light theme.
+ */
+type Variant = 'primary' | 'soft' | 'eco' | 'ecoSoft' | 'danger' | 'dangerSoft' | 'amber' | 'ghost' | 'dark';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-medical text-white shadow-sm hover:bg-medical-dark focus-visible:ring-medical/40',
-  eco: 'bg-eco text-white shadow-sm hover:bg-eco-dark focus-visible:ring-eco/40',
-  danger: 'bg-blood text-white shadow-sm hover:bg-rose-700 focus-visible:ring-blood/40',
-  amber: 'bg-expiry text-slate-900 shadow-sm hover:bg-amber-400 focus-visible:ring-expiry/40',
-  ghost: 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:ring-slate-300',
+  primary: 'bg-medical text-white hover:bg-medical-dark focus-visible:ring-medical/30',
+  soft: 'bg-medical-tint text-medical-dark ring-1 ring-inset ring-medical-ring/70 hover:bg-sky-100 focus-visible:ring-medical/30',
+  eco: 'bg-eco text-white hover:bg-eco-dark focus-visible:ring-eco/30',
+  ecoSoft: 'bg-eco-tint text-eco-dark ring-1 ring-inset ring-emerald-200/80 hover:bg-emerald-100 focus-visible:ring-eco/30',
+  danger: 'bg-blood text-white hover:bg-rose-800 focus-visible:ring-blood/30',
+  dangerSoft: 'bg-blood-tint text-blood ring-1 ring-inset ring-rose-200/80 hover:bg-rose-100 focus-visible:ring-blood/30',
+  amber: 'bg-expiry-tint text-expiry-ink ring-1 ring-inset ring-amber-200/80 hover:bg-amber-100 focus-visible:ring-expiry/30',
+  ghost: 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus-visible:ring-slate-300/60',
   dark: 'bg-slate-800 text-white ring-1 ring-slate-700 hover:bg-slate-700 focus-visible:ring-slate-500',
 };
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-8 px-3 text-xs rounded-lg gap-1.5',
+  sm: 'h-8 px-3 text-[13px] rounded-lg gap-1.5',
   md: 'h-10 px-4 text-sm rounded-xl gap-2',
-  lg: 'h-14 px-6 text-base rounded-2xl gap-2.5',
+  lg: 'h-12 px-5 text-[15px] rounded-xl gap-2.5',
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -44,22 +53,32 @@ export function Button({ variant = 'primary', size = 'md', block, className, ...
 }
 
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cx('rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70', className)} />;
+  return <div {...rest} className={cx('rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200', className)} />;
 }
 
 type Tone = 'slate' | 'blue' | 'green' | 'amber' | 'red' | 'orange';
 const TONES: Record<Tone, string> = {
-  slate: 'bg-slate-100 text-slate-700',
-  blue: 'bg-sky-50 text-sky-700',
-  green: 'bg-emerald-50 text-emerald-700',
-  amber: 'bg-amber-50 text-amber-700',
-  orange: 'bg-orange-50 text-orange-700',
-  red: 'bg-rose-50 text-rose-700',
+  slate: 'bg-slate-100 text-slate-700 ring-slate-300/60',
+  blue: 'bg-sky-50 text-sky-800 ring-sky-600/15',
+  green: 'bg-emerald-50 text-emerald-800 ring-emerald-600/15',
+  amber: 'bg-amber-50 text-amber-800 ring-amber-600/20',
+  orange: 'bg-orange-50 text-orange-700 ring-orange-600/15',
+  red: 'bg-rose-50 text-rose-700 ring-rose-600/15',
+};
+
+/** The small coloured dot that marks a stat's meaning (expiry bucket, money, hazard). */
+const DOTS: Record<Tone, string> = {
+  slate: 'bg-slate-400',
+  blue: 'bg-sky-600',
+  green: 'bg-emerald-600',
+  amber: 'bg-amber-500',
+  orange: 'bg-orange-500',
+  red: 'bg-rose-600',
 };
 
 export function Badge({ tone = 'slate', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
   return (
-    <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold', TONES[tone], className)}>
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset', TONES[tone], className)}>
       {children}
     </span>
   );
@@ -78,11 +97,15 @@ export function BucketBadge({ bucket }: { bucket: ExpiryBucket }) {
   return <Badge tone={BUCKET_TONE[bucket]}>{label(bucket)}</Badge>;
 }
 
+/** A number with a quiet label. The colour sits in a small dot, not in the number. */
 export function Stat({ label, value, hint, tone = 'slate' }: { label: string; value: ReactNode; hint?: string; tone?: Tone }) {
   return (
-    <Card className="flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
-      <span className={cx('text-2xl font-bold tabular-nums', tone === 'slate' ? 'text-slate-900' : TONES[tone].split(' ')[1])}>{value}</span>
+    <Card className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-2 text-[13px] font-medium text-slate-500">
+        {tone !== 'slate' && <span aria-hidden className={cx('size-2 shrink-0 rounded-full', DOTS[tone])} />}
+        {label}
+      </span>
+      <span className="text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{value}</span>
       {hint && <span className="text-xs text-slate-500">{hint}</span>}
     </Card>
   );
@@ -90,8 +113,8 @@ export function Stat({ label, value, hint, tone = 'slate' }: { label: string; va
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{children}</h2>
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h2 className="text-sm font-semibold text-slate-700">{children}</h2>
       {action}
     </div>
   );

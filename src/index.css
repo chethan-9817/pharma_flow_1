@@ -3,13 +3,49 @@
 @theme {
   /* Inter has no Kannada or Devanagari glyphs, so those scripts fall back to Noto, then to the system's own font. */
   --font-sans: "Inter", "Noto Sans Kannada", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
-  --color-medical: #0284c7;
-  --color-medical-dark: #0369a1;
-  --color-eco: #10b981;
-  --color-eco-dark: #059669;
-  --color-expiry: #f59e0b;
-  --color-blood: #e11d48;
-  --color-canvas: #f8fafc;
+
+  /*
+   * Neutral scale. A clean cool gray that replaces Tailwind's bluish "slate" everywhere,
+   * so every text-slate-*, bg-slate-* and ring-slate-* in the app picks it up.
+   */
+  --color-slate-50: #f9fafb;
+  --color-slate-100: #f2f4f7;
+  --color-slate-200: #eaecf0;
+  --color-slate-300: #d0d5dd;
+  --color-slate-400: #98a2b3;
+  --color-slate-500: #667085;
+  --color-slate-600: #475467;
+  --color-slate-700: #344054;
+  --color-slate-800: #1d2939;
+  --color-slate-900: #101828;
+  --color-slate-950: #0c111d;
+
+  /* Brand blue and the colours that carry meaning. Solid fills are deep enough for white text (WCAG AA). */
+  --color-medical: #0369a1;
+  --color-medical-dark: #075985;
+  --color-medical-tint: #f0f9ff;
+  --color-medical-ring: #bae6fd;
+  --color-eco: #047857;
+  --color-eco-dark: #065f46;
+  --color-eco-tint: #ecfdf5;
+  --color-expiry: #d97706;
+  --color-expiry-ink: #92400e;
+  --color-expiry-tint: #fffbeb;
+  --color-critical-ink: #c2410c;
+  --color-critical-tint: #fff7ed;
+  --color-blood: #be123c;
+  --color-blood-tint: #fff1f2;
+
+  /* Surfaces and text. The canvas is a soft gray so white cards read without heavy shadows. */
+  --color-canvas: #f2f4f7;
+  --color-surface: #ffffff;
+  --color-subtle: #f9fafb;
+  --color-line: #eaecf0;
+  --color-line-strong: #d0d5dd;
+  --color-ink: #101828;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
   --animate-fade-up: fade-up 0.35s ease-out both;
 }
 
@@ -22,13 +58,28 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--color-canvas);
-  color: #0f172a;
+  color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-button { cursor: pointer; transition: all 0.15s ease; }
-button:active:not(:disabled) { transform: scale(0.97); }
+::selection { background: var(--color-medical-ring); color: var(--color-medical-dark); }
+:focus-visible { outline: 2px solid var(--color-medical); outline-offset: 2px; }
+button {
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+button:active:not(:disabled) { transform: scale(0.98); }
 button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Rider map markers (Leaflet divIcons) */
 .leaflet-container { font-family: var(--font-sans); }
