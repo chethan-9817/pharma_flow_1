@@ -30,14 +30,14 @@ function Stats({ user }: { user: User }) {
   const app = useApp();
   return (
     <div className="grid grid-cols-2 gap-2">
-      <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
-        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-slate-500">
+      <div className="rounded-xl bg-white p-3 ring-1 ring-inset ring-emerald-200">
+        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-emerald-800">
           <Leaf className="size-3.5 text-eco" /> {t('customer.ecoKarma')}
         </div>
         <div className="mt-0.5 text-xl font-semibold tabular-nums text-slate-900">{app.karma[user.id] ?? 0}</div>
       </div>
-      <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
-        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-slate-500">
+      <div className="rounded-xl bg-white p-3 ring-1 ring-inset ring-sky-200">
+        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-sky-800">
           <Wallet className="size-3.5 text-medical" /> {t('customer.medWallet')}
         </div>
         <div className="mt-0.5 text-xl font-semibold tabular-nums text-slate-900">{inr(app.wallet[user.id] ?? 0)}</div>
@@ -75,7 +75,7 @@ export function CustomerPage({ user }: { user: User }) {
   if (embedded) {
     return (
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col bg-canvas sm:my-4 sm:h-[820px] sm:min-h-0 sm:overflow-hidden sm:rounded-[2rem] sm:shadow-pop sm:ring-8 sm:ring-slate-300/70">
-        <header className="border-b border-slate-200 bg-white px-5 pb-4 pt-6">
+        <header className="border-b border-sky-200 bg-sky-100/70 px-5 pb-4 pt-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">{t('customer.hello')}</p>
@@ -119,13 +119,13 @@ export function CustomerPage({ user }: { user: User }) {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 sm:p-6 lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200">
+        <div className="rounded-2xl bg-sky-100/70 p-4 shadow-card ring-1 ring-sky-200">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">{t('customer.hello')}</p>
+              <p className="text-sm text-slate-600">{t('customer.hello')}</p>
               <h1 className="text-lg font-semibold tracking-tight text-slate-900">{user.name}</h1>
             </div>
-            <span className="grid size-10 place-items-center rounded-xl bg-medical-tint text-medical ring-1 ring-inset ring-medical-ring/70">
+            <span className="grid size-10 place-items-center rounded-xl bg-medical text-white shadow-card">
               <ShoppingBag className="size-5" />
             </span>
           </div>
@@ -142,13 +142,13 @@ export function CustomerPage({ user }: { user: User }) {
                 onClick={() => setTab(id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors lg:w-full ${
-                  active ? 'bg-medical-tint text-medical-dark' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  active ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-sky-50 hover:text-medical-dark'
                 }`}
               >
-                <Icon className={`size-5 ${active ? 'text-medical' : 'text-slate-400'}`} />
+                <Icon className={`size-5 ${active ? 'text-white' : 'text-sky-600/70'}`} />
                 <span className="flex-1 text-left">{t(label)}</span>
                 {count > 0 && (
-                  <span className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold ${active ? 'bg-medical text-white' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
+                  <span className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold ${active ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'}`}>{count}</span>
                 )}
               </button>
             );

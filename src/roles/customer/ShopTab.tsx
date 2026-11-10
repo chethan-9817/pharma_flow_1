@@ -28,12 +28,12 @@ export function ShopTab({ user }: { user: User }) {
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-medical" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('customer.shop.search')}
-          className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
+          className="h-11 w-full rounded-xl border border-sky-200 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
         />
       </div>
       {store && <p className="text-xs text-slate-500">{t('customer.shop.deliveringFrom')} <b className="font-medium text-slate-700">{store.name}</b>, {store.area}</p>}
@@ -56,12 +56,12 @@ export function ShopTab({ user }: { user: User }) {
                 </div>
 
                 {offer && (
-                  <div className="flex gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600 ring-1 ring-inset ring-slate-100">
+                  <div className="flex gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs leading-relaxed text-slate-700 ring-1 ring-inset ring-emerald-200/80">
                     <Leaf className="mt-0.5 size-3.5 shrink-0 text-eco" />
                     <p>
-                      <span className="font-medium text-slate-800">{t('customer.shop.cheaperGeneric')}</span> {offer.name}, {inr(offer.price)}.{' '}
-                      <span className="font-medium text-eco-dark">{t('customer.shop.save', { amount: inr(offer.saving), pct: offer.savingPct })}</span>
-                      <span className="block text-slate-500">{offer.label} · {t('customer.shop.askJanAushadhi')}</span>
+                      <span className="font-semibold text-emerald-900">{t('customer.shop.cheaperGeneric')}</span> {offer.name}, {inr(offer.price)}.{' '}
+                      <span className="font-semibold text-eco-dark">{t('customer.shop.save', { amount: inr(offer.saving), pct: offer.savingPct })}</span>
+                      <span className="block text-slate-600">{offer.label} · {t('customer.shop.askJanAushadhi')}</span>
                     </p>
                   </div>
                 )}
