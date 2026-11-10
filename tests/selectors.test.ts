@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { backhaulSuggestions, bucketCounts, courseReminders, distanceKm, ecoListings, kpis, openMissions, storeInventory, storeWriteOffs } from '../src/domain/selectors';
+import { backhaulSuggestions, bucketCounts, courseReminders, distanceKm, ecoListings, expiryAlerts, kpis, openMissions, storeInventory, storeWriteOffs } from '../src/domain/selectors';
 import { ADMIN, CHEMIST, CUSTOMER, RIDER, STORE, Sim } from './helpers';
 
 describe('selectors', () => {
@@ -8,6 +8,23 @@ describe('selectors', () => {
     const counts = bucketCounts(storeInventory(sim.state, STORE));
     expect(counts).toEqual({ SAFE: 4, LOCKOUT: 6, CRITICAL: 1, EXPIRED: 1 });
     expect(storeInventory(sim.state, STORE)[0]!.bucket).toBe('EXPIRED');
+  });
+
+  it('alerts the chemist to full-price batches within 6 months of expiry, with the Eco-Sale split', () => {
+    const sim = new Sim();
+    const alerts = expiryAlerts(sim.state, STORE);
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts.every((a) => a.daysLeft > 0 && a.daysLeft <= 180 && a.batch.status === 'IN_STOCK')).toBe(true);
+    // Fresh stock is not on the list, and neither is the expired Becosules batch.
+    expect(alerts.map((a) => a.batch.id)).not.toContain('b-dolo-1');
+    expect(alerts.map((a) => a.batch.id)).not.toContain('b-becosules-1');
+    // Augmentin (₹204, 143 days left): 15% off, ₹173.40 paid, ₹20.40 to PharmaFlow, ₹153 to the store.
+    expect(alerts.find((a) => a.batch.id === 'b-augmentin-1')).toMatchObject({ discountPct: 15, split: { price: 173.4, commission: 20.4, storeGets: 153 } });
+    // Limcee (22 days) is too close to expiry to sell for a 15-day course, so it is flagged, not offered.
+    expect(alerts.find((a) => a.batch.id === 'b-limcee-1')?.blocked).toMatch(/at least 30 days/);
+    // Once on Eco-Sale, a batch leaves the alert list.
+    sim.must(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-augmentin-1', discountPct: 15 });
+    expect(expiryAlerts(sim.state, STORE).map((a) => a.batch.id)).not.toContain('b-augmentin-1');
   });
 
   it('lists Eco-Sale batches with price and the longest course that fits', () => {
