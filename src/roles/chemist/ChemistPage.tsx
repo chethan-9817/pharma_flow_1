@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { FileCheck, Gift, PackageCheck, PackagePlus, ShieldCheck, Store, Tag, Trash2 } from 'lucide-react';
+import { FileCheck, Gift, Hourglass, PackageCheck, PackagePlus, ShieldCheck, Skull, Store, Tag, Trash2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
 import type { User } from '../../domain/types';
-import { Badge, BucketBadge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
+import { Badge, BucketBadge, Button, Card, PageHero, SectionTitle, Stat, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
@@ -76,32 +76,29 @@ export function ChemistPage({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-slate-200">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-medical-tint text-medical ring-1 ring-inset ring-medical-ring/70">
-              <Store className="size-6" />
-            </span>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight text-slate-900">{store.name}</h1>
-              <p className="text-sm text-slate-500">{store.area} · {t('chemist.licence')} {store.drugLicence}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? t('chemist.kycApproved') : t('chemist.awaitingKyc')}</Badge>
-            <Button onClick={() => openAddInventory()}>
-              <PackagePlus className="size-4" /> {t('chemist.addInventory')}
-            </Button>
-          </div>
-        </div>
-        <p className="mt-4 border-t border-slate-100 pt-3 text-sm text-slate-600">{t('chemist.tagline')}</p>
-      </motion.section>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+        <PageHero
+          icon={Store}
+          title={store.name}
+          subtitle={`${store.area} · ${t('chemist.licence')} ${store.drugLicence}`}
+          aside={
+            <>
+              <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? t('chemist.kycApproved') : t('chemist.awaitingKyc')}</Badge>
+              <Button onClick={() => openAddInventory()}>
+                <PackagePlus className="size-4" /> {t('chemist.addInventory')}
+              </Button>
+            </>
+          }
+        >
+          <p className="mt-4 border-t border-sky-200 pt-3 text-sm text-slate-700">{t('chemist.tagline')}</p>
+        </PageHero>
+      </motion.div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label={t('chemist.safe')} value={counts.SAFE} hint={t('chemist.days180')} tone="green" />
-        <Stat label={t('chemist.lockout')} value={counts.LOCKOUT} hint={t('chemist.days30to180')} tone="amber" />
-        <Stat label={t('chemist.critical')} value={counts.CRITICAL} hint={t('chemist.days1to29')} tone="orange" />
-        <Stat label={t('chemist.expired')} value={counts.EXPIRED} hint={t('chemist.bioHazard')} tone="red" />
+        <Stat label={t('chemist.safe')} value={counts.SAFE} hint={t('chemist.days180')} tone="green" icon={ShieldCheck} />
+        <Stat label={t('chemist.lockout')} value={counts.LOCKOUT} hint={t('chemist.days30to180')} tone="amber" icon={Hourglass} />
+        <Stat label={t('chemist.critical')} value={counts.CRITICAL} hint={t('chemist.days1to29')} tone="orange" icon={TriangleAlert} />
+        <Stat label={t('chemist.expired')} value={counts.EXPIRED} hint={t('chemist.bioHazard')} tone="red" icon={Skull} />
       </div>
 
       <AddInventory user={user} mode={addMode} onModeChange={setAddMode} />
@@ -198,7 +195,7 @@ export function ChemistPage({ user }: { user: User }) {
         </SectionTitle>
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
+            <thead className="border-b border-sky-200 bg-sky-50 text-xs font-semibold text-sky-900">
               <tr>
                 <th className="px-4 py-3">{t('chemist.col.medicine')}</th>
                 <th className="px-4 py-3">{t('chemist.col.batch')}</th>
@@ -210,7 +207,7 @@ export function ChemistPage({ user }: { user: User }) {
             </thead>
             <tbody>
               {inventory.map((v) => (
-                <tr key={v.batch.id} className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50/60">
+                <tr key={v.batch.id} className="border-b border-slate-100 transition-colors last:border-0 hover:bg-sky-50/60">
                   <td className="px-4 py-3">
                     <div className="font-semibold text-slate-900">{v.medicine.brand}</div>
                     <div className="text-xs text-slate-500">{v.medicine.schedule === 'OTC' ? t('chemist.otcLabel') : t('chemist.scheduleLabel', { schedule: v.medicine.schedule })}</div>

@@ -1,4 +1,4 @@
-import { HeartHandshake } from 'lucide-react';
+import { Coins, HeartHandshake, Truck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { storeSponsorships } from '../../domain/selectors';
 import type { SponsorshipStatus, User } from '../../domain/types';
@@ -20,9 +20,9 @@ export function SponsoredSection({ user }: { user: User }) {
     <section className="@container space-y-3">
       <SectionTitle>{t('chemist.sponsored.title')}</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
-        <Stat label={t('chemist.sponsored.packs')} value={totals.packsDelivered} hint={t('chemist.sponsored.delivered')} tone="green" />
-        <Stat label={t('chemist.sponsored.paid')} value={inr(totals.paidOut)} hint={t('chemist.sponsored.atEco')} tone="blue" />
-        <Stat label={t('chemist.sponsored.onTheWay')} value={inr(totals.pending)} hint={t('chemist.sponsored.paidOnDelivery')} tone="amber" />
+        <Stat label={t('chemist.sponsored.packs')} value={totals.packsDelivered} hint={t('chemist.sponsored.delivered')} tone="green" icon={HeartHandshake} />
+        <Stat label={t('chemist.sponsored.paid')} value={inr(totals.paidOut)} hint={t('chemist.sponsored.atEco')} tone="blue" icon={Coins} />
+        <Stat label={t('chemist.sponsored.onTheWay')} value={inr(totals.pending)} hint={t('chemist.sponsored.paidOnDelivery')} tone="amber" icon={Truck} />
       </div>
       <div className="grid gap-3 @3xl:grid-cols-2">
         {totals.items.length === 0 && <Card className="text-sm text-slate-500 @3xl:col-span-2">{t('chemist.sponsored.empty')}</Card>}
