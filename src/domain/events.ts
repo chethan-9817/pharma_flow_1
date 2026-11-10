@@ -57,6 +57,9 @@ export type DomainEventPayload =
   | { type: 'BULK_AWARDED'; tenderId: string; quoteId: string }
   | { type: 'BULK_DELIVERED'; tenderId: string; batchNo: string; expiry: IsoDate }
   | { type: 'BULK_CANCELLED'; tenderId: string }
+  // Payments: PharmaFlow pays the dealer for the whole order, then each store pays PharmaFlow its share
+  | { type: 'BULK_DEALER_PAID'; tenderId: string }
+  | { type: 'BULK_STORE_PAID'; tenderId: string; storeId: string }
   // Rewards
   | { type: 'SCRATCH_CARD_REVEALED'; cardId: string }
   // Blood

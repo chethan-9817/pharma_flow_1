@@ -1,10 +1,10 @@
-import { Bot, Boxes, CircleSlash, Megaphone, PiggyBank, Star, Trophy, Truck } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Banknote, Bot, Boxes, CircleSlash, Hourglass, Megaphone, PiggyBank, Star, Trophy, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { allTenders, bulkSummary, type TenderView } from '../../domain/bulk';
 import { MIN_POOL_STORES, defaultTargetPrice, usualTradePrice } from '../../domain/rules/bulk';
 import type { User } from '../../domain/types';
-import { Field, INPUT, Rounds, TenderCard } from '../../components/bulk';
+import { Field, INPUT, PaymentTrail, Rounds, TenderCard } from '../../components/bulk';
 import { Badge, Button, Card, SectionTitle, Stat, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { dispatch, useApp } from '../../store';
@@ -25,6 +25,11 @@ export function BulkPanel({ user }: { user: User }) {
         <Stat label={t('bulk.admin.stats.open')} value={summary.open} tone="blue" icon={Boxes} />
         <Stat label={t('bulk.admin.stats.delivered')} value={summary.delivered} hint={t('bulk.packs', { n: summary.packsDelivered })} tone="green" icon={Truck} />
         <Stat label={t('bulk.admin.stats.savings')} value={inr(summary.savings)} tone="amber" icon={PiggyBank} />
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Stat label={t('bulk.pay.stats.paidDealers')} value={inr(summary.paidToDealers)} hint={t('bulk.pay.stats.owedDealers', { amount: inr(summary.owedToDealers) })} tone="slate" icon={ArrowUpRight} />
+        <Stat label={t('bulk.pay.stats.received')} value={inr(summary.receivedFromStores)} tone="green" icon={ArrowDownLeft} />
+        <Stat label={t('bulk.pay.stats.owedStores')} value={inr(summary.owedByStores)} tone="orange" icon={Hourglass} />
       </div>
 
       <section>
@@ -169,7 +174,27 @@ function AdminActions({ view, user }: { view: TenderView; user: User }) {
     return <p className="border-t border-slate-100 pt-3 text-xs text-slate-500">{t('bulk.admin.awaitingDelivery', { dealer: view.awardedDealer?.name })}</p>;
   }
   if (tender.status === 'DELIVERED' && tender.deliveredAt) {
-    return <p className="border-t border-slate-100 pt-3 text-xs font-medium text-eco-dark">{t('bulk.deliveredOn', { date: tender.deliveredAt })}</p>;
+    return (
+      <div className="space-y-3 border-t border-slate-100 pt-3">
+        <p className="text-xs font-medium text-eco-dark">{t('bulk.deliveredOn', { date: tender.deliveredAt })}</p>
+        <PaymentTrail
+          view={view}
+          action={
+            !view.dealerPaid && (
+              <Button
+                size="sm"
+                variant="eco"
+                onClick={async () =>
+                  report(await dispatch(user.id, { type: 'BULK_DEALER_PAID', tenderId: tender.id }), t('bulk.pay.dealerPaidToast', { amount: inr(view.finalCost ?? 0), dealer: view.awardedDealer?.name }))
+                }
+              >
+                <Banknote className="size-4" /> {t('bulk.pay.payDealer', { amount: inr(view.finalCost ?? 0) })}
+              </Button>
+            )
+          }
+        />
+      </div>
+    );
   }
   return null;
 }

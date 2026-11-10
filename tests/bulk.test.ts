@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from '../src/domain/clock';
-import { bulkBatchId, bulkSummary, tenderView } from '../src/domain/bulk';
+import { bulkBatchId, bulkSummary, storeShare, tenderView } from '../src/domain/bulk';
 import { networkSummary, storeRows } from '../src/domain/network';
 import { defaultTargetPrice, effectivePrice, negotiate, usualTradePrice } from '../src/domain/rules/bulk';
 import { ADMIN, CHEMIST, CUSTOMER, STORE, Sim } from './helpers';
@@ -208,7 +208,54 @@ describe('delivery', () => {
     for (const [store, qty] of [[STORE, 150], [SURATHKAL.store, 200], [ULLAL.store, 100]] as const) {
       expect(sim.state.batches[bulkBatchId(T, store)]).toMatchObject({ storeId: store, medicineId: SYRINGE, qty, status: 'IN_STOCK', batchNo: 'DV30A01' });
     }
-    expect(bulkSummary(sim.state)).toEqual({ open: 0, delivered: 1, packsDelivered: 450, savings: 450 * (48 - 42) });
+    expect(bulkSummary(sim.state)).toMatchObject({ open: 0, delivered: 1, packsDelivered: 450, savings: 450 * (48 - 42) });
+  });
+});
+
+describe('payments: PharmaFlow pays the dealer, the stores pay PharmaFlow', () => {
+  function delivered(): Sim {
+    const sim = pooled();
+    sim.must(COASTAL.user, quote(COASTAL, 50, 42, 2));
+    sim.must(ADMIN, { type: 'BULK_NEGOTIATED', tenderId: T });
+    sim.must(ADMIN, { type: 'BULK_AWARDED', tenderId: T, quoteId: 'q-dealer-coastal' });
+    return sim;
+  }
+  const deliver = (sim: Sim) => sim.must(COASTAL.user, { type: 'BULK_DELIVERED', tenderId: T, batchNo: 'DV30A01', expiry: addDays(sim.state.today, 700) });
+
+  it('pays nobody before delivery', () => {
+    const sim = delivered();
+    expect(sim.mustFail(ADMIN, { type: 'BULK_DEALER_PAID', tenderId: T })).toMatch(/after the order is delivered/);
+    expect(sim.mustFail(CHEMIST, { type: 'BULK_STORE_PAID', tenderId: T, storeId: STORE })).toMatch(/once the stock is delivered/);
+  });
+
+  it('lets only the admin pay the dealer, once, for the whole order', () => {
+    const sim = delivered();
+    deliver(sim);
+    expect(bulkSummary(sim.state)).toMatchObject({ paidToDealers: 0, owedToDealers: 450 * 42 });
+    expect(sim.mustFail(CHEMIST, { type: 'BULK_DEALER_PAID', tenderId: T })).toMatch(/Only a admin/);
+    expect(sim.mustFail(COASTAL.user, { type: 'BULK_DEALER_PAID', tenderId: T })).toMatch(/Only a admin/);
+    sim.must(ADMIN, { type: 'BULK_DEALER_PAID', tenderId: T });
+    expect(sim.mustFail(ADMIN, { type: 'BULK_DEALER_PAID', tenderId: T })).toMatch(/already been paid/);
+    expect(tenderView(sim.state, sim.state.bulkTenders[T]!).dealerPaid).toBe(true);
+    expect(bulkSummary(sim.state)).toMatchObject({ paidToDealers: 450 * 42, owedToDealers: 0 });
+  });
+
+  it('collects each store’s share at the agreed price, only from that store, once', () => {
+    const sim = delivered();
+    deliver(sim);
+    const tender = () => sim.state.bulkTenders[T]!;
+    expect(storeShare(tender(), STORE)).toBe(150 * 42);
+    expect(bulkSummary(sim.state)).toMatchObject({ receivedFromStores: 0, owedByStores: 450 * 42 });
+    expect(sim.mustFail(SURATHKAL.user, { type: 'BULK_STORE_PAID', tenderId: T, storeId: STORE })).toMatch(/different store/);
+    expect(sim.mustFail('u-chemist-jeppu', { type: 'BULK_STORE_PAID', tenderId: T, storeId: 'store-jeppu' })).toMatch(/not part of this bulk order/);
+    sim.must(CHEMIST, { type: 'BULK_STORE_PAID', tenderId: T, storeId: STORE });
+    expect(sim.mustFail(CHEMIST, { type: 'BULK_STORE_PAID', tenderId: T, storeId: STORE })).toMatch(/already paid/);
+    const view = tenderView(sim.state, tender());
+    expect(view.stores.find((x) => x.store.id === STORE)).toMatchObject({ amount: 150 * 42, paid: true });
+    expect(view).toMatchObject({ collected: 150 * 42, outstanding: 300 * 42 });
+    sim.must(SURATHKAL.user, { type: 'BULK_STORE_PAID', tenderId: T, storeId: SURATHKAL.store });
+    sim.must(ULLAL.user, { type: 'BULK_STORE_PAID', tenderId: T, storeId: ULLAL.store });
+    expect(bulkSummary(sim.state)).toMatchObject({ receivedFromStores: 450 * 42, owedByStores: 0 });
   });
 });
 

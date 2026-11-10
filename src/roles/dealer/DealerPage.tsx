@@ -138,6 +138,11 @@ function DealerActions({ view, user, dealerId }: { view: TenderView; user: User;
         </>
       )}
       {tender.status === 'DELIVERED' && <p className="text-xs font-medium text-eco-dark">{iWon ? t('dealer.deliveredDone') : t('dealer.lost')}</p>}
+      {tender.status === 'DELIVERED' && iWon && (
+        <p className={`rounded-xl px-3 py-2 text-sm font-semibold ${view.dealerPaid ? 'bg-eco-tint/60 text-eco-dark' : 'bg-expiry-tint text-expiry-ink'}`}>
+          {view.dealerPaid ? t('dealer.paid', { amount: inr(view.finalCost ?? 0) }) : t('dealer.awaitingPayment', { amount: inr(view.finalCost ?? 0) })}
+        </p>
+      )}
     </div>
   );
 }

@@ -560,7 +560,23 @@
       }
     },
     "poolLine_one": "{{qty}} packs from {{count}} store",
-    "poolLine_other": "{{qty}} packs from {{count}} stores"
+    "poolLine_other": "{{qty}} packs from {{count}} stores",
+    "pay": {
+      "paid": "Paid",
+      "due": "Due",
+      "received": "Received from stores {{collected}} · still owed {{outstanding}}",
+      "payDealer": "Pay dealer {{amount}}",
+      "dealerPaidToast": "Paid {{amount}} to {{dealer}}",
+      "payShare": "Pay PharmaFlow {{amount}}",
+      "storePaid": "Your share is paid",
+      "storePaidToast": "Payment sent to PharmaFlow",
+      "stats": {
+        "paidDealers": "Paid to dealers",
+        "owedDealers": "Still to pay: {{amount}}",
+        "received": "Received from stores",
+        "owedStores": "Still owed by stores"
+      }
+    }
   },
   "dealer": {
     "subtitle": "{{area}} · Wholesale licence {{licence}}",
@@ -589,7 +605,9 @@
     "expiry": "Expiry date",
     "deliver": "Mark as delivered",
     "deliveredToast": "Delivered to {{stores}} stores",
-    "deliveredDone": "Delivered. Every store has its share."
+    "deliveredDone": "Delivered. Every store has its share.",
+    "paid": "PharmaFlow has paid you {{amount}}.",
+    "awaitingPayment": "Waiting for PharmaFlow to pay {{amount}}."
   },
   "network": {
     "stores": "Medical stores",

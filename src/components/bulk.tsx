@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleSlash, Store as StoreIcon } from 'lucide-react';
+import { ArrowRight, CheckCircle2, CircleSlash, Clock, Store as StoreIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BulkNegotiation, TenderStatus, TenderView } from '../domain/bulk';
@@ -93,6 +93,48 @@ export function Rounds({ result }: { result: BulkNegotiation }) {
         {result.agreed ? <CheckCircle2 className="size-3.5" /> : <CircleSlash className="size-3.5" />}
         {result.agreed ? t('bulk.agreedAt', { price: inr(result.finalPrice) }) : t('bulk.noDeal', { price: inr(result.finalPrice) })}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Where the money goes once an order is delivered: PharmaFlow pays the dealer for the whole order,
+ * then each store pays PharmaFlow its own share.
+ */
+export function PaymentTrail({ view, action }: { view: TenderView; action?: ReactNode }) {
+  const { t } = useTranslation();
+  const Paid = ({ paid }: { paid: boolean }) =>
+    paid ? (
+      <Badge tone="green"><CheckCircle2 className="size-3" /> {t('bulk.pay.paid')}</Badge>
+    ) : (
+      <Badge tone="amber"><Clock className="size-3" /> {t('bulk.pay.due')}</Badge>
+    );
+  return (
+    <div className="space-y-3 rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
+          PharmaFlow <ArrowRight className="size-3.5 text-slate-400" /> {view.awardedDealer?.name}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold tabular-nums text-slate-900">{inr(view.finalCost ?? 0)}</span>
+          <Paid paid={view.dealerPaid} />
+        </div>
+      </div>
+      {action}
+      <ul className="space-y-1.5 border-t border-slate-200 pt-3">
+        {view.stores.map((s) => (
+          <li key={s.store.id} className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 text-slate-700">
+              {s.store.name} <ArrowRight className="size-3 text-slate-400" /> PharmaFlow
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="font-medium tabular-nums text-slate-900">{inr(s.amount ?? 0)}</span>
+              <Paid paid={s.paid} />
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-slate-500">{t('bulk.pay.received', { collected: inr(view.collected), outstanding: inr(view.outstanding) })}</p>
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { Boxes, Users } from 'lucide-react';
+import { Banknote, Boxes, CheckCircle2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { collectingTender, storeTenders, tenderQty } from '../../domain/bulk';
+import { collectingTender, storeShare, storeTenders, tenderQty } from '../../domain/bulk';
 import type { User } from '../../domain/types';
 import { Field, INPUT, TenderCard } from '../../components/bulk';
-import { Button, Card, SectionTitle, inr } from '../../components/ui';
+import { Badge, Button, Card, SectionTitle, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
@@ -80,6 +80,19 @@ export function BulkSection({ user }: { user: User }) {
                 )}
               </div>
               <p className="text-xs text-slate-500">{t(`bulk.chemist.next.${view.tender.status}`)}</p>
+              {view.tender.status === 'DELIVERED' &&
+                (view.stores.find((x) => x.store.id === storeId)?.paid ? (
+                  <Badge tone="green"><CheckCircle2 className="size-3" /> {t('bulk.pay.storePaid')}</Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={async () =>
+                      report(await dispatch(user.id, { type: 'BULK_STORE_PAID', tenderId: view.tender.id, storeId }), t('bulk.pay.storePaidToast'))
+                    }
+                  >
+                    <Banknote className="size-4" /> {t('bulk.pay.payShare', { amount: inr(storeShare(view.tender, storeId)) })}
+                  </Button>
+                ))}
             </TenderCard>
           );
         })}

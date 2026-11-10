@@ -560,7 +560,23 @@
       }
     },
     "poolLine_one": "{{count}} ಅಂಗಡಿಯಿಂದ {{qty}} ಪ್ಯಾಕ್‌ಗಳು",
-    "poolLine_other": "{{count}} ಅಂಗಡಿಗಳಿಂದ {{qty}} ಪ್ಯಾಕ್‌ಗಳು"
+    "poolLine_other": "{{count}} ಅಂಗಡಿಗಳಿಂದ {{qty}} ಪ್ಯಾಕ್‌ಗಳು",
+    "pay": {
+      "paid": "ಪಾವತಿಸಲಾಗಿದೆ",
+      "due": "ಬಾಕಿ",
+      "received": "ಅಂಗಡಿಗಳಿಂದ ಬಂದದ್ದು {{collected}} · ಇನ್ನೂ ಬಾಕಿ {{outstanding}}",
+      "payDealer": "ಡೀಲರ್‌ಗೆ {{amount}} ಪಾವತಿಸಿ",
+      "dealerPaidToast": "{{dealer}} ಅವರಿಗೆ {{amount}} ಪಾವತಿಸಲಾಗಿದೆ",
+      "payShare": "PharmaFlow ಗೆ {{amount}} ಪಾವತಿಸಿ",
+      "storePaid": "ನಿಮ್ಮ ಪಾಲು ಪಾವತಿಯಾಗಿದೆ",
+      "storePaidToast": "PharmaFlow ಗೆ ಪಾವತಿ ಕಳುಹಿಸಲಾಗಿದೆ",
+      "stats": {
+        "paidDealers": "ಡೀಲರ್‌ಗಳಿಗೆ ಪಾವತಿಸಿದ್ದು",
+        "owedDealers": "ಇನ್ನೂ ಪಾವತಿಸಬೇಕಾದದ್ದು: {{amount}}",
+        "received": "ಅಂಗಡಿಗಳಿಂದ ಬಂದದ್ದು",
+        "owedStores": "ಅಂಗಡಿಗಳು ಇನ್ನೂ ಕೊಡಬೇಕಾದದ್ದು"
+      }
+    }
   },
   "dealer": {
     "subtitle": "{{area}} · ಸಗಟು ಪರವಾನಗಿ {{licence}}",
@@ -589,7 +605,9 @@
     "expiry": "ಅವಧಿ ಮುಗಿಯುವ ದಿನಾಂಕ",
     "deliver": "ತಲುಪಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ",
     "deliveredToast": "{{stores}} ಅಂಗಡಿಗಳಿಗೆ ತಲುಪಿಸಲಾಗಿದೆ",
-    "deliveredDone": "ತಲುಪಿಸಲಾಗಿದೆ. ಪ್ರತಿ ಅಂಗಡಿಗೂ ಅದರ ಪಾಲು ಸಿಕ್ಕಿದೆ."
+    "deliveredDone": "ತಲುಪಿಸಲಾಗಿದೆ. ಪ್ರತಿ ಅಂಗಡಿಗೂ ಅದರ ಪಾಲು ಸಿಕ್ಕಿದೆ.",
+    "paid": "PharmaFlow ನಿಮಗೆ {{amount}} ಪಾವತಿಸಿದೆ.",
+    "awaitingPayment": "PharmaFlow {{amount}} ಪಾವತಿಸುವುದಕ್ಕಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ."
   },
   "network": {
     "stores": "ಔಷಧಿ ಅಂಗಡಿಗಳು",

@@ -89,6 +89,10 @@ function dispatch(s: AppState, e: DomainEvent): Step {
       return bulk.bulkDelivered(s, e);
     case 'BULK_CANCELLED':
       return bulk.bulkCancelled(s, e);
+    case 'BULK_DEALER_PAID':
+      return bulk.bulkDealerPaid(s, e);
+    case 'BULK_STORE_PAID':
+      return bulk.bulkStorePaid(s, e);
 
     case 'SCRATCH_CARD_REVEALED':
       return civic.scratchCardRevealed(s, e);

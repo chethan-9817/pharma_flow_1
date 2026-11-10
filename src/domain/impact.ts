@@ -84,6 +84,8 @@ const FAMILY: Record<EventType, ActivityFamily> = {
   BULK_AWARDED: 'Inventory',
   BULK_DELIVERED: 'Inventory',
   BULK_CANCELLED: 'Inventory',
+  BULK_DEALER_PAID: 'Admin',
+  BULK_STORE_PAID: 'Admin',
   ORDER_PLACED: 'Orders',
   ORDER_CANCELLED: 'Orders',
   ORDER_PACKED: 'Orders',

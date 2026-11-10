@@ -146,6 +146,31 @@ export function bulkDelivered(s: AppState, e: Ev<'BULK_DELIVERED'>): Step {
   return done({ ...put(s, { ...tender, status: 'DELIVERED', deliveredAt: s.today }), batches });
 }
 
+/** PharmaFlow (the admin) pays the winning dealer for the whole order once it is delivered. */
+export function bulkDealerPaid(s: AppState, e: Ev<'BULK_DEALER_PAID'>): Step {
+  const bad = failed(requireRole(s, e.actorId, 'admin'));
+  if (bad) return bad;
+  const tender = s.bulkTenders[e.tenderId];
+  if (!tender) return err('Unknown bulk order');
+  if (tender.status !== 'DELIVERED') return err('Pay the dealer only after the order is delivered');
+  if (tender.dealerPaidAt) return err('The dealer has already been paid');
+  return done(put(s, { ...tender, dealerPaidAt: s.today }));
+}
+
+/** A store pays PharmaFlow for its share of a delivered order. */
+export function bulkStorePaid(s: AppState, e: Ev<'BULK_STORE_PAID'>): Step {
+  const bad = failed(requireChemistOf(s, e.actorId, e.storeId));
+  if (bad) return bad;
+  const tender = s.bulkTenders[e.tenderId];
+  if (!tender) return err('Unknown bulk order');
+  if (tender.status !== 'DELIVERED') return err('Pay for your share once the stock is delivered');
+  const demand = tender.demands.find((d) => d.storeId === e.storeId);
+  if (!demand) return err('Your store is not part of this bulk order');
+  if (demand.paidAt) return err('Your share is already paid');
+  const demands = tender.demands.map((d) => (d.storeId === e.storeId ? { ...d, paidAt: s.today } : d));
+  return done(put(s, { ...tender, demands }));
+}
+
 /** The admin calls a bulk order off, at any point before a dealer is awarded. */
 export function bulkCancelled(s: AppState, e: Ev<'BULK_CANCELLED'>): Step {
   const bad = failed(requireRole(s, e.actorId, 'admin'));

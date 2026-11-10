@@ -560,7 +560,23 @@
       }
     },
     "poolLine_one": "{{count}} स्टोर से {{qty}} पैक",
-    "poolLine_other": "{{count}} स्टोर से {{qty}} पैक"
+    "poolLine_other": "{{count}} स्टोर से {{qty}} पैक",
+    "pay": {
+      "paid": "चुकाया गया",
+      "due": "बाकी",
+      "received": "स्टोर से मिले {{collected}} · अभी बाकी {{outstanding}}",
+      "payDealer": "डीलर को {{amount}} चुकाएँ",
+      "dealerPaidToast": "{{dealer}} को {{amount}} चुकाए गए",
+      "payShare": "PharmaFlow को {{amount}} चुकाएँ",
+      "storePaid": "आपका हिस्सा चुका दिया गया",
+      "storePaidToast": "PharmaFlow को भुगतान भेज दिया गया",
+      "stats": {
+        "paidDealers": "डीलरों को चुकाए गए",
+        "owedDealers": "अभी चुकाना है: {{amount}}",
+        "received": "स्टोर से मिले",
+        "owedStores": "स्टोर पर अभी बाकी"
+      }
+    }
   },
   "dealer": {
     "subtitle": "{{area}} · थोक लाइसेंस {{licence}}",
@@ -589,7 +605,9 @@
     "expiry": "एक्सपायरी तारीख",
     "deliver": "पहुँचाया गया चिह्नित करें",
     "deliveredToast": "{{stores}} स्टोर को पहुँचा दिया गया",
-    "deliveredDone": "पहुँचा दिया गया। हर स्टोर को उसका हिस्सा मिल गया।"
+    "deliveredDone": "पहुँचा दिया गया। हर स्टोर को उसका हिस्सा मिल गया।",
+    "paid": "PharmaFlow ने आपको {{amount}} चुका दिए हैं।",
+    "awaitingPayment": "PharmaFlow के {{amount}} चुकाने का इंतज़ार है।"
   },
   "network": {
     "stores": "मेडिकल स्टोर",
