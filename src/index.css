@@ -83,16 +83,12 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 /* Rider map markers (Leaflet divIcons) */
 .leaflet-container { font-family: var(--font-sans); }
-/* Dark map: darken the free OpenStreetMap tiles instead of using a keyed dark basemap. */
-.pf-dark-tiles {
-  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(88%) saturate(80%);
-}
 /* Leaflet's own stylesheet loads later (with the lazy map), so these selectors are a little more specific. */
 div.leaflet-container .leaflet-control-attribution {
-  background: rgb(15 23 42 / 0.85);
-  color: #94a3b8;
+  background: rgb(255 255 255 / 0.85);
+  color: var(--color-slate-600);
 }
-div.leaflet-container .leaflet-control-attribution a { color: #7dd3fc; }
+div.leaflet-container .leaflet-control-attribution a { color: var(--color-medical); }
 .pf-pin span {
   display: grid;
   place-items: center;
@@ -101,15 +97,15 @@ div.leaflet-container .leaflet-control-attribution a { color: #7dd3fc; }
   border-radius: 9999px;
   border: 2px solid #fff;
   color: #fff;
-  font: 700 13px var(--font-sans);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  font: 600 13px var(--font-sans);
+  box-shadow: 0 2px 6px rgb(16 24 40 / 0.35);
 }
 .pf-rider { position: relative; }
 .pf-rider-dot {
   position: absolute;
   inset: 5px;
   border-radius: 9999px;
-  border: 3px solid #0f172a;
+  border: 3px solid var(--color-ink);
   box-shadow: 0 0 0 2px #fff;
 }
 .pf-rider-pulse {

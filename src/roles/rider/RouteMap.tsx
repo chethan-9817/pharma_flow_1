@@ -13,12 +13,10 @@ interface Props {
   legKey: string;
   /** Taller map for the laptop layout. */
   tall?: boolean;
-  /** Light map for the customer app. */
-  light?: boolean;
 }
 
 /**
- * The rider's dark street map. If the device is offline, or street tiles keep failing,
+ * The street map used by the rider and the customer's order tracker. If the device is offline, or street tiles keep failing,
  * it quietly switches to the SVG diagram so navigation never shows a blank box.
  */
 export function RouteMap(props: Props) {
@@ -40,7 +38,7 @@ export function RouteMap(props: Props) {
   return (
     <Suspense
       fallback={
-        <div className={`grid place-items-center rounded-2xl bg-slate-900 text-slate-400 ring-1 ring-slate-800 ${props.tall ? 'h-96 lg:h-[30rem]' : 'h-64 sm:h-72'}`}>
+        <div className={`grid place-items-center rounded-xl bg-slate-100 text-slate-400 ring-1 ring-slate-200 ${props.tall ? 'h-96 lg:h-[30rem]' : 'h-64 sm:h-72'}`}>
           <Loader2 className="size-6 animate-spin" />
         </div>
       }

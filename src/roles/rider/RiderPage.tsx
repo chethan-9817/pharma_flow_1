@@ -7,16 +7,17 @@ import { RIDER_PAY } from '../../domain/handlers/payouts';
 import { riderRoute } from '../../domain/route';
 import { backhaulSuggestions, openMissions, type Mission } from '../../domain/selectors';
 import type { Order, Pickup, User } from '../../domain/types';
-import { Button, inr } from '../../components/ui';
+import { Button, Card, SectionTitle, inr } from '../../components/ui';
 import { report } from '../../components/toast';
 import { dispatch, useApp } from '../../store';
 import { useEmbedded } from '../../components/layout';
 import { NavigationPanel } from './NavigationPanel';
 
+/** Each kind of mission has its own tinted icon tile and label; the card itself stays white. */
 const KIND = {
-  DELIVERY: { color: 'border-sky-500', chip: 'bg-sky-500/15 text-sky-300', icon: Package },
-  NGO_PICKUP: { color: 'border-emerald-500', chip: 'bg-emerald-500/15 text-emerald-300', icon: Leaf },
-  BIO_PICKUP: { color: 'border-orange-500', chip: 'bg-orange-500/15 text-orange-300', icon: Skull },
+  DELIVERY: { chip: 'bg-sky-50 text-sky-700 ring-sky-600/15', icon: Package },
+  NGO_PICKUP: { chip: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15', icon: Leaf },
+  BIO_PICKUP: { chip: 'bg-orange-50 text-orange-700 ring-orange-600/15', icon: Skull },
 } as const;
 
 function MissionHeader({ kind, title, where }: { kind: keyof typeof KIND; title: string; where: string }) {
@@ -25,13 +26,13 @@ function MissionHeader({ kind, title, where }: { kind: keyof typeof KIND; title:
   const Icon = k.icon;
   return (
     <div className="flex items-start gap-3">
-      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${k.chip}`}>
+      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ring-1 ring-inset ${k.chip}`}>
         <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.chip}`}>{t(`rider.kind.${kind}`)}</span>
-        <p className="mt-1 truncate font-semibold text-white">{title}</p>
-        <p className="flex items-center gap-1 text-xs text-slate-400">
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${k.chip}`}>{t(`rider.kind.${kind}`)}</span>
+        <p className="mt-1 truncate font-semibold text-slate-900">{title}</p>
+        <p className="flex items-center gap-1 text-xs text-slate-500">
           <MapPin className="size-3" /> {where}
         </p>
       </div>
@@ -60,19 +61,19 @@ export function RiderPage({ user }: { user: User }) {
       : act({ type: 'PICKUP_ACCEPTED', pickupId: m.pickup.id, riderId: user.id }, t('rider.accepted'));
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100">
+    <div className="min-h-[calc(100vh-4rem)]">
       {/* Compact single column in the "All 4" panes; two columns (missions left, big map right) on a laptop. */}
       <div className={embedded ? 'mx-auto max-w-lg space-y-5 p-4' : 'mx-auto max-w-6xl space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0'}>
-        <header className={`space-y-4 rounded-2xl bg-slate-900 p-4 ring-1 ring-slate-800 ${embedded ? '' : 'lg:col-span-2'}`}>
+        <header className={`space-y-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200 ${embedded ? '' : 'lg:col-span-2'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">{t('rider.title')}</p>
-              <h1 className="text-lg font-bold">{user.name}</h1>
+              <p className="text-xs text-slate-500">{t('rider.title')}</p>
+              <h1 className="text-lg font-semibold tracking-tight text-slate-900">{user.name}</h1>
             </div>
             <button
               onClick={() => act({ type: 'RIDER_SHIFT_CHANGED', riderId: user.id, online: !profile.online })}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                profile.online ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset transition-colors ${
+                profile.online ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100' : 'bg-white text-slate-600 ring-slate-300 hover:bg-slate-50'
               }`}
               aria-pressed={profile.online}
             >
@@ -81,20 +82,20 @@ export function RiderPage({ user }: { user: User }) {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-slate-800 p-3">
-              <Wallet className="mx-auto size-4 text-sky-400" />
-              <div className="mt-1 text-lg font-bold tabular-nums">{inr(profile.earnings)}</div>
-              <div className="text-[11px] text-slate-400">{t('rider.earnings')}</div>
+            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
+              <Wallet className="mx-auto size-4 text-medical" />
+              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.earnings)}</div>
+              <div className="text-[11px] text-slate-500">{t('rider.earnings')}</div>
             </div>
-            <div className="rounded-xl bg-slate-800 p-3">
-              <Leaf className="mx-auto size-4 text-emerald-400" />
-              <div className="mt-1 text-lg font-bold tabular-nums">{inr(profile.incentives)}</div>
-              <div className="text-[11px] text-slate-400">{t('rider.greenBonus')}</div>
+            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
+              <Leaf className="mx-auto size-4 text-eco" />
+              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{inr(profile.incentives)}</div>
+              <div className="text-[11px] text-slate-500">{t('rider.greenBonus')}</div>
             </div>
-            <div className="rounded-xl bg-slate-800 p-3">
-              <Package className="mx-auto size-4 text-orange-400" />
-              <div className="mt-1 text-lg font-bold tabular-nums">{profile.trips}</div>
-              <div className="text-[11px] text-slate-400">{t('rider.trips')}</div>
+            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
+              <Package className="mx-auto size-4 text-orange-600" />
+              <div className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{profile.trips}</div>
+              <div className="text-[11px] text-slate-500">{t('rider.trips')}</div>
             </div>
           </div>
         </header>
@@ -109,12 +110,12 @@ export function RiderPage({ user }: { user: User }) {
 
         {(activeOrders.length > 0 || activePickups.length > 0) && (
           <section className="space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t('rider.activeMission')}</h2>
+            <SectionTitle>{t('rider.activeMission')}</SectionTitle>
 
             {activeOrders.map((o) => {
               const near = o.status === 'OUT_FOR_DELIVERY' ? backhaulSuggestions(app, o) : [];
               return (
-                <motion.div key={o.id} layout className="space-y-4 rounded-2xl border-l-4 border-sky-500 bg-slate-900 p-4">
+                <motion.div key={o.id} layout className="space-y-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200">
                   <MissionHeader kind="DELIVERY" title={orderLabel(o)} where={app.users[o.customerId]?.address ?? 'Customer'} />
                   {o.status === 'PACKED' && !o.riderArrived && (
                     <Button size="lg" block onClick={() => act({ type: 'ORDER_ARRIVED', orderId: o.id })}>{t('rider.arrivedStore')}</Button>
@@ -129,7 +130,7 @@ export function RiderPage({ user }: { user: User }) {
                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
                         inputMode="numeric"
                         placeholder={t('rider.otpPlaceholder')}
-                        className="h-14 w-full rounded-2xl bg-slate-800 px-4 text-center text-2xl font-bold tracking-[0.5em] outline-none ring-1 ring-slate-700 focus:ring-2 focus:ring-sky-500"
+                        className="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-center text-2xl font-semibold tracking-[0.5em] outline-none transition placeholder:text-base placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
                       />
                       <Button size="lg" block disabled={otp.length < 4} onClick={async () => { await act({ type: 'ORDER_DELIVERED', orderId: o.id, otp }, t('rider.delivered')); setOtp(''); }}>
                         {t('rider.confirm')}
@@ -137,9 +138,9 @@ export function RiderPage({ user }: { user: User }) {
                     </div>
                   )}
                   {near.map((p) => (
-                    <div key={p.id} className="rounded-xl bg-emerald-500/10 p-3 text-sm ring-1 ring-emerald-500/30">
-                      <p className="font-semibold text-emerald-300">{t('rider.backhaul')}</p>
-                      <p className="text-xs text-slate-300">{t('rider.backhaulBody', { items: itemsLabel(p), address: p.address, pay: inr(RIDER_PAY.PICKUP + RIDER_PAY.GREEN_INCENTIVE) })}</p>
+                    <div key={p.id} className="rounded-xl bg-emerald-50 p-3 text-sm ring-1 ring-inset ring-emerald-200">
+                      <p className="font-semibold text-emerald-800">{t('rider.backhaul')}</p>
+                      <p className="text-xs text-slate-600">{t('rider.backhaulBody', { items: itemsLabel(p), address: p.address, pay: inr(RIDER_PAY.PICKUP + RIDER_PAY.GREEN_INCENTIVE) })}</p>
                       <Button size="sm" variant="eco" className="mt-2" onClick={() => act({ type: 'PICKUP_ACCEPTED', pickupId: p.id, riderId: user.id }, t('rider.addedToRoute'))}>{t('rider.addToRoute')}</Button>
                     </div>
                   ))}
@@ -151,12 +152,12 @@ export function RiderPage({ user }: { user: User }) {
               const kind = p.kind === 'DONATION' ? 'NGO_PICKUP' : 'BIO_PICKUP';
               const ngo = p.ngoId ? app.ngos[p.ngoId] : undefined;
               return (
-                <motion.div key={p.id} layout className={`space-y-4 rounded-2xl border-l-4 bg-slate-900 p-4 ${KIND[kind].color}`}>
+                <motion.div key={p.id} layout className="space-y-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200">
                   <MissionHeader kind={kind} title={itemsLabel(p)} where={p.address} />
                   {p.status === 'SCHEDULED' && !p.riderArrived && <Button size="lg" block onClick={() => act({ type: 'PICKUP_ARRIVED', pickupId: p.id })}>{t('rider.arrived')}</Button>}
                   {p.status === 'SCHEDULED' && p.riderArrived && <Button size="lg" block onClick={() => act({ type: 'PICKUP_COLLECTED', pickupId: p.id }, t('rider.collectedToast'))}>{t('rider.collected')}</Button>}
                   {p.status === 'COLLECTED' && p.kind === 'DONATION' && (
-                    <p className="rounded-xl bg-slate-800 p-3 text-center text-sm text-slate-300">{t('rider.waitingQa')}</p>
+                    <p className="rounded-xl bg-slate-50 p-3 text-center text-sm text-slate-600 ring-1 ring-inset ring-slate-100">{t('rider.waitingQa')}</p>
                   )}
                   {p.status === 'COLLECTED' && p.kind === 'DISPOSAL' && (
                     <Button size="lg" block onClick={() => act({ type: 'PICKUP_INCINERATED', pickupId: p.id }, t('rider.handedCbwtf'))}>{t('rider.handedCbwtf')}</Button>
@@ -170,19 +171,19 @@ export function RiderPage({ user }: { user: User }) {
         )}
 
         <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t('rider.radar')}</h2>
-          {open.length === 0 && <p className="rounded-2xl bg-slate-900 p-4 text-center text-sm text-slate-400">{t('rider.nothingNearby')}</p>}
+          <SectionTitle>{t('rider.radar')}</SectionTitle>
+          {open.length === 0 && <Card className="text-center text-sm text-slate-500">{t('rider.nothingNearby')}</Card>}
           {open.map((m) => {
             const id = m.kind === 'DELIVERY' ? m.order.id : m.pickup.id;
             const title = m.kind === 'DELIVERY' ? orderLabel(m.order) : itemsLabel(m.pickup);
             const where = m.kind === 'DELIVERY' ? (app.users[m.order.customerId]?.address ?? '') : m.pickup.address;
             return (
-              <div key={id} className={`space-y-3 rounded-2xl border-l-4 bg-slate-900 p-4 ${KIND[m.kind].color}`}>
+              <Card key={id} className="space-y-3">
                 <MissionHeader kind={m.kind} title={title} where={where} />
-                <Button size="lg" block variant="dark" disabled={!profile.online} onClick={() => accept(m)}>
+                <Button size="lg" block variant="soft" disabled={!profile.online} onClick={() => accept(m)}>
                   {profile.online ? t('rider.accept') : t('rider.goOnline')}
                 </Button>
-              </div>
+              </Card>
             );
           })}
         </section>

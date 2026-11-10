@@ -63,7 +63,7 @@ export function TrackOrder({ order }: { order: Order }) {
 
       {stops.length > 0 && stats && (
         <>
-          <RouteMap from={from} stops={stops} rider={rider} legKey={legKey} light />
+          <RouteMap from={from} stops={stops} rider={rider} legKey={legKey} />
           <p className="flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-900">
             <Clock className="size-4 shrink-0" />
             {status === 'OUT_FOR_DELIVERY'

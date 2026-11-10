@@ -8,9 +8,8 @@ const cx = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).j
  * solid: primary, eco, danger (one main action per view).
  * soft: tinted versions for repeated or secondary actions, so a list of them stays calm.
  * ghost: white with a hairline border.
- * `dark` is kept only until the rider screen moves to the light theme.
  */
-type Variant = 'primary' | 'soft' | 'eco' | 'ecoSoft' | 'danger' | 'dangerSoft' | 'amber' | 'ghost' | 'dark';
+type Variant = 'primary' | 'soft' | 'eco' | 'ecoSoft' | 'danger' | 'dangerSoft' | 'amber' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
@@ -22,7 +21,6 @@ const VARIANTS: Record<Variant, string> = {
   dangerSoft: 'bg-blood-tint text-blood ring-1 ring-inset ring-rose-200/80 hover:bg-rose-100 focus-visible:ring-blood/30',
   amber: 'bg-expiry-tint text-expiry-ink ring-1 ring-inset ring-amber-200/80 hover:bg-amber-100 focus-visible:ring-expiry/30',
   ghost: 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus-visible:ring-slate-300/60',
-  dark: 'bg-slate-800 text-white ring-1 ring-slate-700 hover:bg-slate-700 focus-visible:ring-slate-500',
 };
 
 const SIZES: Record<Size, string> = {

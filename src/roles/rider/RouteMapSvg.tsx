@@ -1,6 +1,6 @@
 import { WifiOff } from 'lucide-react';
 import type { LatLng, Stop } from '../../domain/route';
-import { RIDER_COLOR, STOP_COLOR } from './mapStyle';
+import { RIDER_COLOR, ROUTE_COLOR, STOP_COLOR } from './mapStyle';
 
 interface Props {
   from: LatLng;
@@ -44,15 +44,15 @@ export function RouteMapSvg({ from, stops, rider, note = 'Offline map' }: Props)
   const riderXY = project(rider);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-800">
+    <div className="relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Route diagram" className="block h-auto w-full">
         <defs>
           <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#1e293b" strokeWidth="1" />
+            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#e4e7ec" strokeWidth="1" />
           </pattern>
         </defs>
         <rect width={W} height={H} fill="url(#grid)" />
-        <polyline points={path.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#38BDF8" strokeWidth="3" strokeDasharray="7 6" strokeLinecap="round" />
+        <polyline points={path.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke={ROUTE_COLOR} strokeWidth="3" strokeDasharray="7 6" strokeLinecap="round" />
         {stops.map((stop, i) => {
           const { x, y } = project(stop);
           return (
@@ -67,7 +67,7 @@ export function RouteMapSvg({ from, stops, rider, note = 'Offline map' }: Props)
         <circle cx={riderXY.x} cy={riderXY.y} r="14" fill={RIDER_COLOR} fillOpacity="0.25" />
         <circle cx={riderXY.x} cy={riderXY.y} r="7" fill={RIDER_COLOR} stroke="#0f172a" strokeWidth="2" />
       </svg>
-      <p className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-slate-950/80 px-2.5 py-1 text-[11px] font-medium text-slate-300">
+      <p className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
         <WifiOff className="size-3" /> {note}
       </p>
     </div>

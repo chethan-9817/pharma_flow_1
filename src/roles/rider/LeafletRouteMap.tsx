@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, Marker, Polyline, TileLayer, useMap } from 'react-leaflet';
 import type { LatLng, Stop } from '../../domain/route';
-import { MAP_TILES, RIDER_COLOR, STOP_COLOR, TILE_ATTRIBUTION, TILE_CLASS } from './mapStyle';
+import { MAP_TILES, RIDER_COLOR, ROUTE_COLOR, STOP_COLOR, TILE_ATTRIBUTION } from './mapStyle';
 
 interface Props {
   from: LatLng;
@@ -12,8 +12,6 @@ interface Props {
   /** Changes when the leg changes, so the map re-centres on the new route. */
   legKey: string;
   tall?: boolean;
-  /** Normal-coloured tiles for the light customer app; riders get the dark map. */
-  light?: boolean;
   /** Called when street tiles keep failing (for example, no internet). */
   onTilesFailed: () => void;
 }
@@ -52,12 +50,12 @@ function FitRoute({ points, trigger }: { points: LatLng[]; trigger: string }) {
   return null;
 }
 
-export default function LeafletRouteMap({ from, stops, rider, legKey, tall, light, onTilesFailed }: Props) {
+export default function LeafletRouteMap({ from, stops, rider, legKey, tall, onTilesFailed }: Props) {
   const errors = useRef(0);
   const route = useMemo(() => [from, ...stops].map((p) => [p.lat, p.lng] as [number, number]), [from, stops]);
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl ring-1 ${light ? 'ring-slate-200' : 'ring-slate-800'}`} data-testid="leaflet-map">
+    <div className="relative overflow-hidden rounded-xl ring-1 ring-slate-200" data-testid="leaflet-map">
       <MapContainer
         center={[from.lat, from.lng]}
         zoom={14}
@@ -65,12 +63,11 @@ export default function LeafletRouteMap({ from, stops, rider, legKey, tall, ligh
         zoomControl
         attributionControl
         className={tall ? 'h-96 w-full lg:h-[30rem]' : 'h-64 w-full sm:h-72'}
-        style={{ background: light ? '#e2e8f0' : '#0f172a' }}
+        style={{ background: '#eaecf0' }}
       >
         <TileLayer
           url={MAP_TILES}
           attribution={TILE_ATTRIBUTION}
-          className={light ? undefined : TILE_CLASS}
           maxZoom={19}
           eventHandlers={{
             tileerror: () => {
@@ -82,7 +79,7 @@ export default function LeafletRouteMap({ from, stops, rider, legKey, tall, ligh
             },
           }}
         />
-        <Polyline positions={route} pathOptions={{ color: '#38BDF8', weight: 4, opacity: 0.9, dashArray: '8 8' }} />
+        <Polyline positions={route} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85, dashArray: '8 8' }} />
         {stops.map((stop, i) => (
           <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopIcon(stop, i)} title={stop.label} />
         ))}
