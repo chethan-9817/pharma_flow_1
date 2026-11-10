@@ -40,7 +40,7 @@ flowchart LR
 
 ## 🎨 Look and feel
 
-All four roles share one calm light theme: white cards on a soft grey canvas and one deep blue for the main action. Soft tinted buttons are used for repeated actions such as *Add to cart*. Colour appears only where it means something: green for Eco-Sale, red for disposal and blood, and amber for expiry warnings. The rider screen and its map are light too.
+All four roles share one light theme with clear, coordinated colour. White cards sit on a cool blue-grey background under light-blue header cards. One deep blue marks the main action and the active tab. Stats and buttons are tinted by what they mean: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal and blood. The rider screen and its map are light too.
 
 - **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
 - **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) holds the same tokens as variables, before-and-after screens of every role, and a component sheet.

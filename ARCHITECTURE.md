@@ -232,7 +232,7 @@ Going back means **Reset demo data**, which clears the log.
 | `PresenterBar` | Role switch, time-travel slider and jump buttons, language picker, reset |
 | `RoleGate` | 1-tap demo login per role (a password form, `ServerLogin`, in server mode); sessions are per tab |
 | `toast` | Shows rule errors and confirmations |
-| `ui.tsx` | Button, Card, Badge, Stat primitives with the design tokens |
+| `ui.tsx` | Button, Card, Badge, Stat, PageHero and SectionTitle primitives with the design tokens |
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
 | `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk (sponsored packs are marked), **Sponsored for NGOs** (what the store is paid and what is on the way) |
 | `roles/rider` | Mission radar with large lifecycle buttons, plus the navigation panel and map |
@@ -242,24 +242,27 @@ Going back means **Reset demo data**, which clears the log.
 
 ### Design system
 
-Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a calm **light theme**: a soft gray canvas, white cards with a hairline ring, one brand blue for the main action, and colour only where it carries meaning (expiry buckets, money, hazards). Framer Motion is used for short, subtle transitions only, and `prefers-reduced-motion` is respected.
+Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a **light theme with clear colour**: a cool blue-grey canvas, white cards with a hairline ring, light-blue header cards, one brand blue for the main action and the active tab, and tinted colour where it carries meaning (expiry buckets, money, hazards). Framer Motion is used for short, subtle transitions only, and `prefers-reduced-motion` is respected.
 
 | Token (CSS variable) | Value | Used for |
 |---|---|---|
-| `--color-canvas` | `#F2F4F7` | Page background |
+| `--color-canvas` | `#EAF0F6` | Page background (cool blue-grey) |
 | `--color-surface` | `#FFFFFF` | Cards, inputs, the top bar |
 | `--color-line` / `--color-line-strong` | `#EAECF0` / `#D0D5DD` | Card rings, input borders |
 | `--color-ink` | `#101828` | Primary text |
-| `--color-medical` / `-dark` / `-tint` | `#0369A1` / `#075985` / `#F0F9FF` | Brand blue: the main action, active navigation, links |
-| `--color-eco` / `-dark` / `-tint` | `#047857` / `#065F46` / `#ECFDF5` | Safe stock, donations, approvals |
-| `--color-expiry` (`-ink`, `-tint`) | `#D97706` | Lockout and Eco-Sale |
-| `--color-critical-ink` / `-tint` | `#C2410C` / `#FFF7ED` | Critical stock, hazardous waste |
-| `--color-blood` / `-tint` | `#BE123C` / `#FFF1F2` | Expired stock, Rx-only, blood donation |
+| `--color-medical` / `-dark` / `-tint` | `#0369A1` / `#075985` / `#E0F2FE` | Brand blue: the main action, active navigation, links |
+| `--color-eco` / `-dark` / `-tint` | `#047857` / `#065F46` / `#D1FAE5` | Safe stock, donations, approvals |
+| `--color-expiry` (`-ink`, `-tint`) | `#D97706` / `#92400E` / `#FEF3C7` | Lockout and Eco-Sale |
+| `--color-critical-ink` / `-tint` | `#C2410C` / `#FFEDD5` | Critical stock, hazardous waste |
+| `--color-blood` / `-tint` | `#BE123C` / `#FFE4E6` | Expired stock, Rx-only, blood donation |
 
 - **Neutrals.** `--color-slate-50` to `-950` are overridden with a cleaner gray, so every `text-slate-*`, `bg-slate-*` and `ring-slate-*` in the app follows it.
 - **Contrast.** Solid fills (`primary`, `eco`, `danger`) are deep enough for white text at WCAG AA. The earlier sky and emerald fills were not.
 - **One main action per view.** `Button` has solid variants (`primary`, `eco`, `danger`) for that action, and tinted variants (`soft`, `ecoSoft`, `dangerSoft`, `amber`) for repeated or secondary actions, so a list of them stays calm. `ghost` is white with a border.
-- **Stats.** `Stat` shows its meaning with a small coloured dot; the number stays in the ink colour.
+- **Tints are the 100 step** of each hue (for example sky-100, emerald-100), so soft buttons, badges and chips read as colour rather than as off-white.
+- **Stats.** `Stat` takes the colour of its meaning: a tinted tile (`tone`), a label in the tone's dark shade and, with `icon`, a solid icon chip. The number stays in the ink colour so it is always easy to read.
+- **Page headers.** `PageHero` is the light-blue header card at the top of the chemist and admin pages (icon chip, title, subtitle, actions). The customer greeting card and the rider header use the same look. `SectionTitle` has a short brand-blue bar before the text.
+- **Active navigation** (the role switcher in the top bar and the customer sidebar) is solid brand blue with white text.
 - **No dark surfaces.** There is no dark theme. The rider screen, toasts and dialogs are light too; only the camera preview is dark.
 
 **Figma.** The tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, captures of the four role screens from before and after the refresh, and a component sheet (Button, Badge, Card, Stat) captured from the classes in `src/components/ui.tsx`. The sheet is plain frames; real Figma component sets are not built yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.

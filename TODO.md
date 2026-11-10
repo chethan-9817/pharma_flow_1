@@ -7,6 +7,7 @@ Last updated: 2026-11-10 (light-theme refresh). Roadmap steps 1 to 8 are built a
 - **Sponsor batch for NGO (₹99)** and the **NGO fund** (Phase A of the NGO plan).
 - **Server mode** (`pharmaflow server`), the installable **PWA**, **English / Kannada / Hindi**, and the **Playwright** tests.
 - **Light-theme refresh (2026-11-10).** All four roles and the shared pieces (top bar, sign-in gate, toasts, dialogs) use one calm light design. The rider screen is no longer dark, the chemist banner is a white card, and repeated actions use soft tinted buttons. Tokens and the rules are in ARCHITECTURE.md → Design system. Logic, text and layouts (including the All 4 view) were not changed.
+- **More colour (2026-11-10, same day).** You found the first pass too white, so the theme stays light but now has clear colour: a blue-grey background, light-blue header cards, a solid blue active tab, and stat tiles tinted by meaning with icon chips (green, amber, orange, red). The Figma "after" captures and component sheet show the earlier, paler version.
 
 ## Decisions I made without a final answer from you
 
