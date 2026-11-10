@@ -37,7 +37,7 @@ flowchart LR
 | 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · **6-month expiry alerts** with the Eco-Sale price split · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
 | 🏍️ **Rider** | Mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
 | 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · **every store and order** at a glance · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
-| 🏭 **Dealer** | Quotes on **pooled bulk orders** from several stores (e.g. 450 packs of syringes). A buyer's agent and each dealer's agent negotiate in up to 3 rounds; the admin awards the best effective price and the winner delivers to every store. See [WORKFLOW.md](WORKFLOW.md#13-pooled-bulk-orders-and-dealer-negotiation) |
+| 🏭 **Dealer** | Quotes on **pooled bulk orders** from several stores (e.g. 450 packs of syringes). A buyer's agent and each dealer's agent negotiate in up to 3 rounds; the admin awards the best effective price and the winner delivers to every store. **PharmaFlow pays the dealer**, then **each store pays PharmaFlow its share**. See [WORKFLOW.md](WORKFLOW.md#13-pooled-bulk-orders-and-dealer-negotiation) |
 
 **Demo data:** 6 customers, 7 medical stores (one awaiting KYC), 3 riders and 3 dealers, all with 1-tap logins.
 

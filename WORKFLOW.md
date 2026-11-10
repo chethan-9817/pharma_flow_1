@@ -396,6 +396,8 @@ sequenceDiagram
     B-->>D: Up to 3 rounds with each dealer's agent
     A->>D: Award the best offer
     D->>C: Deliver: each store gets its share as a fresh batch
+    A->>D: PharmaFlow pays the dealer for the whole order
+    C->>A: Each store pays PharmaFlow its own share
 ```
 
 | Step | Who | Rule |
@@ -406,9 +408,13 @@ sequenceDiagram
 | Negotiate | Admin starts it; agents run it | Round by round, the buyer's agent moves from the target to the ceiling (0%, 50%, 100% of the gap) and each dealer's agent moves from its asking price to its lowest price (40%, 75%, 100%). A deal closes as soon as the dealer's offer is no higher than the buyer's |
 | Award | Admin | Only an agreed offer can win. The recommended one has the lowest **effective price**: agreed price + 0.5% per delivery day + 2% per rating star below five. The admin may choose another agreed offer |
 | Deliver | The winning dealer | Batch number and at least 180 days of shelf life. Each store's share lands in its expiry ledger |
+| Pay the dealer | Admin | After delivery, once: the whole order at the agreed price (for example 300 packs × ₹42.72 = ₹12,816) |
+| Pay PharmaFlow | Chemist of each store in the pool | After delivery, once: only its own share (150 packs × ₹42.72 = ₹6,408) |
 | Cancel | Admin | Any time before an award |
 
 **Why the agents are rule-based, not an AI model:** the result has to be the same on every replay of the event log, it must be explainable to a chemist ("round 2: we offered ₹43.50, they offered ₹42.72"), and the app has no cloud services or API keys. The round-by-round table is shown to the admin and to each dealer for its own quote.
+
+**Money flow:** PharmaFlow sits in the middle, so the dealer gets one payment for the whole order and does not chase several stores. The admin's Bulk orders tab shows what was paid to dealers, what came in from stores and what the stores still owe; each delivered order shows who has paid. No platform fee is added to the stores' shares (a demo choice; real money movement would need a payment gateway).
 
 Screens: chemist dashboard → *Bulk orders with other stores*; the new **Dealer** role (`/dealer`); admin → **Bulk orders** tab. The admin's **Stores and orders** tab lists every store with its chemist, stock and orders, and every recent order with its rider.
 

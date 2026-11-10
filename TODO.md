@@ -29,7 +29,7 @@ These are written into the code and the docs. Change them if they are wrong.
 | Failed pharmacist check on sponsored packs | The sponsor gets the full ₹99 back as MedWallet credit, the store is not paid | `sponsorshipRefunded` |
 | Server database | Node's built-in `node:sqlite`, not better-sqlite3 + Drizzle, so nothing needs compiling | `server/db.ts` |
 | Bulk negotiation | **Rule-based agents, not an AI model**: replayable, explainable and offline. Usual trade price = 80% of MRP, default target = 65%. Effective price adds 0.5% per delivery day and 2% per rating star below five. Needs 2+ stores before dealers are asked | `src/domain/rules/bulk.ts` |
-| Bulk delivery | The dealer's stock goes straight onto each store's shelf as a fresh batch. Payments between stores and the dealer are not modelled | `src/domain/handlers/bulk.ts` |
+| Bulk delivery and payment | The dealer's stock goes straight onto each store's shelf as a fresh batch. After delivery the admin pays the dealer the whole order, and each store pays PharmaFlow its share at the same price (no platform fee added). Payments are recorded, not real money movement | `src/domain/handlers/bulk.ts` |
 | Server demo password | Every demo user shares `pharmaflow` (shown on the login screen only while it still works) | `server/auth.ts` |
 
 ## Not done yet
