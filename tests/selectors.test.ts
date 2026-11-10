@@ -6,8 +6,8 @@ describe('selectors', () => {
   it('summarises store inventory across all four buckets', () => {
     const sim = new Sim();
     const counts = bucketCounts(storeInventory(sim.state, STORE));
-    // 4 older safe batches plus a fresh batch for each of the 22 medicines.
-    expect(counts).toEqual({ SAFE: 26, LOCKOUT: 6, CRITICAL: 1, EXPIRED: 1 });
+    // 4 older safe batches plus a fresh batch for each of the 46 catalogue items; 2 skin-care batches near expiry.
+    expect(counts).toEqual({ SAFE: 50, LOCKOUT: 8, CRITICAL: 1, EXPIRED: 1 });
     expect(storeInventory(sim.state, STORE)[0]!.bucket).toBe('EXPIRED');
   });
 

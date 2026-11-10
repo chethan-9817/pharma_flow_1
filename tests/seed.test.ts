@@ -4,12 +4,22 @@ import { parseGs1 } from '../src/domain/rules/gs1';
 import { expiryBucket } from '../src/domain/rules/expiry';
 import { BARCODE_PRESETS } from '../src/seed/barcodes';
 import { SEED } from '../src/seed';
+import { CATEGORIES, categoryOf } from '../src/domain/types';
 
 describe('seed data', () => {
-  it('has a 22-item catalog with unique GTINs and ids', () => {
-    expect(SEED.medicines).toHaveLength(22);
-    expect(new Set(SEED.medicines.map((m) => m.gtin)).size).toBe(22);
-    expect(new Set(SEED.medicines.map((m) => m.id)).size).toBe(22);
+  it('has a 46-item catalog with unique GTINs and ids', () => {
+    expect(SEED.medicines).toHaveLength(46);
+    expect(new Set(SEED.medicines.map((m) => m.gtin)).size).toBe(46);
+    expect(new Set(SEED.medicines.map((m) => m.id)).size).toBe(46);
+  });
+
+  it('stocks every shop aisle, and nothing outside Medicines needs a prescription', () => {
+    const byCategory = new Map(CATEGORIES.map((c) => [c, SEED.medicines.filter((m) => categoryOf(m) === c)]));
+    for (const [category, items] of byCategory) expect(items.length, category).toBeGreaterThan(0);
+    // 30 drug entries, minus the Accu-Chek test strips, which sit with first aid and devices.
+    expect(byCategory.get('MEDICINE')!.length).toBe(29);
+    const products = SEED.medicines.filter((m) => categoryOf(m) !== 'MEDICINE');
+    expect(products.every((m) => m.schedule === 'OTC' && !m.isAntibiotic)).toBe(true);
   });
 
   it('stocks every medicine with a fresh batch, so the shop never shows it out of stock', () => {

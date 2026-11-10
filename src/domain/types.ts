@@ -5,8 +5,17 @@ export const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected Y
 export const ScheduleSchema = z.enum(['OTC', 'H', 'H1', 'X']);
 export type Schedule = z.infer<typeof ScheduleSchema>;
 
-export const FormSchema = z.enum(['TABLET', 'CAPSULE', 'SYRUP', 'GEL', 'SACHET', 'DEVICE']);
+export const FormSchema = z.enum(['TABLET', 'CAPSULE', 'SYRUP', 'GEL', 'SACHET', 'DEVICE', 'CREAM', 'LIQUID', 'PAD']);
 export type MedicineForm = z.infer<typeof FormSchema>;
+
+/**
+ * What a pharmacy sells besides medicines. Everything is still a catalogue item with a batch and an
+ * expiry (sunscreens, serums, pads and syringes all carry one), so stock, Eco-Sale and the 6-month
+ * alerts work the same way.
+ */
+export const CategorySchema = z.enum(['MEDICINE', 'SKIN_CARE', 'WOMENS_HYGIENE', 'ORAL_CARE', 'BABY_CARE', 'FIRST_AID']);
+export type Category = z.infer<typeof CategorySchema>;
+export const CATEGORIES = CategorySchema.options;
 
 export const MedicineSchema = z.object({
   id: z.string(),
@@ -27,8 +36,12 @@ export const MedicineSchema = z.object({
   generic: z
     .object({ name: z.string(), price: z.number().nonnegative() })
     .optional(),
+  /** Shop aisle. Missing means a medicine. */
+  category: CategorySchema.optional(),
 });
 export type Medicine = z.infer<typeof MedicineSchema>;
+
+export const categoryOf = (m: Pick<Medicine, 'category'>): Category => m.category ?? 'MEDICINE';
 
 export const BatchStatusSchema = z.enum([
   'IN_STOCK',

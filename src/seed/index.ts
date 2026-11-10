@@ -50,10 +50,42 @@ const FRESH_BATCHES = [
   batch('b-cifran-1', 'med-cifran', 510, 40, 'CF27K13'),
   batch('b-calpol-1', 'med-calpol', 400, 35, 'CP27H22'),
   batch('b-omez-1', 'med-omez', 590, 80, 'OM28B01'),
+  batch('b-vicks-1', 'med-vicks', 720, 40, 'VR28E03'),
+  batch('b-strepsils-1', 'med-strepsils', 540, 60, 'ST28A26'),
+  batch('b-liv52-1', 'med-liv52', 680, 30, 'LV28D14'),
+  batch('b-revital-1', 'med-revital', 470, 50, 'RV27L19'),
+  batch('b-pantocid-1', 'med-pantocid', 600, 60, 'PC28B09'),
+  batch('b-montairlc-1', 'med-montairlc', 560, 45, 'ML28A05'),
+  batch('b-ecosprin-1', 'med-ecosprin', 640, 150, 'EC28C21'),
+  batch('b-zincovit-1', 'med-zincovit', 500, 70, 'ZV27K28'),
+  // Pharmacy products: personal care, hygiene, oral care, baby care and first aid.
+  batch('b-whisper-1', 'prd-whisper', 900, 40, 'WH29A11'),
+  batch('b-stayfree-1', 'prd-stayfree', 880, 50, 'SF29A02'),
+  batch('b-neutrogena-2', 'prd-neutrogena-spf', 640, 18, 'NU28C30'),
+  batch('b-lakme-1', 'prd-lakme-spf', 560, 24, 'LK28A17'),
+  batch('b-minimalist-1', 'prd-minimalist-serum', 600, 20, 'MN28B12'),
+  batch('b-dermaco-2', 'prd-dermaco-vitc', 520, 15, 'DC27K25'),
+  batch('b-cetaphil-1', 'prd-cetaphil', 700, 20, 'CT28D08'),
+  batch('b-himalaya-1', 'prd-himalaya-facewash', 620, 35, 'HM28C02'),
+  batch('b-colgate-1', 'prd-colgate-brush', 1500, 60, 'CB30L01'),
+  batch('b-oralb-1', 'prd-oralb-brush', 1500, 40, 'OB30L01'),
+  batch('b-sensodyne-1', 'prd-sensodyne', 660, 45, 'SD28C27'),
+  batch('b-pampers-1', 'prd-pampers', 1000, 25, 'PM29E14'),
+  batch('b-dispovan-1', 'prd-dispovan', 1100, 100, 'DV29H20'),
+  batch('b-hansaplast-1', 'prd-hansaplast', 1000, 60, 'HP29E30'),
+  batch('b-dettol-1', 'prd-dettol', 900, 40, 'DT29A23'),
+  batch('b-thermometer-1', 'prd-thermometer', 1460, 15, 'TM30K05'),
+];
+
+/** Two skin-care batches nearing expiry, so the 6-month alert shows non-medicines too. */
+const NEAR_EXPIRY_PRODUCTS = [
+  batch('b-neutrogena-1', 'prd-neutrogena-spf', 150, 12, 'NU26F04'),
+  batch('b-dermaco-1', 'prd-dermaco-vitc', 120, 10, 'DC26E19'),
 ];
 
 const BATCHES = [
   ...FRESH_BATCHES,
+  ...NEAR_EXPIRY_PRODUCTS,
   batch('b-dolo-1', 'med-dolo650', 330, 120, 'DL26K01'),
   batch('b-shelcal-1', 'med-shelcal500', 295, 50, 'SH26J11'),
   batch('b-electral-1', 'med-electral', 200, 80, 'EL26H05'),
