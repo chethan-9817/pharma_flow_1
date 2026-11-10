@@ -1,13 +1,18 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Droplets, HeartHandshake, Landmark, Package, Recycle, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
-import { Suspense, lazy } from 'react';
+import { Boxes, CheckCircle2, Droplets, HeartHandshake, Landmark, LayoutDashboard, Network, Package, Recycle, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
+import { Suspense, lazy, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { bulkSummary } from '../../domain/bulk';
 import { kpis } from '../../domain/selectors';
 import type { User } from '../../domain/types';
-import { Badge, Button, Card, PageHero, SectionTitle, Stat, inr } from '../../components/ui';
+import { Badge, Button, Card, PageHero, SectionTitle, Stat, Tabs, inr } from '../../components/ui';
 import { report, toast } from '../../components/toast';
 import { dispatch, pharma, useApp, usePharma } from '../../store';
+import { BulkPanel } from './BulkPanel';
+import { NetworkPanel } from './NetworkPanel';
 import { NgoFundCard } from './NgoFundCard';
+
+type AdminTab = 'overview' | 'network' | 'bulk';
 
 // Recharts is a large library, so it only loads when the admin portal opens.
 const AdminCharts = lazy(() => import('./AdminCharts'));
@@ -17,6 +22,7 @@ export function AdminPage({ user }: { user: User }) {
   const app = useApp();
   const chain = usePharma((s) => s.chain);
   const k = kpis(app);
+  const [tab, setTab] = useState<AdminTab>('overview');
   const pending = Object.values(app.stores).filter((s) => s.kyc === 'PENDING_KYC');
   const recent = [...chain].reverse().slice(0, 10);
   const bookings = Object.values(app.bloodBookings).reverse();
@@ -41,6 +47,21 @@ export function AdminPage({ user }: { user: User }) {
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
       <PageHero icon={Landmark} title={t('admin.title')} />
 
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'overview', label: t('admin.tabs.overview'), icon: LayoutDashboard },
+          { id: 'network', label: t('admin.tabs.network'), icon: Network },
+          { id: 'bulk', label: t('admin.tabs.bulk'), icon: Boxes, count: bulkSummary(app).open },
+        ]}
+      />
+
+      {tab === 'network' && <NetworkPanel />}
+      {tab === 'bulk' && <BulkPanel user={user} />}
+
+      {tab === 'overview' && (
+        <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t('admin.deadStock')} value={inr(k.deadStockRecovered)} hint={t('admin.ecoRevenue')} tone="blue" icon={TrendingUp} />
         <Stat label={t('admin.waste')} value={`${k.hazardousKgDiverted} kg`} hint={t('admin.viaCbwtf')} tone="orange" icon={Recycle} />
@@ -141,6 +162,8 @@ export function AdminPage({ user }: { user: User }) {
           </Card>
         </section>
       </div>
+        </>
+      )}
     </div>
   );
 }
