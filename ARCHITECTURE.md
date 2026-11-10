@@ -233,6 +233,7 @@ Going back means **Reset demo data**, which clears the log.
 | `RoleGate` | 1-tap demo login per role (a password form, `ServerLogin`, in server mode); sessions are per tab |
 | `toast` | Shows rule errors and confirmations |
 | `ui.tsx` | Button, Card, Badge, Stat, PageHero and SectionTitle primitives with the design tokens |
+| `ProductArt.tsx` | Drawn product pictures (flat SVG shapes such as a blister strip, dropper bottle, tube, toothbrush or syringe, each in the product's colour). Drawn in code instead of brand photos: nothing copyrighted, works offline. An item without its own entry gets a shape from its `form` |
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
 | `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk (sponsored packs are marked), **Sponsored for NGOs** (what the store is paid and what is on the way) |
 | `roles/rider` | Mission radar with large lifecycle buttons, plus the navigation panel and map |
@@ -368,7 +369,7 @@ The build chooses the mode: `vite build --mode server` (`npm run build:server`, 
 
 ## Testing
 
-Vitest runs 283 tests in 24 files, in about three seconds.
+Vitest runs 284 tests in 24 files, in about three seconds.
 
 | Area | What is covered |
 |---|---|

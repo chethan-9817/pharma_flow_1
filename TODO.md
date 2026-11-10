@@ -1,6 +1,6 @@
 # PharmaFlow: what is left to do
 
-Last updated: 2026-11-10 (light-theme refresh, 6-month Eco-Sale alerts). Roadmap steps 1 to 8 are built and tested: 283 unit tests and 14 browser tests. This file lists what is **not** done, the decisions that were made without you, and what to know before continuing.
+Last updated: 2026-11-10 (light-theme refresh, 6-month Eco-Sale alerts). Roadmap steps 1 to 8 are built and tested: 284 unit tests and 14 browser tests. This file lists what is **not** done, the decisions that were made without you, and what to know before continuing.
 
 ## Done since the last version of this file
 
@@ -9,6 +9,7 @@ Last updated: 2026-11-10 (light-theme refresh, 6-month Eco-Sale alerts). Roadmap
 - **Light-theme refresh (2026-11-10).** All four roles and the shared pieces (top bar, sign-in gate, toasts, dialogs) use one calm light design. The rider screen is no longer dark, the chemist banner is a white card, and repeated actions use soft tinted buttons. Tokens and the rules are in ARCHITECTURE.md → Design system. Logic, text and layouts (including the All 4 view) were not changed.
 - **More colour (2026-11-10, same day).** You found the first pass too white, so the theme stays light but now has clear colour: a blue-grey background, light-blue header cards, a solid blue active tab, and stat tiles tinted by meaning with icon chips (green, amber, orange, red). The Figma "after" captures and component sheet show the earlier, paler version.
 - **6-month Eco-Sale alerts and more stock (2026-11-10).** Your model: 6 months before expiry the chemist is alerted and the medicine goes on Eco-Sale; a ₹200 strip sells for ₹170, PharmaFlow keeps ₹20 and the store gets ₹150. Eco-Sale now opens only inside that window. The store has 22 medicines (10 new), each with a fresh batch, so the customer shop no longer shows "out of stock" when an old batch goes on Eco-Sale; if the Eco-Sale batch is the only stock, the shop sells it at the Eco-Sale price.
+- **Pharmacy products and pictures (2026-11-10).** 46 items in six aisles: 29 medicines, plus sanitary pads, sunscreens, face serums, face washes, toothbrushes, toothpaste, diaper pants, syringes, bandages, antiseptic and a thermometer. Every item has a drawn picture, and aisle chips filter the shop.
 
 ## Decisions I made without a final answer from you
 
@@ -20,6 +21,8 @@ These are written into the code and the docs. Change them if they are wrong.
 | Sponsor: what ₹99 buys | As many packs of the deal as ₹99 covers at the Eco-Sale price (at least one). The store is paid that price, the change tops up the NGO fund | `sponsorUnits`, `sponsorSplit` |
 | Platform fee and the NGO share | **10% of the MRP** of each delivered order is the platform's fee and **2% of that** goes to the NGO fund. Taking it on the MRP matches your example (₹20 on a ₹200 strip sold for ₹170). These are demo numbers, there is no real revenue model yet | `src/domain/rules/fund.ts` (one constant each) |
 | Eco-Sale discount after the first offer | You gave 15% at 6 months (₹200 → ₹170). I kept the deeper suggestions closer to expiry: **50% under 90 days, 60% under 45 days**, so stock still clears. The chemist can be offered any discount from 15% to 60% | `src/domain/rules/ecoSale.ts` (`suggestedDiscount`) |
+| Product pictures | **Drawn illustrations**, not brand photos. Real pack shots are the brands' copyrighted images, and the app must work offline with no image service. Swap in licensed photos later if you get them | `src/components/ProductArt.tsx` |
+| Which products and prices | A typical Indian pharmacy mix with **indicative MRPs**. All non-medicine products are over the counter; Ecosprin, Pantocid and Montair LC are marked Schedule H. Check schedules against CDSCO before real use | `src/seed/medicines.ts`, `src/seed/products.ts` |
 | Sponsor batch payout | Unchanged: the store is paid the full Eco-Sale price for sponsored packs, with no PharmaFlow fee taken from it | `src/domain/rules/sponsor.ts` |
 | Failed pharmacist check on sponsored packs | The sponsor gets the full ₹99 back as MedWallet credit, the store is not paid | `sponsorshipRefunded` |
 | Server database | Node's built-in `node:sqlite`, not better-sqlite3 + Drizzle, so nothing needs compiling | `server/db.ts` |
@@ -68,7 +71,7 @@ The sheet is plain frames, not Figma components. Turning it into real **componen
 ```powershell
 pharmaflow            # start the app and open the presenter view
 pharmaflow stop       # stop it
-pharmaflow test       # 283 unit tests
+pharmaflow test       # 284 unit tests
 pharmaflow server     # server mode: real logins, data on the server (http://localhost:8787)
 npm run test:e2e      # browser tests: four tabs and languages (uses your Chrome)
 npm run test:e2e:pwa  # builds the app, checks installability and offline use

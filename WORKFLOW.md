@@ -131,6 +131,8 @@ Customers see: *Expires in 38 days • fits a 5-day course • 50% OFF*. Every m
 
 ## 3. Buying: forward order (OTC)
 
+**The shop.** The demo store sells 46 items in six aisles, each with a drawn picture: **Medicines** (29), **Skin care** (sunscreens, face serums, face washes), **Women's hygiene** (sanitary pads), **Oral care** (toothbrushes, toothpaste), **Baby care** (diaper pants) and **First aid & devices** (syringes, bandages, antiseptic, a thermometer, glucose strips). The aisle chips above the list filter it and show how many items each aisle has; search works across all of them. Products outside Medicines are over the counter and carry their aisle as a badge. They have batches and expiry dates too, so they get the same 6-month alert and Eco-Sale.
+
 ```mermaid
 sequenceDiagram
     participant U as Customer
@@ -437,7 +439,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 283 tests, about three seconds
+pharmaflow test      # 284 tests, about three seconds
 npm run test:e2e     # Playwright: four browser tabs and languages, uses your installed Chrome (starts its own dev server on :5199)
 npm run test:e2e:pwa # builds the app and checks installability and offline use
 npm run test:e2e:server  # builds the server version, starts the real server, checks logins and live sync
