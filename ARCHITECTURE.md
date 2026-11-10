@@ -262,7 +262,7 @@ Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a 
 - **Stats.** `Stat` shows its meaning with a small coloured dot; the number stays in the ink colour.
 - **No dark surfaces.** There is no dark theme. The rider screen, toasts and dialogs are light too; only the camera preview is dark.
 
-**Figma.** The tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, and captures of the four role screens from before the refresh. The Button, Badge, Card and Stat component sets and "after" captures are not in the file yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.
+**Figma.** The tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, captures of the four role screens from before and after the refresh, and a component sheet (Button, Badge, Card, Stat) captured from the classes in `src/components/ui.tsx`. The sheet is plain frames; real Figma component sets are not built yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.
 
 ## Launcher and the pharmaflow command
 
