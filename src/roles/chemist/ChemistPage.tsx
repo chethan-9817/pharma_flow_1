@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { FileCheck, Gift, Hourglass, PackageCheck, PackagePlus, ShieldCheck, Skull, Store, Tag, Trash2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { suggestedDiscount } from '../../domain/rules/ecoSale';
+import { checkEcoSaleEligible, suggestedDiscount } from '../../domain/rules/ecoSale';
 import { bucketCounts, storeInventory, type BatchView } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { Badge, BucketBadge, Button, Card, PageHero, SectionTitle, Stat, inr } from '../../components/ui';
@@ -10,6 +10,7 @@ import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { AddInventory, type AddMode } from './AddInventory';
+import { ExpiryAlerts } from './ExpiryAlerts';
 import { SponsoredSection } from './SponsoredSection';
 import { WriteOffSection } from './WriteOffSection';
 
@@ -100,6 +101,8 @@ export function ChemistPage({ user }: { user: User }) {
         <Stat label={t('chemist.critical')} value={counts.CRITICAL} hint={t('chemist.days1to29')} tone="orange" icon={TriangleAlert} />
         <Stat label={t('chemist.expired')} value={counts.EXPIRED} hint={t('chemist.bioHazard')} tone="red" icon={Skull} />
       </div>
+
+      <ExpiryAlerts user={user} />
 
       <AddInventory user={user} mode={addMode} onModeChange={setAddMode} />
 
@@ -231,9 +234,12 @@ export function ChemistPage({ user }: { user: User }) {
                       <div className="flex justify-end gap-1.5">
                         {v.bucket !== 'EXPIRED' && (
                           <>
-                            <Button size="sm" variant="amber" onClick={() => void ecoSale(v)}>
-                              <Tag className="size-3.5" /> {t('chemist.ecoSale')}
-                            </Button>
+                            {/* Eco-Sale opens 6 months before expiry (fresh stock sells at full price) and needs time to finish a course. */}
+                            {checkEcoSaleEligible(v.medicine, v.batch.expiry, app.today).ok && (
+                              <Button size="sm" variant="amber" onClick={() => void ecoSale(v)}>
+                                <Tag className="size-3.5" /> {t('chemist.ecoSale')}
+                              </Button>
+                            )}
                             <Button size="sm" variant="ecoSoft" onClick={() => void schedulePickup(v, 'DONATION')}>
                               <Gift className="size-3.5" /> {t('chemist.donate')}
                             </Button>

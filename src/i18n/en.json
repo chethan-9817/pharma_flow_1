@@ -63,6 +63,7 @@
       "otc": "OTC",
       "inStock": "{{count}} in stock",
       "outOfStock": "Out of stock",
+      "ecoOnly": "{{count}} left on Eco-Sale",
       "add": "Add",
       "added": "{{brand}} added to cart"
     },
@@ -296,6 +297,16 @@
     "donate": "Donate",
     "dispose": "Dispose",
     "ecoLive": "{{brand}} is live in the Eco-Sale store",
+    "alerts": {
+      "title": "Expiry alerts: within 6 months",
+      "intro": "These batches expire within 6 months. Put them on Eco-Sale now so they sell before they are wasted.",
+      "count": "{{count}} to act on",
+      "none": "No batch expires within the next 6 months. You will be alerted here when one does.",
+      "offer": "MRP {{mrp}} → Eco-Sale {{price}} ({{pct}}% off)",
+      "split": "PharmaFlow fee {{fee}} · you receive {{store}} a pack",
+      "action": "Put on Eco-Sale",
+      "blocked": "Too close to expiry to sell. Donate or dispose of it from the expiry ledger."
+    },
     "riderSummoned": "Rider summoned to donate to {{ngo}}",
     "yellowBagScheduled": "Yellow-Bag pickup scheduled for the CBWTF",
     "sponsored": {
