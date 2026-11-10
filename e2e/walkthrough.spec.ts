@@ -18,7 +18,8 @@ test.describe('demo walkthrough across four tabs', () => {
     await front(customer);
     await customer.getByRole('button', { name: /^Deals/ }).click();
     await expect(customer.getByRole('heading', { name: 'Okacet' })).toBeVisible();
-    await expect(customer.getByText('60% OFF')).toBeVisible();
+    // Exact: the Shop tab, still fading out, has a looser "… at 60% off" note.
+    await expect(customer.getByText('60% OFF', { exact: true })).toBeVisible();
     await customer.getByRole('button', { name: /Buy for myself/ }).click();
     await customer.getByRole('button', { name: /^Cart/ }).click();
     await customer.getByRole('button', { name: 'Place order' }).click();
@@ -54,7 +55,7 @@ test.describe('demo walkthrough across four tabs', () => {
     const { customer, chemist } = await openAllRoles(context);
 
     await front(customer);
-    await customer.getByPlaceholder('Search medicines or salts').fill('Augmentin');
+    await customer.getByPlaceholder('Search medicines, salts or products').fill('Augmentin');
     await customer.getByRole('button', { name: 'Add' }).click();
     await customer.getByRole('button', { name: /^Cart/ }).click();
     await expect(customer.getByText('Prescription required')).toBeVisible();

@@ -53,7 +53,17 @@
       "civicShort": "Civic"
     },
     "shop": {
-      "search": "Search medicines or salts",
+      "search": "Search medicines, salts or products",
+      "aisles": "Shop aisles",
+      "aisle": {
+        "ALL": "All",
+        "MEDICINE": "Medicines",
+        "SKIN_CARE": "Skin care",
+        "WOMENS_HYGIENE": "Women's hygiene",
+        "ORAL_CARE": "Oral care",
+        "BABY_CARE": "Baby care",
+        "FIRST_AID": "First aid & devices"
+      },
       "deliveringFrom": "Delivering from",
       "cheaperGeneric": "Cheaper generic:",
       "save": "Save {{amount}} ({{pct}}%).",

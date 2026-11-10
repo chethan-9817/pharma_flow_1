@@ -14,7 +14,8 @@ test.describe('English, Kannada and Hindi', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'kn');
     await expect(page.getByRole('button', { name: /^ಅಂಗಡಿ/ })).toBeVisible();
     await expect(page.getByText('ನಮಸ್ಕಾರ,')).toBeVisible();
-    await expect(page.getByPlaceholder('ಔಷಧಿ ಅಥವಾ ಲವಣಗಳನ್ನು ಹುಡುಕಿ')).toBeVisible();
+    await expect(page.getByPlaceholder('ಔಷಧಿ, ಲವಣ ಅಥವಾ ಉತ್ಪನ್ನಗಳನ್ನು ಹುಡುಕಿ')).toBeVisible();
+    await expect(page.getByRole('button', { name: /^ಚರ್ಮದ ಆರೈಕೆ/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Shop/ })).toHaveCount(0);
 
     await picker.selectOption('hi');

@@ -6,8 +6,9 @@ import { nearestStoreId, stockFor } from '../../domain/checkout';
 import { genericOffer } from '../../domain/rules/generic';
 import { requiresRx } from '../../domain/rules/prescription';
 import { ecoListings } from '../../domain/selectors';
-import type { User } from '../../domain/types';
+import { CATEGORIES, categoryOf, type Category, type User } from '../../domain/types';
 import { Badge, Button, Card, inr } from '../../components/ui';
+import { ProductArt } from '../../components/ProductArt';
 import { toast } from '../../components/toast';
 import { useApp } from '../../store';
 import { useCart } from './cart';
@@ -17,13 +18,16 @@ export function ShopTab({ user }: { user: User }) {
   const app = useApp();
   const add = useCart((s) => s.add);
   const [query, setQuery] = useState('');
+  const [aisle, setAisle] = useState<Category | 'ALL'>('ALL');
   const storeId = nearestStoreId(app, user.id);
   const store = storeId ? app.stores[storeId] : undefined;
 
-  const medicines = useMemo(() => {
+  const searched = useMemo(() => {
     const q = query.trim().toLowerCase();
     return Object.values(app.medicines).filter((m) => !q || m.brand.toLowerCase().includes(q) || m.salt.toLowerCase().includes(q));
   }, [app.medicines, query]);
+  const medicines = aisle === 'ALL' ? searched : searched.filter((m) => categoryOf(m) === aisle);
+  const countIn = (c: Category | 'ALL') => (c === 'ALL' ? searched.length : searched.filter((m) => categoryOf(m) === c).length);
 
   return (
     <div className="space-y-4">
@@ -36,6 +40,26 @@ export function ShopTab({ user }: { user: User }) {
           className="h-11 w-full rounded-xl border border-sky-200 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
         />
       </div>
+
+      <div role="group" aria-label={t('customer.shop.aisles')} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        {(['ALL', ...CATEGORIES] as const).map((c) => {
+          const active = aisle === c;
+          return (
+            <button
+              key={c}
+              onClick={() => setAisle(c)}
+              aria-pressed={active}
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ring-1 ring-inset transition-colors ${
+                active ? 'bg-medical text-white ring-medical' : 'bg-white text-slate-700 ring-sky-200 hover:bg-sky-50'
+              }`}
+            >
+              {t(`customer.shop.aisle.${c}`)}
+              <span className={`text-[11px] tabular-nums ${active ? 'text-white/80' : 'text-slate-400'}`}>{countIn(c)}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {store && <p className="text-xs text-slate-500">{t('customer.shop.deliveringFrom')} <b className="font-medium text-slate-700">{store.name}</b>, {store.area}</p>}
 
       <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
@@ -48,13 +72,22 @@ export function ShopTab({ user }: { user: User }) {
           return (
             <motion.div key={m.id} className="h-full" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.03 }}>
               <Card className="flex h-full flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-slate-900">{m.brand}</h3>
+                <div className="flex items-start gap-3">
+                  <ProductArt medicine={m} className="size-16" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold leading-snug text-slate-900">{m.brand}</h3>
+                      {requiresRx(m) ? (
+                        <Badge tone="red" className="shrink-0">{t('customer.shop.rxBadge', { schedule: m.schedule })}</Badge>
+                      ) : categoryOf(m) === 'MEDICINE' ? (
+                        <Badge tone="green" className="shrink-0">{t('customer.shop.otc')}</Badge>
+                      ) : (
+                        <Badge tone="blue" className="shrink-0">{t(`customer.shop.aisle.${categoryOf(m)}`)}</Badge>
+                      )}
+                    </div>
                     <p className="truncate text-[13px] text-slate-600">{m.salt}</p>
                     <p className="text-xs text-slate-500">{m.packSize} · {m.manufacturer}</p>
                   </div>
-                  {requiresRx(m) ? <Badge tone="red">{t('customer.shop.rxBadge', { schedule: m.schedule })}</Badge> : <Badge tone="green">{t('customer.shop.otc')}</Badge>}
                 </div>
 
                 {offer && (
