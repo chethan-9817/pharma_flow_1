@@ -30,7 +30,7 @@ interface Pending {
 }
 
 const input =
-  'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-medical focus:ring-4 focus:ring-medical/15';
+  'h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-medical focus:ring-4 focus:ring-medical/15';
 
 interface Props {
   user: User;
@@ -142,8 +142,8 @@ export function AddInventory({ user, mode, onModeChange }: Props) {
             role="tab"
             aria-selected={mode === id}
             onClick={() => onModeChange(id)}
-            className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-all sm:text-sm ${
-              mode === id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+            className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-medium transition-colors sm:text-sm ${
+              mode === id ? 'bg-white text-slate-900 shadow-card ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <Icon className="size-4" />

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileCheck, Gift, PackageCheck, PackagePlus, ShieldCheck, Tag, Trash2 } from 'lucide-react';
+import { FileCheck, Gift, PackageCheck, PackagePlus, ShieldCheck, Store, Tag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { suggestedDiscount } from '../../domain/rules/ecoSale';
@@ -76,23 +76,25 @@ export function ChemistPage({ user }: { user: User }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-gradient-to-r from-medical to-sky-500 p-5 text-white">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold">{store.name}</h1>
-            <p className="text-sm text-sky-100">{store.area} · {t('chemist.licence')} {store.drugLicence}</p>
+      <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-medical-tint text-medical ring-1 ring-inset ring-medical-ring/70">
+              <Store className="size-6" />
+            </span>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900">{store.name}</h1>
+              <p className="text-sm text-slate-500">{store.area} · {t('chemist.licence')} {store.drugLicence}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Badge tone={store.kyc === 'APPROVED' ? 'green' : 'amber'}>{store.kyc === 'APPROVED' ? t('chemist.kycApproved') : t('chemist.awaitingKyc')}</Badge>
-            <button
-              onClick={() => openAddInventory()}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3.5 text-sm font-semibold text-medical-dark shadow-sm hover:bg-sky-50"
-            >
+            <Button onClick={() => openAddInventory()}>
               <PackagePlus className="size-4" /> {t('chemist.addInventory')}
-            </button>
+            </Button>
           </div>
         </div>
-        <p className="mt-3 text-sm font-medium">{t('chemist.tagline')}</p>
+        <p className="mt-4 border-t border-slate-100 pt-3 text-sm text-slate-600">{t('chemist.tagline')}</p>
       </motion.section>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -176,7 +178,7 @@ export function ChemistPage({ user }: { user: User }) {
                   <Button size="sm" variant="eco" onClick={async () => report(await dispatch(user.id, { type: 'PICKUP_QA_VERIFIED', pickupId: p.id }), t('chemist.qaVerifiedToast'))}>
                     <ShieldCheck className="size-4" /> {t('chemist.qaVerified')}
                   </Button>
-                  <Button size="sm" variant="danger" onClick={() => void rejectQa(p.id)}>{t('chemist.qaReject')}</Button>
+                  <Button size="sm" variant="dangerSoft" onClick={() => void rejectQa(p.id)}>{t('chemist.qaReject')}</Button>
                 </div>
               </Card>
             ))}
@@ -187,7 +189,7 @@ export function ChemistPage({ user }: { user: User }) {
       <section>
         <SectionTitle
           action={
-            <Button size="sm" variant="eco" onClick={() => openAddInventory('pick')}>
+            <Button size="sm" variant="soft" onClick={() => openAddInventory('pick')}>
               <PackagePlus className="size-4" /> {t('chemist.addInventory')}
             </Button>
           }
@@ -196,7 +198,7 @@ export function ChemistPage({ user }: { user: User }) {
         </SectionTitle>
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
               <tr>
                 <th className="px-4 py-3">{t('chemist.col.medicine')}</th>
                 <th className="px-4 py-3">{t('chemist.col.batch')}</th>
@@ -235,13 +237,13 @@ export function ChemistPage({ user }: { user: User }) {
                             <Button size="sm" variant="amber" onClick={() => void ecoSale(v)}>
                               <Tag className="size-3.5" /> {t('chemist.ecoSale')}
                             </Button>
-                            <Button size="sm" variant="eco" onClick={() => void schedulePickup(v, 'DONATION')}>
+                            <Button size="sm" variant="ecoSoft" onClick={() => void schedulePickup(v, 'DONATION')}>
                               <Gift className="size-3.5" /> {t('chemist.donate')}
                             </Button>
                           </>
                         )}
                         {v.bucket === 'EXPIRED' && (
-                          <Button size="sm" variant="danger" onClick={() => void schedulePickup(v, 'DISPOSAL')}>
+                          <Button size="sm" variant="dangerSoft" onClick={() => void schedulePickup(v, 'DISPOSAL')}>
                             <Trash2 className="size-3.5" /> {t('chemist.dispose')}
                           </Button>
                         )}

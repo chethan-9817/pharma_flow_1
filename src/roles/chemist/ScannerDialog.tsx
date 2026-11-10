@@ -62,7 +62,7 @@ export function ScannerDialog({ open, onClose, onScan, onType }: Props) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -71,7 +71,7 @@ export function ScannerDialog({ open, onClose, onScan, onType }: Props) {
           <motion.div
             role="dialog"
             aria-label="Scan a medicine barcode"
-            className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-pop ring-1 ring-slate-200"
             initial={{ scale: 0.95, y: 12 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 12 }}
@@ -79,7 +79,7 @@ export function ScannerDialog({ open, onClose, onScan, onType }: Props) {
           >
             <div className="flex items-center justify-between px-5 py-4">
               <div>
-                <h2 className="font-bold text-slate-900">Scan a medicine strip</h2>
+                <h2 className="font-semibold text-slate-900">Scan a medicine strip</h2>
                 <p className="text-xs text-slate-500">Hold the barcode inside the frame. GS1 codes fill batch and expiry.</p>
               </div>
               <button onClick={onClose} aria-label="Close scanner" className="grid size-9 place-items-center rounded-full hover:bg-slate-100">
