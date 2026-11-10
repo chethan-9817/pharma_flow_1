@@ -35,8 +35,15 @@ flowchart LR
 |---|---|
 | 🛒 **Customer** | Shop with a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · book blood donation · live order tracker · karma points, scratch cards, PDF certificates |
 | 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
-| 🏍️ **Rider** | Dark-mode mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
+| 🏍️ **Rider** | Mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
 | 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
+
+## 🎨 Look and feel
+
+All four roles share one calm light theme: white cards on a soft grey canvas and one deep blue for the main action. Soft tinted buttons are used for repeated actions such as *Add to cart*. Colour appears only where it means something: green for Eco-Sale, red for disposal and blood, and amber for expiry warnings. The rider screen and its map are light too.
+
+- **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
+- **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) holds the same tokens as variables, before-and-after screens of every role, and a component sheet.
 
 ---
 
