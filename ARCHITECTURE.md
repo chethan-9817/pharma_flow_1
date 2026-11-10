@@ -171,7 +171,7 @@ All rules are pure functions in `src/domain/rules/`, each with its own unit test
 | File | Rule |
 |---|---|
 | `expiry.ts` | SAFE > 180 d, LOCKOUT 30–180, CRITICAL 1–29, EXPIRED ≤ 0 |
-| `ecoSale.ts` | 40–60% discount; eligible only if `days_left ≥ course_days + 15`; never expired; never Schedule X; deeper discount closer to expiry |
+| `ecoSale.ts` | Opens only within 6 months (180 days) of expiry; 15–60% discount, suggested 15% at the 6-month alert and deeper closer to expiry; eligible only if `days_left ≥ course_days + 15`; never expired; never Schedule X. `ecoSplit` gives the price, PharmaFlow's fee (10% of MRP) and the store's share: ₹200 → ₹170, ₹20, ₹150 |
 | `donation.ts` | Sealed, more than 30 days left, not cold-chain, not Schedule X, not an opened liquid; Rx-only drugs only to NGOs with a registered professional |
 | `prescription.ts` | Schedule H/H1 need an Rx; required fields; validity 30 days (antibiotics) or 180 days; antibiotic Rx single-use; quantity cap; packing gate; H1 register with 3-year retention; Schedule X blocked |
 | `rxText.ts` | Turns OCR text into **suggestions** for the Rx form. OCR never approves anything |
@@ -180,7 +180,7 @@ All rules are pure functions in `src/domain/rules/`, each with its own unit test
 | `gst.ts` | Write-off certificate with the GST ITC reversal (CGST Sec 17(5)(h)); never called 80G |
 | `gs1.ts` | Parses GS1 element strings (GTIN, batch, expiry), symbology prefixes and plain EAN barcodes. `parseScan` is used for both camera results and typed barcodes (spaces and hyphens ignored) |
 | `sponsor.ts` | "Sponsor batch for NGO": flat ₹99 buys as many packs as it covers at the Eco-Sale price (at least one, at most the batch); store payout and fund top-up always add up to ₹99; only Eco-Sale, OTC, non-cold-chain batches with more than 30 days left |
-| `fund.ts` | The NGO fund: a 10% platform fee on delivered orders, of which 2% goes to the fund (demo values, one constant each) |
+| `fund.ts` | The platform fee is 10% of the **MRP value** of a delivered order (also on Eco-Sale items), of which 2% goes to the NGO fund (demo values, one constant each) |
 
 State machines are in `src/domain/machines/`:
 
@@ -368,11 +368,11 @@ The build chooses the mode: `vite build --mode server` (`npm run build:server`, 
 
 ## Testing
 
-Vitest runs 275 tests in 24 files, in about two seconds.
+Vitest runs 283 tests in 24 files, in about three seconds.
 
 | Area | What is covered |
 |---|---|
-| Rules | Every boundary: 180/30/1-day buckets, 40–60% discounts, course buffer, donation exclusions, Rx validity and single-use, GS1 parsing, rewards, GST, the sponsor and NGO fund rules |
+| Rules | Every boundary: 180/30/1-day buckets, the 6-month Eco-Sale window, 15–60% discounts and the fee split, course buffer, donation exclusions, Rx validity and single-use, GS1 parsing, rewards, GST, the sponsor and NGO fund rules |
 | State machines | Allowed and rejected transitions for orders and pickups |
 | Reducer | KYC, stock, Eco-Sale, orders, prescription review, H1 register, donations, disposal, blood, time travel (admin only), sponsorships (success, tampering, refund) |
 | Checkout | Cart quoting, batch splitting, order planning |
@@ -414,7 +414,7 @@ Playwright tabs are throttled when in the background, so the tests bring a tab t
 - **Map tiles use the public OpenStreetMap servers.** That is fine for a demo and light use. A production app should use its own tile provider or host tiles itself, following the OSM tile usage policy.
 - **Certificate verification in demo mode checks only the browser's own log.** In server mode `/verify` asks the server, so it works for anyone.
 - **The NGO fund can only grow for now.** Sponsor change and the platform share go in, but nothing spends it yet. Using it for bulk, discounted medicines through distributors is designed (see TODO.md) but not built, and it needs an NGO login and a needs list first.
-- **The platform fee is a demo number.** There is no real revenue model: a 10% fee on delivered orders is assumed so the NGO share has something to be a share of. Holding real donated money also needs a registered trust or partner NGO.
+- **The platform fee is a demo number.** There is no real revenue model: a 10% fee on the MRP of what is sold is assumed (₹20 on a ₹200 strip sold on Eco-Sale for ₹170, leaving the store ₹150), so the NGO share has something to be a share of. Holding real donated money also needs a registered trust or partner NGO.
 - **The rider position is simulated.** There is no GPS: the dot glides between stops for display only.
 - **Camera needs a secure context.** Use `http://localhost`, not a LAN IP over plain HTTP.
 - **Prescription OCR is a suggestion engine.** A pharmacist always makes the final decision.

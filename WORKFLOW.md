@@ -100,22 +100,34 @@ stateDiagram-v2
     SAFE --> LOCKOUT: "time passes: 30–180 days"
     LOCKOUT --> CRITICAL: "1–29 days"
     CRITICAL --> EXPIRED: "0 days"
-    LOCKOUT --> EcoSale: "Put on Eco-Sale"
-    SAFE --> EcoSale: "Put on Eco-Sale"
+    LOCKOUT --> EcoSale: "6-month alert → Put on Eco-Sale"
     LOCKOUT --> Donated: "Donate to NGO"
     EXPIRED --> Incinerated: "Yellow-Bag pickup"
     EcoSale --> Sold: "customer buys"
 ```
 
+**The 6-month alert.** As soon as a batch has 6 months (180 days) or less left, it appears in the chemist's **Expiry alerts** panel with the offer that would clear it. Example for a ₹200 strip:
+
+| | Amount |
+|---|---|
+| MRP | ₹200 |
+| Eco-Sale price (15% off) | **₹170** paid by the customer |
+| PharmaFlow fee (10% of the MRP) | ₹20 |
+| The store receives | **₹150** a pack |
+
+One click on **Put on Eco-Sale** lists it. Batches too close to expiry to sell (the course would not fit) are flagged instead, with a pointer to Donate or Dispose.
+
 | Rule | Value |
 |---|---|
-| Discount | 40% to 60%. The button suggests 60% under 45 days left, 50% under 90 days, otherwise 40% |
+| When | Only within **6 months of expiry**. Fresh stock always sells at full price |
+| Discount | 15% to 60%. The suggestion is **15%** when the alert goes out, 50% under 90 days left, 60% under 45 days |
+| Fee | PharmaFlow takes 10% of the **MRP**, also on Eco-Sale items, so the store gets the Eco-Sale price minus that fee |
 | Eligibility | `days_left ≥ course_days + 15`, so the patient can finish the course before expiry |
 | Never | Expired stock, Schedule X |
 | Prescription | **Not bypassed.** An Eco-Sale Augmentin still needs a prescription |
 | Over time | If time travel makes the course no longer fit, the deal disappears and cannot be bought |
 
-Customers see: *Expires in 38 days • fits a 5-day course • 50% OFF*.
+Customers see: *Expires in 38 days • fits a 5-day course • 50% OFF*. Every medicine also has a fresh batch, so the shop keeps selling it at full price; when the Eco-Sale batch is the only stock left, the shop card offers it at the Eco-Sale price instead of saying out of stock.
 
 ## 3. Buying: forward order (OTC)
 
@@ -417,7 +429,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | "Does it work offline?" | Everything except first-time OCR and the web font |
 | "Where is the data?" | In the browser (IndexedDB). `npm run db:sample` shows the same data as SQL tables |
 | "How do NGOs benefit?" | Three ways today: donated strips after a pharmacist's check, **sponsored packs** straight from a store's Eco-Sale batch, and an **NGO fund** (sponsor change plus a small share of the platform's fee). The fund can only buy medicines for NGOs |
-| "Is the platform fee real?" | No, it is a demo number (10% of a delivered order, 2% of that to the fund). It is one constant in `rules/fund.ts` |
+| "Is the platform fee real?" | No, it is a demo number: 10% of the MRP of what is sold (₹20 on a ₹200 strip, even at the ₹170 Eco-Sale price), and 2% of that to the fund. It is one constant in `rules/fund.ts` |
 
 ---
 
@@ -425,7 +437,7 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 
 ```powershell
 cd "C:\Users\cheth\OneDrive\Desktop\ALLMY_imp(s)\Pharma-flow"
-pharmaflow test      # 275 tests, about two seconds
+pharmaflow test      # 283 tests, about three seconds
 npm run test:e2e     # Playwright: four browser tabs and languages, uses your installed Chrome (starts its own dev server on :5199)
 npm run test:e2e:pwa # builds the app and checks installability and offline use
 npm run test:e2e:server  # builds the server version, starts the real server, checks logins and live sync

@@ -5,7 +5,7 @@
 PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a **closed loop** connecting four roles: **Customers**, **Medical Stores (Chemists)**, **Delivery Riders** and **Admins / NGOs / Blood Banks**.
 
 > 🎓 PBL project · Pilot region: **Mangaluru, Karnataka**
-> ✅ All four role apps, server mode, installable PWA and English / ಕನ್ನಡ / हिन्दी are built and tested (275 unit tests, 14 browser tests).
+> ✅ All four role apps, server mode, installable PWA and English / ಕನ್ನಡ / हिन्दी are built and tested (283 unit tests, 14 browser tests).
 
 📖 **More docs:** [WORKFLOW.md](WORKFLOW.md) (every flow + demo script) · [ARCHITECTURE.md](ARCHITECTURE.md) (how the code works) · [TODO.md](TODO.md) (what's left)
 
@@ -22,7 +22,7 @@ PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a 
 ```mermaid
 flowchart LR
     C[Chemist] -->|Normal sale| U[Customer]
-    C -->|Near-expiry: Eco-Sale 40-60% off| U
+    C -->|6 months before expiry: Eco-Sale from 15% off| U
     U -->|Leftover sealed strips| QA{Pharmacist QA}
     C -->|Unsellable but safe| QA
     QA -->|Verified| N[NGO Clinic]
@@ -34,7 +34,7 @@ flowchart LR
 | Role | What it does |
 |---|---|
 | 🛒 **Customer** | Shop with a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · book blood donation · live order tracker · karma points, scratch cards, PDF certificates |
-| 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
+| 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · **6-month expiry alerts** with the Eco-Sale price split · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
 | 🏍️ **Rider** | Mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
 | 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
 
@@ -44,6 +44,18 @@ All four roles share one light theme with clear, coordinated colour. White cards
 
 - **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
 - **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) holds the same tokens as variables, before-and-after screens of every role, and a component sheet.
+
+### 💸 How an Eco-Sale is split
+
+Six months before a batch expires, the chemist gets an **expiry alert** and can put it on Eco-Sale in one click. Fresh stock is never discounted.
+
+| ₹200 strip, 6 months before expiry | |
+|---|---|
+| Customer pays (15% off) | **₹170** |
+| PharmaFlow fee (10% of the MRP) | ₹20 |
+| Medical store receives | **₹150** |
+
+Closer to expiry the suggested discount deepens (50% under 90 days, 60% under 45). The demo store stocks 22 medicines, each with a fresh batch, so the shop never runs dry. Details: [WORKFLOW.md → Eco-Sale](WORKFLOW.md#2-eco-sale-rescuing-near-expiry-stock).
 
 ---
 
