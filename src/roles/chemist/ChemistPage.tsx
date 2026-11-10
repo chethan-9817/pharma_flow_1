@@ -10,6 +10,7 @@ import { report } from '../../components/toast';
 import { newId } from '../../lib/id';
 import { dispatch, useApp } from '../../store';
 import { AddInventory, type AddMode } from './AddInventory';
+import { BulkSection } from './BulkSection';
 import { ExpiryAlerts } from './ExpiryAlerts';
 import { SponsoredSection } from './SponsoredSection';
 import { WriteOffSection } from './WriteOffSection';
@@ -259,6 +260,8 @@ export function ChemistPage({ user }: { user: User }) {
           </table>
         </Card>
       </section>
+
+      <BulkSection user={user} />
 
       <SponsoredSection user={user} />
 

@@ -48,7 +48,7 @@ CREATE TABLE blood_banks (
 
 CREATE TABLE users (
   id       TEXT PRIMARY KEY,
-  role     TEXT NOT NULL CHECK (role IN ('customer','chemist','rider','admin')),
+  role     TEXT NOT NULL CHECK (role IN ('customer','chemist','rider','admin','dealer')),
   name     TEXT NOT NULL,
   store_id TEXT REFERENCES stores(id),
   address  TEXT,

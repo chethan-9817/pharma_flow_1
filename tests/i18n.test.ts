@@ -65,7 +65,7 @@ function sourceFiles(dir: string): string[] {
 
 const SRC = join(__dirname, '..', 'src');
 const FILES = sourceFiles(SRC).map((path) => readFileSync(path, 'utf8'));
-const ROOTS = 'common|nav|gate|customer|chemist|rider|admin|verify';
+const ROOTS = 'common|nav|gate|customer|chemist|rider|admin|verify|bulk|dealer|network';
 
 /** Is `key` in the English file, either exactly or as a plural (`key_one`, `key_other`)? */
 const exists = (key: string) => key in EN || `${key}_other` in EN;
@@ -117,7 +117,10 @@ describe('dynamic keys that the screens build from data', () => {
         ...['PLACED', 'DELIVERED', 'REFUNDED'].map((s) => `chemist.sponsored.status.${s}`),
         ...['DELIVERY', 'NGO_PICKUP', 'BIO_PICKUP'].map((k) => `rider.kind.${k}`),
         ...['safe', 'lockout', 'critical', 'expired'].map((b) => `chemist.${b}`),
-        ...['customer', 'chemist', 'rider', 'admin'].flatMap((r) => [`nav.${r}`, `gate.${r}`]),
+        ...['customer', 'chemist', 'rider', 'admin', 'dealer'].flatMap((r) => [`nav.${r}`, `gate.${r}`]),
+        ...['COLLECTING', 'OPEN', 'NEGOTIATED', 'AWARDED', 'DELIVERED', 'CANCELLED'].flatMap((s) => [`bulk.status.${s}`, `bulk.chemist.next.${s}`]),
+        ...['APPROVED', 'PENDING_KYC', 'REJECTED'].map((k) => `network.kyc.${k}`),
+        ...['overview', 'network', 'bulk'].map((tab) => `admin.tabs.${tab}`),
         ...['Inventory', 'Orders', 'Prescriptions', 'Pickups', 'Civic', 'Admin'].map((f) => `admin.charts.family.${f}`),
       ]),
     ).toEqual([]);

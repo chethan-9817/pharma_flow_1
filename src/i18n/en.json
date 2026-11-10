@@ -21,7 +21,8 @@
     "fiveMonths": "+5 months",
     "resetDemo": "Reset demo",
     "resetConfirm": "Reset all demo data in every open tab?",
-    "resetDone": "Demo data reset"
+    "resetDone": "Demo data reset",
+    "dealer": "Dealer"
   },
   "gate": {
     "title": "{{role}} demo login",
@@ -37,7 +38,8 @@
     "customer": "Buy medicines, grab Eco-Sale deals, donate leftovers and dispose of expired strips safely.",
     "chemist": "Your free ERP: scan stock, watch expiry buckets and rescue near-expiry medicines.",
     "rider": "Deliver orders and collect donations and Yellow-Bag pickups.",
-    "admin": "Approve pharmacies, track impact and verify the audit ledger."
+    "admin": "Approve pharmacies, track impact and verify the audit ledger.",
+    "dealer": "Quote on pooled bulk orders from medical stores and deliver the ones you win."
   },
   "customer": {
     "hello": "Hello,",
@@ -454,6 +456,11 @@
         "Civic": "Civic",
         "Admin": "Admin"
       }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "network": "Stores and orders",
+      "bulk": "Bulk orders"
     }
   },
   "verify": {
@@ -475,5 +482,153 @@
       "GREEN_CITIZEN": "Green Citizen Certificate",
       "BLOOD_DONOR": "Blood Donor Certificate"
     }
+  },
+  "bulk": {
+    "status": {
+      "COLLECTING": "Collecting requests",
+      "OPEN": "Open for quotes",
+      "NEGOTIATED": "Negotiated",
+      "AWARDED": "Awarded",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled"
+    },
+    "packs": "{{n}} packs",
+    "round": "Round {{n}}",
+    "buyerAgent": "Buyer's agent offers",
+    "dealerAgent": "Dealer's agent offers",
+    "agreedAt": "Agreed at {{price}} a pack",
+    "noDeal": "No deal: stopped at {{price}}, above the ceiling",
+    "perPack": "{{price}} a pack",
+    "mrp": "MRP {{price}}",
+    "usual": "usual trade price {{price}}",
+    "savings": "Saves {{amount}} against the usual trade price",
+    "total": "total {{amount}}",
+    "deliveredOn": "Delivered on {{date}}",
+    "chemist": {
+      "title": "Bulk orders with other stores",
+      "intro": "Need a large quantity? Ask here. PharmaFlow pools your request with other stores, dealers quote on the total, and every store pays the same lower price.",
+      "item": "Item",
+      "qty": "Packs needed",
+      "request": "Request bulk stock",
+      "join": "Join the pool",
+      "requested": "Bulk request sent",
+      "none": "No bulk requests yet.",
+      "yourShare": "Your share: {{qty}} packs",
+      "youPay": "You pay {{amount}}",
+      "next": {
+        "COLLECTING": "More stores can still join. The admin then asks dealers to quote.",
+        "OPEN": "Dealers are sending their quotes.",
+        "NEGOTIATED": "The agents have negotiated. The admin is choosing a dealer.",
+        "AWARDED": "A dealer has won and is delivering your stock.",
+        "DELIVERED": "Delivered. The stock is in your expiry ledger.",
+        "CANCELLED": "This bulk order was cancelled."
+      },
+      "poolOpen_one": "{{count}} store is already pooling {{qty}} packs of this item. Add yours.",
+      "poolOpen_other": "{{count}} stores are already pooling {{qty}} packs of this item. Add yours.",
+      "update": "Update my request",
+      "inPool": "Your store is in this pool. Change the quantity and update it any time before dealers are asked."
+    },
+    "admin": {
+      "title": "Pooled bulk orders",
+      "intro": "Stores pool their requests. You set the price limits, dealers quote, the agents negotiate and you choose the winner.",
+      "none": "No bulk requests yet. A chemist starts one from the bulk orders section of the store dashboard.",
+      "target": "Target price (₹)",
+      "ceiling": "Ceiling price (₹)",
+      "limitsHint": "The buyer's agent opens at the target and never pays more than the ceiling.",
+      "needStores": "Needs at least {{n}} stores before dealers are asked.",
+      "open": "Ask dealers for quotes",
+      "opened": "Dealers can now quote",
+      "limits": "Target {{target}} · ceiling {{ceiling}}",
+      "quotes": "Quotes received: {{n}}",
+      "noQuotes": "No quotes yet. Dealers quote from their own dashboard.",
+      "quoteRow": "asks {{ask}} · delivery in {{days}} days · rating {{rating}}",
+      "negotiate": "Run the negotiation",
+      "negotiated": "Negotiation finished",
+      "recommended": "Recommended",
+      "effective": "Effective price {{price}}",
+      "effectiveHint": "The effective price adds 0.5% for each delivery day and 2% for each rating star below five.",
+      "nobody": "No dealer came down to the ceiling. Cancel this order and start again with a higher ceiling.",
+      "award": "Award",
+      "awarded": "Awarded to {{dealer}}",
+      "cancel": "Cancel order",
+      "cancelled": "Bulk order cancelled",
+      "awaitingDelivery": "Waiting for {{dealer}} to deliver.",
+      "stats": {
+        "open": "Open bulk orders",
+        "delivered": "Delivered bulk orders",
+        "savings": "Saved for stores"
+      }
+    },
+    "poolLine_one": "{{qty}} packs from {{count}} store",
+    "poolLine_other": "{{qty}} packs from {{count}} stores"
+  },
+  "dealer": {
+    "subtitle": "{{area}} · Wholesale licence {{licence}}",
+    "rating": "Rating {{rating}} / 5",
+    "stats": {
+      "open": "Open for quotes",
+      "quoted": "Quotes sent",
+      "won": "Orders won",
+      "value": "Value won"
+    },
+    "tenders": "Bulk orders from stores",
+    "none": "No bulk orders are open right now. They appear here as soon as the admin asks for quotes.",
+    "ask": "Your price per pack (₹)",
+    "floor": "Lowest price you accept (₹)",
+    "days": "Delivery (days)",
+    "floorHint": "Only your own negotiating agent uses the lowest price. It never goes below it.",
+    "submit": "Send quote",
+    "update": "Update quote",
+    "sent": "Quote sent",
+    "yourQuote": "Your quote: {{ask}} a pack, lowest {{floor}}, delivery in {{days}} days",
+    "waitingNegotiation": "Waiting for the admin to start the negotiation.",
+    "pending": "The admin is choosing a dealer.",
+    "won": "You won this order at {{price}} a pack.",
+    "lost": "Another dealer won this order.",
+    "batchNo": "Batch number",
+    "expiry": "Expiry date",
+    "deliver": "Mark as delivered",
+    "deliveredToast": "Delivered to {{stores}} stores",
+    "deliveredDone": "Delivered. Every store has its share."
+  },
+  "network": {
+    "stores": "Medical stores",
+    "storesHint": "{{approved}} approved · {{pending}} awaiting KYC",
+    "customers": "Customers",
+    "riders": "Riders",
+    "ridersHint": "{{online}} online now",
+    "dealers": "Dealers",
+    "orders": "Orders",
+    "ordersHint": "{{active}} in progress · {{delivered}} delivered",
+    "assigned": "Orders assigned to riders",
+    "assignedHint": "{{waiting}} waiting for a rider",
+    "storeTable": "Every medical store",
+    "col": {
+      "store": "Store",
+      "chemist": "Chemist",
+      "kyc": "KYC",
+      "stock": "Packs in stock",
+      "eco": "On Eco-Sale",
+      "orders": "Orders",
+      "active": "In progress",
+      "delivered": "Delivered",
+      "sales": "Sales"
+    },
+    "kyc": {
+      "APPROVED": "Approved",
+      "PENDING_KYC": "Pending",
+      "REJECTED": "Rejected"
+    },
+    "orderTable": "Recent orders",
+    "noOrders": "No orders yet. They appear here as soon as a customer checks out.",
+    "ocol": {
+      "customer": "Customer",
+      "store": "Store",
+      "items": "Packs",
+      "total": "Total",
+      "rider": "Rider",
+      "status": "Status"
+    },
+    "unassigned": "Not assigned yet"
   }
 }
