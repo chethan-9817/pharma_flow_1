@@ -59,14 +59,14 @@ export function PresenterBar() {
           <span className="text-base font-semibold tracking-tight text-slate-900">PharmaFlow</span>
         </div>
 
-        <nav className="flex gap-1 rounded-xl bg-slate-100 p-1" aria-label={t('nav.switchRole')}>
+        <nav className="flex gap-1 rounded-xl bg-sky-50 p-1 ring-1 ring-inset ring-sky-100" aria-label={t('nav.switchRole')}>
           {ROLES.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-white text-slate-900 shadow-card ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'
+                  isActive ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-sky-100 hover:text-medical-dark'
                 }`
               }
             >
@@ -77,7 +77,7 @@ export function PresenterBar() {
           <NavLink
             to="/presenter"
             className={({ isActive }) =>
-              `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'bg-white text-slate-900 shadow-card ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`
+              `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${isActive ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-sky-100 hover:text-medical-dark'}`
             }
           >
             {t('nav.all4')}
@@ -106,7 +106,7 @@ export function PresenterBar() {
               <button
                 key={j.key}
                 onClick={() => void travel(offset + j.days)}
-                className="flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg bg-white px-2 text-xs font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50"
+                className="flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg bg-amber-50 px-2 text-xs font-medium text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
               >
                 <ChevronsRight className="size-3" />
                 {t(j.key)}
