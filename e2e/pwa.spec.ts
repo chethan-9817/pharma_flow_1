@@ -13,7 +13,7 @@ test.describe('installable app with an offline shell', () => {
       const href = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')!.href;
       return (await fetch(href)).json();
     });
-    expect(manifest).toMatchObject({ name: 'PharmaFlow', short_name: 'PharmaFlow', display: 'standalone', start_url: '/presenter', theme_color: '#0284C7' });
+    expect(manifest).toMatchObject({ name: 'PharmaFlow', short_name: 'PharmaFlow', display: 'standalone', start_url: '/presenter', theme_color: '#0369A1' });
     expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
     expect(manifest.icons.some((i: { purpose?: string }) => i.purpose === 'maskable')).toBe(true);
 
