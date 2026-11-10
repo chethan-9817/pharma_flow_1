@@ -1,5 +1,5 @@
 import { addDays, daysBetween, daysLeft, type IsoDate } from './clock';
-import { ecoPrice, checkEcoSaleEligible } from './rules/ecoSale';
+import { ECO_WINDOW_DAYS, checkEcoSaleEligible, ecoPrice, ecoSplit, suggestedDiscount, type EcoSplit } from './rules/ecoSale';
 import { bucketForDaysLeft, type ExpiryBucket } from './rules/expiry';
 import type { FundEntryKind } from './rules/fund';
 import { buildWriteOffCertificate, type WriteOffCertificate } from './rules/gst';
@@ -62,6 +62,28 @@ export function ecoListings(s: AppState): EcoListing[] {
       ];
     })
     .sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+export interface ExpiryAlert extends BatchView {
+  /** The Eco-Sale offer for this batch today, with who gets what per pack. */
+  discountPct: number;
+  split: EcoSplit;
+  /** Why the batch cannot go on Eco-Sale, if it cannot (for example the course no longer fits). */
+  blocked?: string;
+}
+
+/**
+ * The chemist's 6-month notice: batches still on the shelf at full price that will expire within
+ * 6 months, each with the Eco-Sale offer that would clear it.
+ */
+export function expiryAlerts(s: AppState, storeId: string): ExpiryAlert[] {
+  return storeInventory(s, storeId)
+    .filter((v) => v.batch.status === 'IN_STOCK' && v.batch.qty > 0 && v.daysLeft > 0 && v.daysLeft <= ECO_WINDOW_DAYS)
+    .map((v) => {
+      const discountPct = suggestedDiscount(v.daysLeft);
+      const eligible = checkEcoSaleEligible(v.medicine, v.batch.expiry, s.today);
+      return { ...v, discountPct, split: ecoSplit(v.medicine.mrp, discountPct), ...(eligible.ok ? {} : { blocked: eligible.reason }) };
+    });
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;

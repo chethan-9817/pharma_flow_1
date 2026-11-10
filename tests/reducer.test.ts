@@ -67,9 +67,11 @@ describe('stock and Eco-Sale', () => {
     expect(sim.state.batches['b-new']).toBeTruthy();
   });
 
-  it('enforces the 40-60% discount and the course-length rule', () => {
+  it('enforces the 15-60% discount, the 6-month window and the course-length rule', () => {
     const sim = new Sim();
-    expect(sim.mustFail(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-dolo-1', discountPct: 70 })).toMatch(/between 40% and 60%/);
+    expect(sim.mustFail(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-okacet-1', discountPct: 70 })).toMatch(/between 15% and 60%/);
+    // Dolo has 330 days left: fresh stock sells at full price, Eco-Sale only opens 6 months before expiry
+    expect(sim.mustFail(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-dolo-1', discountPct: 15 })).toMatch(/6 months before expiry/);
     // Limcee has 22 days left but needs 15 + 15 days
     expect(sim.mustFail(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-limcee-1', discountPct: 50 })).toMatch(/at least 30 days/);
     // Expired stock can never be sold

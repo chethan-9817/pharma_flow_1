@@ -14,12 +14,21 @@ export type FundEntryKind = 'PLATFORM_SHARE' | 'SPONSOR_CHANGE';
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** What the platform keeps from a delivered order. The chemist's payout is never reduced for the fund. */
-export function platformFee(orderTotal: number): number {
-  return round2((orderTotal * PLATFORM_FEE_PCT) / 100);
+/**
+ * What the platform keeps, given the MRP value of what was sold. The fee is a share of the MRP, also on
+ * Eco-Sale items: a ₹200 strip sold at ₹170 earns the platform ₹20 and the store ₹150. The chemist's
+ * payout is never reduced for the fund.
+ */
+export function platformFee(mrpValue: number): number {
+  return round2((mrpValue * PLATFORM_FEE_PCT) / 100);
 }
 
-/** The NGO fund's share of a delivered order. */
-export function ngoFundShare(orderTotal: number): number {
-  return round2((platformFee(orderTotal) * NGO_FUND_SHARE_PCT) / 100);
+/** The NGO fund's share of a delivered order, given its MRP value. */
+export function ngoFundShare(mrpValue: number): number {
+  return round2((platformFee(mrpValue) * NGO_FUND_SHARE_PCT) / 100);
+}
+
+/** The MRP value of an order's items: the base the platform fee is worked out on. */
+export function mrpValue(items: { medicineId: string; qty: number }[], mrpOf: (medicineId: string) => number | undefined): number {
+  return round2(items.reduce((n, i) => n + i.qty * (mrpOf(i.medicineId) ?? 0), 0));
 }

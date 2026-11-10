@@ -37,8 +37,8 @@ describe('impactTimeline', () => {
     const points = impactTimeline(SEED, sim.log);
     expect(points.map((p) => p.step)).toEqual([0, 8, 11]);
     expect(points[0]).toMatchObject({ ecoRevenue: 0, bloodDonations: 0, date: '2026-11-08' });
-    // Delivering a ₹23 order also puts 2% of the 10% platform fee (₹0.05) into the NGO fund.
-    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0, ngoFund: 0.05, date: '2026-11-08' });
+    // Delivering the ₹23 order (2 packs, ₹46 at MRP) also puts 2% of the 10% platform fee on the MRP (₹4.60), so ₹0.09, into the NGO fund.
+    expect(points[1]).toMatchObject({ ecoRevenue: 23, bloodDonations: 0, ngoFund: 0.09, date: '2026-11-08' });
     expect(points[2]).toMatchObject({ ecoRevenue: 23, bloodDonations: 1, date: '2026-11-09' });
   });
 

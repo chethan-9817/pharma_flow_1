@@ -254,7 +254,7 @@ describe('sponsorship and fund selectors', () => {
     sim.must(RIDER, { type: 'ORDER_ARRIVED', orderId: 'o1' });
     sim.must(RIDER, { type: 'ORDER_OUT_FOR_DELIVERY', orderId: 'o1' });
     sim.must(RIDER, { type: 'ORDER_DELIVERED', orderId: 'o1', otp: '1234' });
-    expect(orderFundShare(sim.state, 'o1')).toBe(0.92);
+    expect(orderFundShare(sim.state, 'o1')).toBe(1.84);
     expect(orderFundShare(sim.state, 'nope')).toBe(0);
   });
 
@@ -289,9 +289,9 @@ describe('the NGO fund share of a delivered order', () => {
     sim.must(RIDER, { type: 'ORDER_OUT_FOR_DELIVERY', orderId: 'o1' });
     sim.must(RIDER, { type: 'ORDER_DELIVERED', orderId: 'o1', otp: '1234' });
 
-    // 10% platform fee on 460 = 46.00, and 2% of that = 0.92.
-    expect(sim.state.ngoFund.balance).toBe(0.92);
-    expect(sim.state.ngoFund.entries).toEqual([expect.objectContaining({ kind: 'PLATFORM_SHARE', amount: 0.92, refId: 'o1' })]);
+    // The fee is on the MRP, not the Eco-Sale price: 40 packs × ₹23 = ₹920, 10% = ₹92.00, and 2% of that = ₹1.84.
+    expect(sim.state.ngoFund.balance).toBe(1.84);
+    expect(sim.state.ngoFund.entries).toEqual([expect.objectContaining({ kind: 'PLATFORM_SHARE', amount: 1.84, refId: 'o1' })]);
   });
 
   it('keeps the audit log replayable from the event stream', () => {

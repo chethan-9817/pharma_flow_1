@@ -104,7 +104,7 @@ describe('store', () => {
   it('verifies the ledger and spots tampering', async () => {
     const { a } = await tabs();
     await a.getState().dispatch(ADMIN, { type: 'TIME_TRAVELLED', to: '2026-12-01' });
-    await a.getState().dispatch(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-dolo-1', discountPct: 40 });
+    await a.getState().dispatch(CHEMIST, { type: 'ECO_SALE_LISTED', batchId: 'b-augmentin-1', discountPct: 40 });
     expect(await a.getState().verifyLedger()).toEqual({ ok: true, length: 2 });
     const chain = a.getState().chain;
     const tampered = { ...chain[0]!, event: { ...chain[0]!.event, at: '2020-01-01' } };
