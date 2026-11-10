@@ -30,17 +30,17 @@ function Stats({ user }: { user: User }) {
   const app = useApp();
   return (
     <div className="grid grid-cols-2 gap-2">
-      <div className="rounded-xl bg-emerald-50 p-3">
-        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-eco-dark">
-          <Leaf className="size-3.5" /> {t('customer.ecoKarma')}
+      <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
+        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-slate-500">
+          <Leaf className="size-3.5 text-eco" /> {t('customer.ecoKarma')}
         </div>
-        <div className="mt-0.5 text-xl font-bold tabular-nums text-emerald-900">{app.karma[user.id] ?? 0}</div>
+        <div className="mt-0.5 text-xl font-semibold tabular-nums text-slate-900">{app.karma[user.id] ?? 0}</div>
       </div>
-      <div className="rounded-xl bg-sky-50 p-3">
-        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-medical-dark">
-          <Wallet className="size-3.5" /> {t('customer.medWallet')}
+      <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100">
+        <div className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-slate-500">
+          <Wallet className="size-3.5 text-medical" /> {t('customer.medWallet')}
         </div>
-        <div className="mt-0.5 text-xl font-bold tabular-nums text-sky-900">{inr(app.wallet[user.id] ?? 0)}</div>
+        <div className="mt-0.5 text-xl font-semibold tabular-nums text-slate-900">{inr(app.wallet[user.id] ?? 0)}</div>
       </div>
     </div>
   );
@@ -74,12 +74,12 @@ export function CustomerPage({ user }: { user: User }) {
   // Compact phone-style app, used inside the presenter's "All 4" panes.
   if (embedded) {
     return (
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col bg-canvas sm:my-4 sm:h-[820px] sm:min-h-0 sm:overflow-hidden sm:rounded-[2rem] sm:shadow-xl sm:ring-8 sm:ring-slate-900/90">
-        <header className="bg-white px-5 pb-4 pt-6 shadow-sm">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col bg-canvas sm:my-4 sm:h-[820px] sm:min-h-0 sm:overflow-hidden sm:rounded-[2rem] sm:shadow-pop sm:ring-8 sm:ring-slate-300/70">
+        <header className="border-b border-slate-200 bg-white px-5 pb-4 pt-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">{t('customer.hello')}</p>
-              <h1 className="text-xl font-bold text-slate-900">{user.name}</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900">{user.name}</h1>
             </div>
             <ShoppingBag className="size-6 text-medical" />
           </div>
@@ -119,18 +119,20 @@ export function CustomerPage({ user }: { user: User }) {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 sm:p-6 lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
+        <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200">
           <div className="mb-3 flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">{t('customer.hello')}</p>
-              <h1 className="text-lg font-bold text-slate-900">{user.name}</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-slate-900">{user.name}</h1>
             </div>
-            <ShoppingBag className="size-6 text-medical" />
+            <span className="grid size-10 place-items-center rounded-xl bg-medical-tint text-medical ring-1 ring-inset ring-medical-ring/70">
+              <ShoppingBag className="size-5" />
+            </span>
           </div>
           <Stats user={user} />
         </div>
 
-        <nav aria-label={t('customer.sections')} className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200/70 lg:flex-col lg:overflow-visible">
+        <nav aria-label={t('customer.sections')} className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-1.5 shadow-card ring-1 ring-slate-200 lg:flex-col lg:overflow-visible">
           {TABS.map(({ id, label, icon: Icon }) => {
             const active = tab === id;
             const count = badge[id] ?? 0;
@@ -139,14 +141,14 @@ export function CustomerPage({ user }: { user: User }) {
                 key={id}
                 onClick={() => setTab(id)}
                 aria-current={active ? 'page' : undefined}
-                className={`flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors lg:w-full ${
-                  active ? 'bg-medical text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                className={`flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors lg:w-full ${
+                  active ? 'bg-medical-tint text-medical-dark' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon className="size-5" />
+                <Icon className={`size-5 ${active ? 'text-medical' : 'text-slate-400'}`} />
                 <span className="flex-1 text-left">{t(label)}</span>
                 {count > 0 && (
-                  <span className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold ${active ? 'bg-white/25 text-white' : 'bg-blood text-white'}`}>{count}</span>
+                  <span className={`grid min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold ${active ? 'bg-medical text-white' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
                 )}
               </button>
             );
