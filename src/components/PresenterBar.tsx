@@ -60,11 +60,12 @@ export function PresenterBar() {
           <span className="text-base font-semibold tracking-tight text-slate-900">PharmaFlow</span>
         </div>
 
-        <nav className="flex gap-1 rounded-xl bg-slate-100/80 p-1" aria-label={t('nav.switchRole')}>
+        <nav className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-slate-100/80 p-1" aria-label={t('nav.switchRole')}>
           {ROLES.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
+              aria-label={t(`nav.${key}`)}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   isActive ? 'bg-white text-medical-dark shadow-card ring-1 ring-slate-200' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900'
@@ -119,6 +120,7 @@ export function PresenterBar() {
         <LanguageSwitcher />
 
         <button
+          aria-label={t('nav.resetDemo')}
           onClick={() => void reset()}
           className="flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-medium text-slate-600 ring-1 ring-slate-300 hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-200"
         >

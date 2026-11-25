@@ -30,14 +30,16 @@ export function ShopTab({ user }: { user: User }) {
   const countIn = (c: Category | 'ALL') => (c === 'ALL' ? searched.length : searched.filter((m) => categoryOf(m) === c).length);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-medical" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          aria-label={t('customer.shop.search')}
+          type="search"
           placeholder={t('customer.shop.search')}
-          className="h-11 w-full rounded-xl border border-sky-200 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
+          className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
         />
       </div>
 
@@ -49,12 +51,12 @@ export function ShopTab({ user }: { user: User }) {
               key={c}
               onClick={() => setAisle(c)}
               aria-pressed={active}
-              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ring-1 ring-inset transition-colors ${
-                active ? 'bg-medical text-white ring-medical' : 'bg-white text-slate-700 ring-sky-200 hover:bg-sky-50'
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap min-h-10 rounded-xl px-3.5 py-2 text-[13px] font-medium ring-1 ring-inset transition-colors ${
+                active ? 'bg-medical text-white ring-medical' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
               }`}
             >
               {t(`customer.shop.aisle.${c}`)}
-              <span className={`text-[11px] tabular-nums ${active ? 'text-white/80' : 'text-slate-400'}`}>{countIn(c)}</span>
+              <span className={`text-[11px] tabular-nums ${active ? 'text-white/90' : 'text-slate-500'}`}>{countIn(c)}</span>
             </button>
           );
         })}
@@ -62,7 +64,18 @@ export function ShopTab({ user }: { user: User }) {
 
       {store && <p className="text-xs text-slate-500">{t('customer.shop.deliveringFrom')} <b className="font-medium text-slate-700">{store.name}</b>, {store.area}</p>}
 
-      <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+      {medicines.length === 0 && (
+        <Card className="py-12 text-center" role="status">
+          <Search aria-hidden className="mx-auto mb-3 size-7 text-slate-400" />
+          <h2 className="font-semibold text-slate-900">{t('customer.shop.noResults')}</h2>
+          <p className="mb-4 mt-1 text-sm text-slate-600">{t('customer.shop.tryAnother')}</p>
+          <Button variant="ghost" onClick={() => { setQuery(''); setAisle('ALL'); }}>
+            {t('customer.shop.clearFilters')}
+          </Button>
+        </Card>
+      )}
+
+      <div className="grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
         {medicines.map((m, i) => {
           const stock = storeId ? stockFor(app, storeId, m.id) : 0;
           const offer = genericOffer(m);
@@ -75,7 +88,7 @@ export function ShopTab({ user }: { user: User }) {
                 <div className="flex items-start gap-3">
                   <ProductArt medicine={m} className="size-16" />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <h3 className="font-semibold leading-snug text-slate-900">{m.brand}</h3>
                       {requiresRx(m) ? (
                         <Badge tone="red" className="shrink-0">{t('customer.shop.rxBadge', { schedule: m.schedule })}</Badge>
@@ -85,13 +98,13 @@ export function ShopTab({ user }: { user: User }) {
                         <Badge tone="blue" className="shrink-0">{t(`customer.shop.aisle.${categoryOf(m)}`)}</Badge>
                       )}
                     </div>
-                    <p className="truncate text-[13px] text-slate-600">{m.salt}</p>
-                    <p className="text-xs text-slate-500">{m.packSize} · {m.manufacturer}</p>
+                    <p className="mt-1 break-words text-[13px] leading-relaxed text-slate-600">{m.salt}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">{m.packSize} · {m.manufacturer}</p>
                   </div>
                 </div>
 
                 {offer && (
-                  <div className="flex gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs leading-relaxed text-slate-700 ring-1 ring-inset ring-emerald-200/80">
+                  <div className="flex gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700">
                     <Leaf className="mt-0.5 size-3.5 shrink-0 text-eco" />
                     <p>
                       <span className="font-semibold text-emerald-900">{t('customer.shop.cheaperGeneric')}</span> {offer.name}, {inr(offer.price)}.{' '}
@@ -106,7 +119,7 @@ export function ShopTab({ user }: { user: User }) {
                   </Badge>
                 )}
 
-                <div className="mt-auto flex items-center justify-between pt-1">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
                   <div>
                     {ecoOnly ? (
                       <>

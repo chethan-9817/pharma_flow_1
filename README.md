@@ -43,10 +43,10 @@ flowchart LR
 
 ## 🎨 Look and feel
 
-All four roles share one light theme with clear, coordinated colour. White cards sit on a cool blue-grey background under light-blue header cards. One deep blue marks the main action and the active tab. Stats and buttons are tinted by what they mean: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal and blood. The rider screen and its map are light too.
+The role screens share a quiet light theme: white cards and headers on a neutral grey canvas, restrained shadows, deep blue primary actions and soft blue active navigation. Stat cards keep their surfaces neutral and use tinted icons for meaning: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal and blood. The rider screen and its map are light too.
 
 - **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
-- **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) holds the same tokens as variables, before-and-after screens of every role, and a component sheet.
+- **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) contains the earlier light-theme design. The current neutral-surface refresh still needs to be synced to that file.
 
 ### 💸 How an Eco-Sale is split
 
@@ -129,7 +129,7 @@ Full script with timings: [WORKFLOW.md → Demo script](WORKFLOW.md#demo-script)
 
 **Frontend:** React 18 · TypeScript · Vite · Tailwind + shadcn/ui · Zustand · Dexie (IndexedDB) · Zod · React Router
 **Features:** ZXing (barcode) · Tesseract.js (OCR) · Leaflet + OpenStreetMap · jsPDF + QR · Recharts · canvas scratch cards
-**Design:** calm light theme · Inter (Noto for Kannada and Hindi) · tokens in `src/index.css`, mirrored in Figma
+**Design:** calm light theme · Inter (Noto for Kannada and Hindi) · tokens in `src/index.css`; Figma sync pending for the neutral-surface refresh
 **Sync:** event-sourced core, BroadcastChannel across tabs (demo) or WebSocket (server)
 **Server:** Hono · `node:sqlite` · bcrypt + JWT
 **Other:** PWA (Workbox) · react-i18next (en / kn / hi) · Vitest · Playwright

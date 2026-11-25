@@ -24,9 +24,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-8 px-3 text-[13px] rounded-lg gap-1.5',
-  md: 'h-10 px-4 text-sm rounded-xl gap-2',
-  lg: 'h-12 px-5 text-[15px] rounded-xl gap-2.5',
+  sm: 'min-h-9 px-3 py-1.5 text-[13px] rounded-lg gap-1.5',
+  md: 'min-h-11 px-4 py-2 text-sm rounded-xl gap-2',
+  lg: 'min-h-12 px-5 py-2.5 text-[15px] rounded-xl gap-2.5',
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -40,7 +40,7 @@ export function Button({ variant = 'primary', size = 'md', block, className, ...
     <button
       {...rest}
       className={cx(
-        'inline-flex items-center justify-center font-semibold outline-none focus-visible:ring-4',
+        'inline-flex shrink-0 items-center justify-center text-center leading-snug font-semibold outline-none focus-visible:ring-4',
         VARIANTS[variant],
         SIZES[size],
         block && 'w-full',
@@ -64,17 +64,14 @@ const TONES: Record<Tone, string> = {
   red: 'bg-rose-100 text-rose-700 ring-rose-600/20',
 };
 
-/**
- * A stat takes the colour of its meaning: a light tinted tile, a label in the tone's dark shade
- * and a solid icon chip. The number itself stays near-black so it is always easy to read.
- */
-const STAT: Record<Tone, { tile: string; label: string; chip: string }> = {
-  slate: { tile: 'bg-white ring-slate-200', label: 'text-slate-500', chip: 'bg-slate-600' },
-  blue: { tile: 'bg-sky-50 ring-sky-200', label: 'text-sky-800', chip: 'bg-sky-600' },
-  green: { tile: 'bg-emerald-50 ring-emerald-200', label: 'text-emerald-800', chip: 'bg-emerald-600' },
-  amber: { tile: 'bg-amber-50 ring-amber-200', label: 'text-amber-800', chip: 'bg-amber-500' },
-  orange: { tile: 'bg-orange-50 ring-orange-200', label: 'text-orange-800', chip: 'bg-orange-500' },
-  red: { tile: 'bg-rose-50 ring-rose-200', label: 'text-rose-800', chip: 'bg-rose-600' },
+/** Neutral tiles with semantic colour confined to the icon. */
+const STAT: Record<Tone, { chip: string; dot: string }> = {
+  slate: { chip: 'bg-slate-100 text-slate-600', dot: 'bg-slate-500' },
+  blue: { chip: 'bg-medical-tint text-medical-dark', dot: 'bg-medical' },
+  green: { chip: 'bg-eco-tint text-eco-dark', dot: 'bg-eco' },
+  amber: { chip: 'bg-expiry-tint text-expiry-ink', dot: 'bg-expiry' },
+  orange: { chip: 'bg-critical-tint text-critical-ink', dot: 'bg-critical-ink' },
+  red: { chip: 'bg-blood-tint text-blood', dot: 'bg-blood' },
 };
 
 export function Badge({ tone = 'slate', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
@@ -100,39 +97,39 @@ export function BucketBadge({ bucket }: { bucket: ExpiryBucket }) {
 
 type IconType = ComponentType<{ className?: string }>;
 
-/** A number on a tile tinted by its meaning, with an optional icon chip. */
+/** A quiet metric card; the label and icon retain the status meaning. */
 export function Stat({ label, value, hint, tone = 'slate', icon: Icon }: { label: string; value: ReactNode; hint?: string; tone?: Tone; icon?: IconType }) {
   const s = STAT[tone];
   return (
-    <div className={cx('flex items-start justify-between gap-3 rounded-2xl p-4 shadow-card ring-1 transition-shadow duration-200 hover:shadow-lift', s.tile)}>
+    <div className="relative min-w-0 rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200 sm:p-5">
       <div className="flex min-w-0 flex-col gap-1">
-        <span className={cx('text-[13px] font-medium', s.label)}>{label}</span>
-        <span className="text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{value}</span>
+        <span className="min-h-9 pr-10 text-[13px] font-medium leading-relaxed text-slate-600">{label}</span>
+        <span className="break-words text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{value}</span>
         {hint && <span className="text-xs text-slate-600">{hint}</span>}
       </div>
       {Icon ? (
-        <span aria-hidden className={cx('grid size-9 shrink-0 place-items-center rounded-xl text-white', s.chip)}>
+        <span aria-hidden className={cx('absolute right-4 top-4 grid size-9 place-items-center rounded-xl sm:right-5 sm:top-5', s.chip)}>
           <Icon className="size-[18px]" />
         </span>
       ) : (
-        tone !== 'slate' && <span aria-hidden className={cx('mt-1.5 size-2.5 shrink-0 rounded-full', s.chip)} />
+        tone !== 'slate' && <span aria-hidden className={cx('absolute right-5 top-5 size-2.5 rounded-full', s.dot)} />
       )}
     </div>
   );
 }
 
-/** The header of a role page: a light brand-blue card with a solid icon chip. */
+/** Shared page heading with a quiet surface and clear type hierarchy. */
 export function PageHero({ icon: Icon, title, subtitle, aside, children }: { icon: IconType; title: ReactNode; subtitle?: ReactNode; aside?: ReactNode; children?: ReactNode }) {
   return (
-    <section className="rounded-2xl bg-linear-to-br from-white via-sky-50 to-sky-100/80 p-5 shadow-card ring-1 ring-sky-200/80">
+    <section className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-slate-200 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
-          <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-xl bg-medical text-white shadow-card">
+          <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-xl bg-medical-tint text-medical-dark">
             <Icon className="size-6" />
           </span>
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900">{title}</h1>
-            {subtitle && <p className="text-sm text-slate-600">{subtitle}</p>}
+            <h1 className="break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+            {subtitle && <p className="mt-1 text-sm leading-relaxed text-slate-600">{subtitle}</p>}
           </div>
         </div>
         {aside && <div className="flex flex-wrap items-center gap-3">{aside}</div>}
@@ -144,9 +141,8 @@ export function PageHero({ icon: Icon, title, subtitle, aside, children }: { ico
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-center justify-between gap-3">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 className="flex items-center gap-2 text-[15px] font-semibold text-slate-800">
-        <span aria-hidden className="h-4 w-1 rounded-full bg-medical" />
         {children}
       </h2>
       {action}
@@ -173,14 +169,14 @@ export function Tabs<T extends string>({
           aria-selected={value === id}
           onClick={() => onChange(id)}
           className={cx(
-            'flex h-9 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-sm font-medium',
-            value === id ? 'bg-medical text-white shadow-card' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+            'flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-sm font-medium',
+            value === id ? 'bg-medical-tint text-medical-dark' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
           )}
         >
           {Icon && <Icon className="size-4" />}
           {label}
           {count ? (
-            <span className={cx('rounded-full px-1.5 text-[11px] font-semibold tabular-nums', value === id ? 'bg-white/20' : 'bg-medical-tint text-medical-dark')}>{count}</span>
+            <span className={cx('rounded-full px-1.5 text-[11px] font-semibold tabular-nums', value === id ? 'bg-white text-medical-dark' : 'bg-slate-100 text-slate-600')}>{count}</span>
           ) : null}
         </button>
       ))}

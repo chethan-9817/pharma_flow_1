@@ -55,6 +55,9 @@
       "civicShort": "Civic"
     },
     "shop": {
+      "noResults": "No products found",
+      "tryAnother": "Try another search or choose a different aisle.",
+      "clearFilters": "Clear filters",
       "search": "Search medicines, salts or products",
       "aisles": "Shop aisles",
       "aisle": {

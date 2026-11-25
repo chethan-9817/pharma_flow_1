@@ -243,11 +243,11 @@ Going back means **Reset demo data**, which clears the log.
 
 ### Design system
 
-Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a **light theme with clear colour**: a cool blue-grey canvas, white cards with a hairline ring, light-blue header cards, one brand blue for the main action and the active tab, and tinted colour where it carries meaning (expiry buckets, money, hazards). Framer Motion is used for short, subtle transitions only, and `prefers-reduced-motion` is respected.
+Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a **light theme with clear colour**: a neutral grey canvas, white cards and headers with a hairline ring, deep blue primary actions, soft blue active navigation, and semantic colour confined to status badges and icon chips. Framer Motion is used for short, subtle transitions only, and `prefers-reduced-motion` is respected.
 
 | Token (CSS variable) | Value | Used for |
 |---|---|---|
-| `--color-canvas` | `#EAF0F6` | Page background (cool blue-grey) |
+| `--color-canvas` | `#F7F8FA` | Page background (neutral grey) |
 | `--color-surface` | `#FFFFFF` | Cards, inputs, the top bar |
 | `--color-line` / `--color-line-strong` | `#EAECF0` / `#D0D5DD` | Card rings, input borders |
 | `--color-ink` | `#101828` | Primary text |
@@ -261,12 +261,12 @@ Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a 
 - **Contrast.** Solid fills (`primary`, `eco`, `danger`) are deep enough for white text at WCAG AA. The earlier sky and emerald fills were not.
 - **One main action per view.** `Button` has solid variants (`primary`, `eco`, `danger`) for that action, and tinted variants (`soft`, `ecoSoft`, `dangerSoft`, `amber`) for repeated or secondary actions, so a list of them stays calm. `ghost` is white with a border.
 - **Tints are the 100 step** of each hue (for example sky-100, emerald-100), so soft buttons, badges and chips read as colour rather than as off-white.
-- **Stats.** `Stat` takes the colour of its meaning: a tinted tile (`tone`), a label in the tone's dark shade and, with `icon`, a solid icon chip. The number stays in the ink colour so it is always easy to read.
+- **Stats.** `Stat` uses a neutral white tile and grey label, with a tinted icon chip in its semantic `tone`. The number stays in the ink colour so it is always easy to read.
 - **Page headers.** `PageHero` is the light-blue header card at the top of the chemist and admin pages (icon chip, title, subtitle, actions). The customer greeting card and the rider header use the same look. `SectionTitle` has a short brand-blue bar before the text.
 - **Active navigation** (the role switcher in the top bar and the customer sidebar) is solid brand blue with white text.
 - **No dark surfaces.** There is no dark theme. The rider screen, toasts and dialogs are light too; only the camera preview is dark.
 
-**Figma.** The tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, captures of the four role screens from before and after the refresh, and a component sheet (Button, Badge, Card, Stat) captured from the classes in `src/components/ui.tsx`. The sheet is plain frames; real Figma component sets are not built yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.
+**Figma.** The neutral-surface refresh is not yet synced; the following describes the earlier design. The original tokens are mirrored in the Figma file *PharmaFlow UI - light theme refresh* (https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd): the `Primitives`, `Color` (semantic, with the CSS name as code syntax, for example `var(--color-medical)`) and `Shape and spacing` variable collections, text styles (`Type/*`), shadow styles, captures of the four role screens from before and after the refresh, and a component sheet (Button, Badge, Card, Stat) captured from the classes in `src/components/ui.tsx`. The sheet is plain frames; real Figma component sets are not built yet (see TODO.md). When a token changes, change it in `src/index.css` and in Figma together.
 
 ## Launcher and the pharmaflow command
 
