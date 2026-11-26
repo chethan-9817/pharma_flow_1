@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Leaf, Plus, Search, Tag } from 'lucide-react';
+import { ArrowUpRight, Leaf, MapPin, Plus, Search, Tag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { nearestStoreId, stockFor } from '../../domain/checkout';
@@ -13,7 +13,7 @@ import { toast } from '../../components/toast';
 import { useApp } from '../../store';
 import { useCart } from './cart';
 
-export function ShopTab({ user }: { user: User }) {
+export function ShopTab({ user, onDeals }: { user: User; onDeals: () => void }) {
   const { t } = useTranslation();
   const app = useApp();
   const add = useCart((s) => s.add);
@@ -30,8 +30,17 @@ export function ShopTab({ user }: { user: User }) {
   const countIn = (c: Category | 'ALL') => (c === 'ALL' ? searched.length : searched.filter((m) => categoryOf(m) === c).length);
 
   return (
-    <div className="space-y-5">
-      <div className="relative">
+    <div className="space-y-6">
+      <section className="storefront-hero rounded-[1.75rem] px-5 py-6 text-white @xl:px-8 @xl:py-8" aria-labelledby="storefront-title">
+        <div className="relative z-10 max-w-xl">
+          {store && (
+            <p className="mb-3 flex items-start gap-2 text-xs font-medium leading-relaxed text-teal-100">
+              <MapPin aria-hidden className="mt-0.5 size-4 shrink-0" />
+              <span>{t('customer.shop.deliveringFrom')} <strong>{store.name}</strong>, {store.area}</span>
+            </p>
+          )}
+          <h2 id="storefront-title" className="text-3xl font-semibold tracking-tight @xl:text-5xl">{t('customer.shop.storefrontTitle')}</h2>
+      <div className="relative mt-5 max-w-lg">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-medical" />
         <input
           value={query}
@@ -39,11 +48,24 @@ export function ShopTab({ user }: { user: User }) {
           aria-label={t('customer.shop.search')}
           type="search"
           placeholder={t('customer.shop.search')}
-          className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-400 focus:border-medical focus:ring-4 focus:ring-medical/15"
+          className="h-12 w-full rounded-2xl border border-white/20 bg-white pl-10 pr-3 text-sm shadow-card outline-none transition placeholder:text-slate-500 focus:border-medical focus:ring-4 focus:ring-medical/15"
         />
       </div>
 
-      <div role="group" aria-label={t('customer.shop.aisles')} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <button type="button" onClick={onDeals} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-white/30 px-3 text-sm font-semibold text-white hover:bg-white/15 focus-visible:outline-white">
+            <Leaf aria-hidden className="size-4 text-teal-200" />
+            {t('customer.shop.browseEcoSale')}
+            <ArrowUpRight aria-hidden className="size-3.5" />
+          </button>
+        </div>
+      </section>
+
+      <section aria-labelledby="storefront-aisles" className="space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="storefront-aisles" className="text-lg font-semibold tracking-tight text-slate-900">{t('customer.shop.aisles')}</h2>
+          <p className="text-sm text-slate-600">{t('customer.shop.resultCount', { count: medicines.length })}</p>
+        </div>
+      <div role="group" aria-label={t('customer.shop.aisles')} className="flex flex-wrap gap-2">
         {(['ALL', ...CATEGORIES] as const).map((c) => {
           const active = aisle === c;
           return (
@@ -52,7 +74,7 @@ export function ShopTab({ user }: { user: User }) {
               onClick={() => setAisle(c)}
               aria-pressed={active}
               className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap min-h-10 rounded-xl px-3.5 py-2 text-[13px] font-medium ring-1 ring-inset transition-colors ${
-                active ? 'bg-medical text-white ring-medical' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
+                active ? 'bg-[#153d3a] text-white ring-[#153d3a]' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
               }`}
             >
               {t(`customer.shop.aisle.${c}`)}
@@ -62,7 +84,7 @@ export function ShopTab({ user }: { user: User }) {
         })}
       </div>
 
-      {store && <p className="text-xs text-slate-500">{t('customer.shop.deliveringFrom')} <b className="font-medium text-slate-700">{store.name}</b>, {store.area}</p>}
+      </section>
 
       {medicines.length === 0 && (
         <Card className="py-12 text-center" role="status">
@@ -84,12 +106,14 @@ export function ShopTab({ user }: { user: User }) {
           const ecoOnly = stock === 0 && eco ? eco : undefined;
           return (
             <motion.div key={m.id} className="h-full" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.03 }}>
-              <Card className="flex h-full flex-col gap-3">
-                <div className="flex items-start gap-3">
-                  <ProductArt medicine={m} className="size-16" />
+              <Card className="storefront-product flex h-full flex-col gap-3 rounded-[1.25rem]">
+                <div className="flex flex-col gap-3">
+                  <div className="storefront-art grid min-h-28 place-items-center rounded-2xl">
+                    <ProductArt medicine={m} className="size-20" />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-start justify-between gap-2">
-                      <h3 className="font-semibold leading-snug text-slate-900">{m.brand}</h3>
+                      <h3 className="text-base font-semibold leading-snug text-slate-900">{m.brand}</h3>
                       {requiresRx(m) ? (
                         <Badge tone="red" className="shrink-0">{t('customer.shop.rxBadge', { schedule: m.schedule })}</Badge>
                       ) : categoryOf(m) === 'MEDICINE' ? (

@@ -55,6 +55,10 @@
       "civicShort": "Civic"
     },
     "shop": {
+      "browseEcoSale": "Browse Eco-Sale",
+      "storefrontTitle": "Pharmacy essentials",
+      "resultCount_one": "{{count}} result",
+      "resultCount_other": "{{count}} results",
       "noResults": "No products found",
       "tryAnother": "Try another search or choose a different aisle.",
       "clearFilters": "Clear filters",

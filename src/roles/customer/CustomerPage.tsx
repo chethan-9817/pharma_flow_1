@@ -62,7 +62,7 @@ export function CustomerPage({ user }: { user: User }) {
   const content = (
     <AnimatePresence mode="wait">
       <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-        {tab === 'shop' && <ShopTab user={user} />}
+        {tab === 'shop' && <ShopTab user={user} onDeals={() => setTab('deals')} />}
         {tab === 'deals' && <DealsTab user={user} />}
         {tab === 'cart' && <CartTab user={user} onPlaced={() => setTab('orders')} />}
         {tab === 'orders' && <OrdersTab user={user} />}
@@ -117,8 +117,8 @@ export function CustomerPage({ user }: { user: User }) {
 
   // Laptop layout for a customer opened on their own: sidebar on the left, roomy content on the right.
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 p-4 sm:p-6 lg:grid-cols-[250px_minmax(0,1fr)]">
-      <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+    <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-[250px_minmax(0,1fr)]">
+      <aside className="min-w-0 space-y-4 lg:sticky lg:top-20 lg:self-start">
         <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-slate-200">
           <div className="mb-3 flex items-center justify-between">
             <div>
@@ -142,7 +142,7 @@ export function CustomerPage({ user }: { user: User }) {
                 onClick={() => setTab(id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors lg:w-full ${
-                  active ? 'bg-medical-tint text-medical-dark' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  active ? 'bg-[#e1f2ed] font-semibold text-[#153d3a]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <Icon className={`size-5 ${active ? 'text-medical' : 'text-slate-500'}`} />

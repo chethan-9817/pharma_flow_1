@@ -16,5 +16,8 @@ for (const width of [375, 1280]) {
     await expect(page.getByRole('link', { name: 'Customer', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reset demo', exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.getByRole('button', { name: 'Browse Eco-Sale', exact: true }).click();
+    await expect(page.getByRole('searchbox')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Deals', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 }

@@ -55,6 +55,10 @@
       "civicShort": "ಸೇವೆ"
     },
     "shop": {
+      "browseEcoSale": "ಇಕೋ ಸೇಲ್ ನೋಡಿ",
+      "storefrontTitle": "ಔಷಧಾಲಯದ ಅಗತ್ಯ ವಸ್ತುಗಳು",
+      "resultCount_one": "{{count}} ಫಲಿತಾಂಶ",
+      "resultCount_other": "{{count}} ಫಲಿತಾಂಶಗಳು",
       "noResults": "ಯಾವುದೇ ಉತ್ಪನ್ನಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
       "tryAnother": "ಬೇರೆ ಪದವನ್ನು ಹುಡುಕಿ ಅಥವಾ ಬೇರೆ ವಿಭಾಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
       "clearFilters": "ಫಿಲ್ಟರ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ",

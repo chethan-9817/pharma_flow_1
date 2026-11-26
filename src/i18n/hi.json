@@ -55,6 +55,10 @@
       "civicShort": "सिविक"
     },
     "shop": {
+      "browseEcoSale": "इको-सेल देखें",
+      "storefrontTitle": "फ़ार्मेसी की ज़रूरी चीज़ें",
+      "resultCount_one": "{{count}} परिणाम",
+      "resultCount_other": "{{count}} परिणाम",
       "noResults": "कोई उत्पाद नहीं मिला",
       "tryAnother": "दूसरा शब्द खोजें या दूसरी श्रेणी चुनें।",
       "clearFilters": "फ़िल्टर हटाएँ",
