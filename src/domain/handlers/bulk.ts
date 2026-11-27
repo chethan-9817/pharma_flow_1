@@ -7,6 +7,7 @@ import {
   checkTenderPrices,
   effectivePrice,
   negotiate,
+  negotiateOffers,
 } from '../rules/bulk';
 import { isBlocked } from '../rules/prescription';
 import type { AppState } from '../state';
@@ -91,8 +92,10 @@ export function bulkNegotiated(s: AppState, e: Ev<'BULK_NEGOTIATED'>): Step {
   const { targetPrice, ceilingPrice } = tender;
   if (targetPrice === undefined || ceilingPrice === undefined) return err('This bulk order has no price limits');
 
+  // Keep existing ledger events replayable with their original prices.
+  const runNegotiation = e.strategy === 'offer-exchange' ? negotiateOffers : negotiate;
   const negotiation: BulkNegotiation[] = tender.quotes.map((q) => {
-    const outcome = negotiate(targetPrice, ceilingPrice, q);
+    const outcome = runNegotiation(targetPrice, ceilingPrice, q);
     return {
       quoteId: q.id,
       dealerId: q.dealerId,

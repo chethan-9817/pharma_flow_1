@@ -53,7 +53,7 @@ export type DomainEventPayload =
   | { type: 'BULK_DEMAND_POSTED'; tenderId: string; storeId: string; medicineId: string; qty: number }
   | { type: 'BULK_TENDER_OPENED'; tenderId: string; targetPrice: number; ceilingPrice: number }
   | { type: 'BULK_QUOTE_SUBMITTED'; tenderId: string; quote: Omit<BulkQuote, 'submittedAt'> }
-  | { type: 'BULK_NEGOTIATED'; tenderId: string }
+  | { type: 'BULK_NEGOTIATED'; tenderId: string; strategy?: 'offer-exchange' }
   | { type: 'BULK_AWARDED'; tenderId: string; quoteId: string }
   | { type: 'BULK_DELIVERED'; tenderId: string; batchNo: string; expiry: IsoDate }
   | { type: 'BULK_CANCELLED'; tenderId: string }

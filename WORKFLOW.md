@@ -14,7 +14,6 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 8. [Donating medicines to an NGO](#6-donating-medicines-to-an-ngo)
 9. [Disposing of expired medicines](#7-disposing-of-expired-medicines)
 10. [Pharmacy KYC](#8-pharmacy-kyc)
-11. [Blood donation](#9-blood-donation)
 12. [Rewards and certificates](#10-rewards-and-certificates)
 13. [Time travel](#11-time-travel)
 14. [Sponsoring a batch for an NGO, and the NGO fund](#12-sponsoring-a-batch-for-an-ngo-and-the-ngo-fund)
@@ -29,10 +28,10 @@ Every business flow in PharmaFlow, who does what, and which rule can stop it. Fo
 
 | Role | Demo login | Can do |
 |---|---|---|
-| **Customer** | Asha Shetty, Ravi Kumar, Meera D'Souza, Imran Khan, Lakshmi Bhat, Joseph Pinto | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards, donate, dispose, book blood, sponsor an Eco-Sale batch for an NGO |
+| **Customer** | Asha Shetty, Ravi Kumar, Meera D'Souza, Imran Khan, Lakshmi Bhat, Joseph Pinto | Browse, buy, upload prescriptions, cancel orders, reveal scratch cards, donate, dispose, sponsor an Eco-Sale batch for an NGO |
 | **Chemist** | One per store: Ganesh Prabhu (Sri Ganesh Medicals), Suresh Kamath (Surathkal), Fathima Banu (Ullal), Prakash Rai (Kulshekar), Deepa Nayak (Kavoor), Vinod Shenoy (Jeppu), Anand Pai (Carstreet, pending KYC) | Ingest stock, Eco-Sale, donate and dispose batches, review prescriptions, pack orders, run the QA desk (including sponsored packs), request pooled bulk stock |
 | **Rider** | Kiran Poojary, Sandeep Gowda, Naveen Kotian | Go online, accept and complete deliveries and pickups |
-| **Admin** | PharmaFlow Admin | Approve or reject pharmacies, confirm blood donations, see every store and order, run bulk orders, verify the ledger |
+| **Admin** | PharmaFlow Admin | Approve or reject pharmacies, see every store and order, run bulk orders, verify the ledger |
 | **Dealer** | Ramesh Hegde (Coastal Pharma), Shwetha Rao (Malnad Surgicals), Harish Acharya (Udupi MedSupply) | Quote on pooled bulk orders, see the negotiation for their own quote, deliver orders they win |
 
 The reducer enforces these roles. For example, only a chemist of the same store can pack that store's orders.
@@ -48,16 +47,15 @@ The reducer enforces these roles. For example, only a chemist of the same store 
 | Rider delivery with OTP | ✅ | ✅ |
 | Rider navigation map, ETA and Call | ✅ | ✅ street map, offline route diagram |
 | Chemist donates or disposes a batch | ✅ | ✅ |
-| Customer donates or disposes (Civic hub) | ✅ | ✅ |
+| Customer donates or disposes (Medicine returns) | ✅ | ✅ |
 | Backhaul pickup suggestion | ✅ | ✅ appears when a customer-scheduled pickup is within about 600 m of a delivery |
 | Pharmacy KYC | ✅ | ✅ |
-| Blood booking and confirmation | ✅ | ✅ customer booking in the Civic hub; admin confirmation |
 | Scratch cards | ✅ | ✅ canvas scratch with confetti, and a Reveal button |
 | Certificates | ✅ | ✅ PDF with a QR code, plus a verify page |
 | Write-off receipts for chemists | ✅ | ✅ PDF with the GST ITC reversal |
 | Live order tracker for customers | ✅ | ✅ stepper, map, moving rider and ETA |
 | Admin charts | ✅ | ✅ stock health, money recovered, platform activity |
-| "Sponsor batch for NGO (₹99)" | ✅ | ✅ Deals card, Civic hub tracking, chemist QA badge and payout list |
+| "Sponsor batch for NGO (₹99)" | ✅ | ✅ Deals card, Medicine returns tracking, chemist QA badge and payout list |
 | NGO fund | ✅ | ✅ Admin card and chart line; customers see their order's share. Spending it is not built yet |
 | Server mode (real logins, shared data) | ✅ | ✅ `pharmaflow server`: password sign-in, data on the server, live sync |
 | Languages (English, Kannada, Hindi) | ✅ | ✅ picker in the top bar; Add inventory, the Rx form and the rider map are still English |
@@ -256,7 +254,7 @@ stateDiagram-v2
 **Who starts it:**
 
 - A **chemist** donates a whole batch (the *Donate* button). The chemist's own store runs QA.
-- A **customer** donates leftover strips from **Civic hub → Donate unused medicines**: choose the medicine, type the batch and expiry, tick sealed, pick the NGO and the pharmacy that checks the strips. The form warns live ("no registered doctor or pharmacist", "needs more than 30 days") and only enables the button when the rules pass. A **course-completion reminder** ("Finished your 5-day course of Dolo 650? Donate the unopened tablets left…") appears on the Civic hub once the course length has passed on the simulated clock, with a button that pre-fills the form.
+- A **customer** donates leftover strips from **Medicine returns → Donate unused medicines**: choose the medicine, type the batch and expiry, tick sealed, pick the NGO and the pharmacy that checks the strips. The form warns live ("no registered doctor or pharmacist", "needs more than 30 days") and only enables the button when the rules pass. A **course-completion reminder** ("Finished your 5-day course of Dolo 650? Donate the unopened tablets left…") appears on the Medicine returns once the course length has passed on the simulated clock, with a button that pre-fills the form.
 
 **Outcomes:**
 
@@ -295,20 +293,6 @@ stateDiagram-v2
 - Only an admin can decide, and each store is reviewed once.
 - The admin sees the drug licence (for example `KA-MNG-2026-9102`) and GSTIN.
 
-## 9. Blood donation
-
-```mermaid
-sequenceDiagram
-    participant U as Customer
-    participant A as PharmaFlow
-    participant Ad as Admin
-    U->>A: Civic hub: choose blood bank, group and date (today or later)
-    Ad->>A: Blood donation bookings: Confirm donation
-    A-->>U: +500 karma, Blood Donor certificate, badge
-```
-
-India's policy is voluntary, unpaid blood donation, so the reward has **no money value**: no cashback, no scratch card, no wallet credit. The blood bank cards show each bank's **urgent blood groups**.
-
 ## 10. Rewards and certificates
 
 | Action | Reward |
@@ -317,11 +301,10 @@ India's policy is voluntary, unpaid blood donation, so the reward has **no money
 | Donation to an NGO (customer) | +200 karma, scratch card, NGO Donor certificate |
 | Sponsoring a batch for an NGO | The same: +200 karma, scratch card, NGO Donor certificate (worded as sponsoring), earned when the NGO has the packs. A failed pharmacist check gives the ₹99 back as MedWallet credit instead |
 | Safe disposal (customer) | +150 karma, Green Citizen certificate |
-| Blood donation | +500 karma, Blood Donor certificate, badge |
 
 **Scratch cards** are real: drag a mouse or finger across the silver coating. Once more than 40% is clear, the reward is revealed and confetti plays. A *Can't scratch? Reveal* button covers keyboard users. Cards give either karma or **MedWallet** credit, and the reward is fixed by the card id, so replaying the log always gives the same result. MedWallet is closed-loop store credit: it can be spent at checkout and can never be cashed out.
 
-**Certificates** are listed under *Civic hub → My certificates* with a **PDF** button. Each PDF has the holder's name, the date, a verification code and a **QR code** that opens `/verify?code=…`. That page shows whether the code is valid and who it was awarded to. In demo mode it checks the data stored in the same browser.
+**Certificates** are listed under *Medicine returns → My certificates* with a **PDF** button. Each PDF has the holder's name, the date, a verification code and a **QR code** that opens `/verify?code=…`. That page shows whether the code is valid and who it was awarded to. In demo mode it checks the data stored in the same browser.
 
 **Chemist write-off receipts.** When a donation reaches an NGO, or expired stock is incinerated, the chemist's dashboard lists an *Inventory Write-Off & NGO Donation Receipt* with a **PDF** button. It shows each batch, its estimated cost value and the **GST ITC reversal** (CGST Sec 17(5)(h), 12% by default). It is never called an 80G receipt.
 
@@ -405,16 +388,16 @@ sequenceDiagram
 | Request | Chemist of an approved store | 10 to 5,000 packs. One open pool per item; asking again replaces your quantity |
 | Ask for quotes | Admin | At least 2 stores. Target > 0, ceiling between target and MRP. Defaults: target 65% of MRP, ceiling = usual trade price (80% of MRP) |
 | Quote | Dealer | Asking price ≤ MRP, lowest price ≤ asking price, delivery 1 to 30 days. One quote per dealer, which it can update while the order is open |
-| Negotiate | Admin starts it; agents run it | Round by round, the buyer's agent moves from the target to the ceiling (0%, 50%, 100% of the gap) and each dealer's agent moves from its asking price to its lowest price (40%, 75%, 100%). A deal closes as soon as the dealer's offer is no higher than the buyer's |
+| Negotiate | Admin starts it; agents run it | The PharmaFlow agent opens at the target and responds to the dealer’s preceding offer without exceeding the ceiling. The dealer counters within its quoted range. A deal closes when the dealer’s offer fits the buyer’s bid |
 | Award | Admin | Only an agreed offer can win. The recommended one has the lowest **effective price**: agreed price + 0.5% per delivery day + 2% per rating star below five. The admin may choose another agreed offer |
 | Deliver | The winning dealer | Batch number and at least 180 days of shelf life. Each store's share lands in its expiry ledger |
 | Pay the dealer | Admin | After delivery, once: the whole order at the agreed price (for example 300 packs × ₹42.72 = ₹12,816) |
 | Pay PharmaFlow | Chemist of each store in the pool | After delivery, once: only its own share (150 packs × ₹42.72 = ₹6,408) |
 | Cancel | Admin | Any time before an award |
 
-**Why the agents are rule-based, not an AI model:** the result has to be the same on every replay of the event log, it must be explainable to a chemist ("round 2: we offered ₹43.50, they offered ₹42.72"), and the app has no cloud services or API keys. The round-by-round table is shown to the admin and to each dealer for its own quote.
+**Agent conversation:** The rule-based agents exchange offers offline and preserve each round in the ledger. Open **Agent conversation** under a result to read or replay the exchange. Admins can see all negotiations, and each dealer sees its own. An agreed price is a recommendation until an admin awards the order.
 
-**Money flow:** PharmaFlow sits in the middle, so the dealer gets one payment for the whole order and does not chase several stores. The admin's Bulk orders tab shows what was paid to dealers, what came in from stores and what the stores still owe; each delivered order shows who has paid. No platform fee is added to the stores' shares (a demo choice; real money movement would need a payment gateway).
+**Money flow:** PharmaFlow sits in the middle, so the dealer gets one payment for the whole order and does not chase several stores. The **Payment summary** in the admin's Bulk orders tab shows what was paid to dealers, what came in from stores and what the stores still owe; each delivered order shows who has paid. No platform fee is added to the stores' shares (a demo choice; real money movement would need a payment gateway).
 
 Screens: chemist dashboard → *Bulk orders with other stores*; the new **Dealer** role (`/dealer`); admin → **Bulk orders** tab. The admin's **Stores and orders** tab lists every store with its chemist, stock and orders, and every recent order with its rider.
 
@@ -454,13 +437,12 @@ Log in with the 1-tap buttons: Asha (Customer), Ganesh (Chemist), Kiran (Rider),
 | 6 | Chemist | Order packing desk → **Approve Rx** → **Pack & summon rider** | Order moves to *Packed* |
 | 7 | Rider | **Offline → Online** → **Accept mission** (the map appears: point out the route, ETA and Call button) → **Arrived** → **Collected** → type the OTP shown in the customer's Orders tab → **Confirm handover** | ₹40 earnings, 1 trip |
 | 8 | Customer | **Orders** tab → scratch the card with the mouse until about half is clear | Confetti, and karma or MedWallet credit appears |
-| 9 | Customer | **Civic hub** → fill **Donate unused medicines** (for example Dolo 650, a batch number, an expiry more than 30 days away) → **Schedule free pickup**. Then Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The pickup tracker follows each step. The customer gets +200 karma and an NGO Donor certificate: press **PDF** and show the QR code |
+| 9 | Customer | **Medicine returns** → fill **Donate unused medicines** (for example Dolo 650, a batch number, an expiry more than 30 days away) → **Schedule free pickup**. Then Rider accepts, arrives, collects → Chemist **QA verified** → Rider **Hand over to NGO** | The pickup tracker follows each step. The customer gets +200 karma and an NGO Donor certificate: press **PDF** and show the QR code |
 | 9b | Customer, Chemist, Rider | *Optional.* In **Deals** on the Eco-Sale card tap **Sponsor batch for NGO (₹99)** → **Sponsor now**. Rider accepts and collects **at the store** → Chemist **QA verified** → Rider **Hand over** | The store is paid, the **NGO fund** grows on the Admin page, and the customer gets +200 karma and a certificate that says *Sponsored N packs of …* |
 | 10 | Browser | Scan the certificate's QR code, or open `/verify?code=…` | "Certificate is valid", with the holder's name |
-| 11 | Customer, Admin | **Civic hub** → **Book appointment** for blood; then Admin → **Confirm donation** | +500 karma, a Blood Donor certificate and a badge, and no wallet credit |
-| 12 | Admin | Show the **charts** and KPIs, then **Verify ledger integrity** | The money line has stepped up; "✅ Chain intact: N events verified" |
+| 11 | Admin | Show the **charts** and KPIs, then **Verify ledger integrity** | The money line has stepped up; "✅ Chain intact: N events verified" |
 
-> Optional: after delivering an order, press **+1 week** in the top bar. The customer's Civic hub shows the course-completion reminder.
+> Optional: after delivering an order, press **+1 week** in the top bar. The customer's Medicine returns shows the course-completion reminder.
 
 ### Good questions to expect
 

@@ -2,7 +2,7 @@
 
 **Medicine reverse logistics, near-expiry liquidation and civic health on one platform.**
 
-PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a **closed loop** connecting four roles: **Customers**, **Medical Stores (Chemists)**, **Delivery Riders** and **Admins / NGOs / Blood Banks**.
+PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a **closed loop** connecting four roles: **Customers**, **Medical Stores (Chemists)**, **Delivery Riders** and **Admins / NGOs**.
 
 > 🎓 PBL project · Pilot region: **Mangaluru, Karnataka**
 > ✅ All four role apps, server mode, installable PWA and English / ಕನ್ನಡ / हिन्दी are built and tested (284 unit tests, 14 browser tests).
@@ -15,7 +15,7 @@ PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a 
 
 - **Chemists lose money.** Legacy ERPs cost ~₹35,000 in year one. Distributors refund only 50% on stock with 6+ months left, as a slow credit note, and **refuse anything under 6 months**, a 100% loss.
 - **Households dump medicines illegally.** ~73% bin them and ~20% flush them, though the Bio-Medical Waste Rules 2016 require incineration at an authorised CBWTF. Antibiotics in soil and water breed **antimicrobial resistance**.
-- **The paradox:** safe, unexpired medicines go to waste while **NGO clinics run short of medicines** and **blood banks run short of blood**.
+- **The paradox:** safe, unexpired medicines go to waste while **NGO clinics run short of medicines**.
 
 ## 💡 How PharmaFlow fixes it
 
@@ -33,17 +33,17 @@ flowchart LR
 
 | Role | What it does |
 |---|---|
-| 🛒 **Customer** | Shop 46 items with pictures in six aisles (medicines, skin care, women's hygiene, oral care, baby care, first aid & devices) and a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · book blood donation · live order tracker · karma points, scratch cards, PDF certificates |
+| 🛒 **Customer** | Shop 46 items with pictures in six aisles (medicines, skin care, women's hygiene, oral care, baby care, first aid & devices) and a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · live order tracker · karma points, scratch cards, PDF certificates |
 | 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · **6-month expiry alerts** with the Eco-Sale price split · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
 | 🏍️ **Rider** | Mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
 | 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · **every store and order** at a glance · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
-| 🏭 **Dealer** | Quotes on **pooled bulk orders** from several stores (e.g. 450 packs of syringes). A buyer's agent and each dealer's agent negotiate in up to 3 rounds; the admin awards the best effective price and the winner delivers to every store. **PharmaFlow pays the dealer**, then **each store pays PharmaFlow its share**. See [WORKFLOW.md](WORKFLOW.md#13-pooled-bulk-orders-and-dealer-negotiation) |
+| 🏭 **Dealer** | Quotes on **pooled bulk orders** from several stores (e.g. 450 packs of syringes). PharmaFlow and dealer agents exchange offers in up to three rounds. The admin can replay the chat, review the recommendation and award the order. **PharmaFlow pays the dealer**, then **each store pays PharmaFlow its share**. See [WORKFLOW.md](WORKFLOW.md#13-pooled-bulk-orders-and-dealer-negotiation) |
 
 **Demo data:** 6 customers, 7 medical stores (one awaiting KYC), 3 riders and 3 dealers, all with 1-tap logins.
 
 ## 🎨 Look and feel
 
-The role screens share a quiet light theme: white cards and headers on a neutral grey canvas, restrained shadows, deep blue primary actions and soft blue active navigation. Stat cards keep their surfaces neutral and use tinted icons for meaning: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal and blood. The rider screen and its map are light too.
+The role screens share a quiet light theme: white cards and headers on a neutral grey canvas, restrained shadows, deep blue primary actions and soft blue active navigation. Stat cards keep their surfaces neutral and use tinted icons for meaning: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal. The rider screen and its map are light too.
 
 - **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
 - **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) contains the earlier light-theme design. The current neutral-surface refresh still needs to be synced to that file.
@@ -138,6 +138,6 @@ Every action is an event in one hash-chained log. State, live sync, KPIs and the
 
 ---
 
-> Academic prototype, not legal or medical advice. Blood donation earns no money-value rewards (India's voluntary donation policy), and MedWallet is closed-loop store credit.
+> Academic prototype, not legal or medical advice. MedWallet is closed-loop store credit.
 
 **Author:** Chethan · [@chethan-9817](https://github.com/chethan-9817)

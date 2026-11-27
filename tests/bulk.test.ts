@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addDays } from '../src/domain/clock';
 import { bulkBatchId, bulkSummary, storeShare, tenderView } from '../src/domain/bulk';
 import { networkSummary, storeRows } from '../src/domain/network';
-import { defaultTargetPrice, effectivePrice, negotiate, usualTradePrice } from '../src/domain/rules/bulk';
+import { defaultTargetPrice, effectivePrice, negotiate, negotiateOffers, usualTradePrice } from '../src/domain/rules/bulk';
 import { ADMIN, CHEMIST, CUSTOMER, STORE, Sim } from './helpers';
 
 const SYRINGE = 'prd-dispovan'; // MRP 60
@@ -120,6 +120,36 @@ describe('pooling demand', () => {
 });
 
 describe('quotes, negotiation and award', () => {
+  it('trades responsive offers within both limits and recommends an agreed quote', () => {
+    const sim = pooled();
+    sim.must(COASTAL.user, quote(COASTAL, 50, 42, 2));
+    sim.must(UDUPI.user, quote(UDUPI, 58, 52, 3));
+    sim.must(ADMIN, { type: 'BULK_NEGOTIATED', tenderId: T, strategy: 'offer-exchange' });
+
+    const tender = sim.state.bulkTenders[T]!;
+    expect(tender.negotiation).toMatchObject([
+      {
+        dealerId: COASTAL.dealer,
+        rounds: [
+          { round: 1, buyerOffer: 39, dealerOffer: 50 },
+          { round: 2, buyerOffer: 44.5, dealerOffer: 47.25 },
+          { round: 3, buyerOffer: 47.25, dealerOffer: 42 },
+        ],
+        agreed: true,
+        finalPrice: 42,
+      },
+      { dealerId: UDUPI.dealer, agreed: false, finalPrice: 52 },
+    ]);
+    expect(tender.recommendedQuoteId).toBe('q-dealer-coastal');
+  });
+
+  it('finds a deal exactly at the ceiling and stops early for an acceptable opening ask', () => {
+    expect(negotiateOffers(39, 48, { askPrice: 51, floorPrice: 48 })).toMatchObject({ agreed: true, finalPrice: 48 });
+    const opening = negotiateOffers(39, 48, { askPrice: 38, floorPrice: 34 });
+    expect(opening).toMatchObject({ agreed: true, finalPrice: 38 });
+    expect(opening.rounds).toHaveLength(1);
+  });
+
   it('takes one quote per dealer and checks its terms', () => {
     const sim = pooled();
     expect(sim.mustFail(CHEMIST, quote(COASTAL, 50, 42, 2))).toMatch(/Only a dealer/);

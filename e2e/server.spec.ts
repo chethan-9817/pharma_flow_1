@@ -88,13 +88,13 @@ test.describe('server mode', () => {
     await expect(rider.page.getByText('Delivered to NGO')).toBeVisible();
 
     await expect(chemist.page.locator('section', { hasText: 'Sponsored for NGOs' })).toContainText('₹92');
-    await customer.page.getByRole('button', { name: /^Civic hub/ }).click();
+    await customer.page.getByRole('button', { name: /^Medicine returns/ }).click();
     await expect(customer.page.getByText('Delivered to Seva NGO Clinic')).toBeVisible();
 
     // A reload keeps the person signed in for this tab, and the data comes back from the server.
     await customer.page.reload();
-    await expect(customer.page.getByRole('button', { name: /^Civic hub/ })).toBeVisible();
-    await customer.page.getByRole('button', { name: /^Civic hub/ }).click();
+    await expect(customer.page.getByRole('button', { name: /^Medicine returns/ })).toBeVisible();
+    await customer.page.getByRole('button', { name: /^Medicine returns/ }).click();
     await expect(customer.page.getByText('Delivered to Seva NGO Clinic')).toBeVisible();
 
     // Anyone can check the certificate's QR code, even with no login and no data of their own.
@@ -114,6 +114,7 @@ test.describe('server mode', () => {
 
   test('only the admin can move time or reset, from the top bar', async ({ browser }) => {
     const customer = await person(browser, '/customer');
+    await customer.page.setViewportSize({ width: 1600, height: 900 });
     await expect(customer.page.getByRole('button', { name: /^Shop/ })).toBeVisible();
 
     // The top bar moves time as the admin. This browser has no admin login, so it is refused with a reason.

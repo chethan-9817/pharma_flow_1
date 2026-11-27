@@ -26,11 +26,14 @@ export function BulkPanel({ user }: { user: User }) {
         <Stat label={t('bulk.admin.stats.delivered')} value={summary.delivered} hint={t('bulk.packs', { n: summary.packsDelivered })} tone="green" icon={Truck} />
         <Stat label={t('bulk.admin.stats.savings')} value={inr(summary.savings)} tone="amber" icon={PiggyBank} />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Stat label={t('bulk.pay.stats.paidDealers')} value={inr(summary.paidToDealers)} hint={t('bulk.pay.stats.owedDealers', { amount: inr(summary.owedToDealers) })} tone="slate" icon={ArrowUpRight} />
-        <Stat label={t('bulk.pay.stats.received')} value={inr(summary.receivedFromStores)} tone="green" icon={ArrowDownLeft} />
-        <Stat label={t('bulk.pay.stats.owedStores')} value={inr(summary.owedByStores)} tone="orange" icon={Hourglass} />
-      </div>
+      <details className="rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-200">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700">{t('bulk.pay.overview')}</summary>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Stat label={t('bulk.pay.stats.paidDealers')} value={inr(summary.paidToDealers)} hint={t('bulk.pay.stats.owedDealers', { amount: inr(summary.owedToDealers) })} tone="slate" icon={ArrowUpRight} />
+          <Stat label={t('bulk.pay.stats.received')} value={inr(summary.receivedFromStores)} tone="green" icon={ArrowDownLeft} />
+          <Stat label={t('bulk.pay.stats.owedStores')} value={inr(summary.owedByStores)} tone="orange" icon={Hourglass} />
+        </div>
+      </details>
 
       <section>
         <SectionTitle>{t('bulk.admin.title')}</SectionTitle>
@@ -112,7 +115,7 @@ function AdminActions({ view, user }: { view: TenderView; user: User }) {
           <Button
             size="sm"
             disabled={tender.quotes.length === 0}
-            onClick={async () => report(await dispatch(user.id, { type: 'BULK_NEGOTIATED', tenderId: tender.id }), t('bulk.admin.negotiated'))}
+            onClick={async () => report(await dispatch(user.id, { type: 'BULK_NEGOTIATED', tenderId: tender.id, strategy: 'offer-exchange' }), t('bulk.admin.negotiated'))}
           >
             <Bot className="size-4" /> {t('bulk.admin.negotiate')}
           </Button>

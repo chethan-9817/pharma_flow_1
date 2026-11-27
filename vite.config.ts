@@ -17,7 +17,7 @@ export default defineConfig({
       manifest: {
         name: 'PharmaFlow',
         short_name: 'PharmaFlow',
-        description: 'Close the medicine loop: Eco-Sale, NGO donations, safe disposal and blood donation.',
+        description: 'Close the medicine loop: Eco-Sale, NGO medicine donations, safe disposal and pooled purchasing.',
         start_url: '/presenter',
         scope: '/',
         display: 'standalone',

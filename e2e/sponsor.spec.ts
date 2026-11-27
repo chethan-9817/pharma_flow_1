@@ -53,7 +53,7 @@ test.describe('Sponsor batch for NGO, across four tabs', () => {
     // The sponsor earns +200 karma and an NGO Donor certificate that names the sponsorship.
     await front(customer);
     await expect(customer.getByText('200', { exact: true })).toBeVisible();
-    await customer.getByRole('button', { name: /^Civic hub/ }).click();
+    await customer.getByRole('button', { name: /^Medicine returns/ }).click();
     await expect(customer.getByText('Delivered to Seva NGO Clinic')).toBeVisible();
     await expect(customer.getByText(/Sponsored 10 packs of Okacet for Seva NGO Clinic/)).toBeVisible();
 
@@ -82,7 +82,7 @@ test.describe('Sponsor batch for NGO, across four tabs', () => {
     await rider.getByRole('button', { name: /QA rejected: take to CBWTF/ }).click();
 
     await front(customer);
-    await customer.getByRole('button', { name: /^Civic hub/ }).click();
+    await customer.getByRole('button', { name: /^Medicine returns/ }).click();
     await expect(customer.getByText(/₹99 is back in your MedWallet/)).toBeVisible();
     await expect(customer.getByText('₹99', { exact: true }).first()).toBeVisible();
   });

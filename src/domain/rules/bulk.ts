@@ -105,6 +105,43 @@ export function negotiate(targetPrice: number, ceilingPrice: number, q: Pick<Quo
   return { rounds, finalPrice: rounds[rounds.length - 1]!.dealerOffer, agreed: false };
 }
 
+function pharmaFlowOffer(target: number, ceiling: number, previous?: NegotiationRound): number {
+  if (!previous) return target;
+  const next = previous.round === 1
+    ? round2((previous.buyerOffer + previous.dealerOffer) / 2)
+    : previous.dealerOffer;
+  return Math.min(ceiling, previous.dealerOffer, Math.max(previous.buyerOffer, next));
+}
+
+function dealerOffer(
+  quote: Pick<QuoteTerms, 'askPrice' | 'floorPrice'>,
+  buyerOffer: number,
+  previous?: NegotiationRound,
+): number {
+  if (!previous) return quote.askPrice;
+  if (previous.round === NEGOTIATION_ROUNDS - 1) return quote.floorPrice;
+  if (buyerOffer >= previous.dealerOffer) return previous.dealerOffer;
+  const acceptable = Math.max(quote.floorPrice, buyerOffer);
+  return Math.min(previous.dealerOffer, Math.max(acceptable, round2((previous.dealerOffer + acceptable) / 2)));
+}
+
+/** The buyer replies to the last counteroffer. The dealer responds to the new bid. */
+export function negotiateOffers(
+  targetPrice: number,
+  ceilingPrice: number,
+  quote: Pick<QuoteTerms, 'askPrice' | 'floorPrice'>,
+): NegotiationOutcome {
+  const rounds: NegotiationRound[] = [];
+  for (let round = 1; round <= NEGOTIATION_ROUNDS; round++) {
+    const previous = rounds.at(-1);
+    const bid = pharmaFlowOffer(targetPrice, ceilingPrice, previous);
+    const ask = dealerOffer(quote, bid, previous);
+    rounds.push({ round, buyerOffer: bid, dealerOffer: ask });
+    if (ask <= bid) return { rounds, finalPrice: ask, agreed: true };
+  }
+  return { rounds, finalPrice: rounds[rounds.length - 1]!.dealerOffer, agreed: false };
+}
+
 const DELIVERY_DAY_PENALTY = 0.005;
 const RATING_STAR_PENALTY = 0.02;
 

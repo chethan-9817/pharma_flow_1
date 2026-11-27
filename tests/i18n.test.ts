@@ -112,7 +112,7 @@ describe('dynamic keys that the screens build from data', () => {
     expect(
       need([
         ...['PLACED', 'RX_APPROVED', 'PACKED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map((s) => `customer.orders.status.${s}`),
-        ...['NGO_DONOR', 'GREEN_CITIZEN', 'BLOOD_DONOR'].map((k) => `customer.activity.certKinds.${k}`),
+        ...['NGO_DONOR', 'GREEN_CITIZEN'].map((k) => `customer.activity.certKinds.${k}`),
         ...['NGO_DONOR', 'GREEN_CITIZEN', 'BLOOD_DONOR'].map((k) => `verify.kinds.${k}`),
         ...['PLACED', 'DELIVERED', 'REFUNDED'].map((s) => `chemist.sponsored.status.${s}`),
         ...['DELIVERY', 'NGO_PICKUP', 'BIO_PICKUP'].map((k) => `rider.kind.${k}`),

@@ -93,7 +93,7 @@ The reducer is a thin `switch` that hands each event to a handler module in `src
 | `inventory.ts` | KYC, stock, Eco-Sale, rider shifts, time travel |
 | `orders.ts` | Placing, prescription review, packing, delivery, cancellation |
 | `pickups.ts` | Donation and bio-disposal pickups, QA |
-| `civic.ts` | Scratch cards and blood donation |
+| `civic.ts` | Scratch cards and historical blood donation events |
 | `payouts.ts` | Rider pay, scratch-card grants, certificates (used by the others) |
 | `common.ts` | Role guards (`requireRole`, `requireChemistOf`, `requireApprovedStore`) and small helpers |
 
@@ -237,7 +237,7 @@ Going back means **Reset demo data**, which clears the log.
 | `roles/customer` | Shop, Deals, Cart, Orders (live tracker, scratch cards) and Civic hub tabs. Cart state is local to the tab (not part of the event log) |
 | `roles/chemist` | Dashboard: expiry ledger, **Add inventory** (scan, type or choose medicine), packing desk, QA desk (sponsored packs are marked), **Sponsored for NGOs** (what the store is paid and what is on the way) |
 | `roles/rider` | Mission radar with large lifecycle buttons, plus the navigation panel and map |
-| `roles/admin` | KYC queue, KPI cards, three charts (the money chart has an NGO fund line), the NGO fund card, blood donation confirmations, audit trail |
+| `roles/admin` | KYC queue, KPI cards, three charts (the money chart has an NGO fund line), the NGO fund card and audit trail |
 
 **Two layouts, one codebase.** `components/layout.ts` exports `useEmbedded()`, which is true for `?embed=1`, the URL each pane of the `/presenter` page loads. A role opened on its own gets the wide **laptop layout** (customer sidebar, rider missions beside a large map). Embedded panes keep the compact **phone-style** layout so four fit side by side. Inside a layout, content adapts to the width it is actually given using Tailwind container queries (`@container`, `@2xl:`, `@3xl:`), so the same Shop, Cart or Civic components are one column in a phone frame and two or three on a laptop.
 
@@ -255,7 +255,7 @@ Styling is Tailwind CSS v4 with design tokens in `src/index.css`. The look is a 
 | `--color-eco` / `-dark` / `-tint` | `#047857` / `#065F46` / `#D1FAE5` | Safe stock, donations, approvals |
 | `--color-expiry` (`-ink`, `-tint`) | `#D97706` / `#92400E` / `#FEF3C7` | Lockout and Eco-Sale |
 | `--color-critical-ink` / `-tint` | `#C2410C` / `#FFEDD5` | Critical stock, hazardous waste |
-| `--color-blood` / `-tint` | `#BE123C` / `#FFE4E6` | Expired stock, Rx-only, blood donation |
+| `--color-blood` / `-tint` | `#BE123C` / `#FFE4E6` | Expired stock, Rx-only and destructive actions |
 
 - **Neutrals.** `--color-slate-50` to `-950` are overridden with a cleaner gray, so every `text-slate-*`, `bg-slate-*` and `ring-slate-*` in the app follows it.
 - **Contrast.** Solid fills (`primary`, `eco`, `danger`) are deep enough for white text at WCAG AA. The earlier sky and emerald fills were not.

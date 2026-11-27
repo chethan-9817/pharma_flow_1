@@ -6,13 +6,12 @@ import { courseReminders } from '../../domain/selectors';
 import type { User } from '../../domain/types';
 import { Button } from '../../components/ui';
 import { useApp } from '../../store';
-import { BloodCard } from './civic/BloodCard';
 import { CivicActivity } from './civic/CivicActivity';
 import { DisposeCard } from './civic/DisposeCard';
 import { DonateCard } from './civic/DonateCard';
 
 /**
- * Civic Hub: donate unused medicines, dispose of expired ones safely and book a blood donation,
+ * Medicine returns: donate unused medicines or dispose of expired ones safely,
  * with a reminder when a medicine course has finished and the leftovers could help someone.
  */
 export function CivicTab({ user }: { user: User }) {
@@ -68,10 +67,7 @@ export function CivicTab({ user }: { user: User }) {
 
       <div className="grid gap-6 @3xl:grid-cols-2">
         <DonateCard user={user} prefillMedicineId={prefill?.medicineId} prefillKey={prefill?.key} />
-        <div className="space-y-6">
-          <DisposeCard user={user} />
-          <BloodCard user={user} />
-        </div>
+        <DisposeCard user={user} />
       </div>
 
       <CivicActivity user={user} />

@@ -1,10 +1,10 @@
-import { ArrowRight, CheckCircle2, CircleSlash, Clock, Store as StoreIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { ArrowRight, Bot, CheckCircle2, CircleSlash, Clock, MessagesSquare, Play, Store as StoreIcon } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BulkNegotiation, TenderStatus, TenderView } from '../domain/bulk';
 import { usualTradePrice } from '../domain/rules/bulk';
 import { ProductArt } from './ProductArt';
-import { Badge, Card, inr } from './ui';
+import { Badge, Button, Card, inr } from './ui';
 
 const STATUS_TONE = {
   COLLECTING: 'slate',
@@ -66,33 +66,70 @@ export function TenderCard({ view, children }: { view: TenderView; children?: Re
   );
 }
 
-/** The round-by-round record of one dealer's negotiation, so anyone can see how the price was reached. */
+type ChatTurn = { speaker: 'buyer' | 'dealer'; text: string; round: number; opensRound: boolean };
+
+/** Conversation drawn from the recorded bids and counteroffers. */
 export function Rounds({ result }: { result: BulkNegotiation }) {
   const { t } = useTranslation();
+  const [replayStep, setReplayStep] = useState<number | null>(null);
+  const turns = result.rounds.flatMap((round, index): ChatTurn[] => {
+    const previous = result.rounds[index - 1];
+    const bid = { price: inr(round.buyerOffer) };
+    const ask = { price: inr(round.dealerOffer) };
+    const buyerText = !previous
+      ? t('bulk.chat.open', bid)
+      : round.buyerOffer === previous.buyerOffer
+        ? t('bulk.chat.hold', bid)
+        : t('bulk.chat.raise', bid);
+    return [
+      { speaker: 'buyer', round: round.round, opensRound: true, text: buyerText },
+      {
+        speaker: 'dealer', round: round.round, opensRound: false,
+        text: round.dealerOffer <= round.buyerOffer ? t('bulk.chat.accept', ask) : t('bulk.chat.counter', ask),
+      },
+    ];
+  });
+
+  useEffect(() => {
+    if (replayStep === null) return;
+    const timer = window.setTimeout(() => setReplayStep(replayStep + 1 < turns.length ? replayStep + 1 : null), 650);
+    return () => window.clearTimeout(timer);
+  }, [replayStep, turns.length]);
+
   return (
     <div className="space-y-2">
-      <table className="w-full text-left text-xs">
-        <thead className="text-slate-500">
-          <tr>
-            <th className="py-1 font-medium" />
-            <th className="py-1 text-right font-medium">{t('bulk.buyerAgent')}</th>
-            <th className="py-1 text-right font-medium">{t('bulk.dealerAgent')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.rounds.map((r) => (
-            <tr key={r.round} className="border-t border-slate-100">
-              <td className="py-1.5 text-slate-600">{t('bulk.round', { n: r.round })}</td>
-              <td className="py-1.5 text-right tabular-nums text-medical-dark">{inr(r.buyerOffer)}</td>
-              <td className="py-1.5 text-right tabular-nums text-slate-900">{inr(r.dealerOffer)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className={`flex items-center gap-1.5 text-xs font-medium ${result.agreed ? 'text-eco-dark' : 'text-blood'}`}>
-        {result.agreed ? <CheckCircle2 className="size-3.5" /> : <CircleSlash className="size-3.5" />}
+      <p className={`flex items-center gap-1.5 text-sm font-semibold ${result.agreed ? 'text-eco-dark' : 'text-slate-600'}`}>
+        {result.agreed ? <CheckCircle2 aria-hidden className="size-4 shrink-0" /> : <CircleSlash aria-hidden className="size-4 shrink-0" />}
         {result.agreed ? t('bulk.agreedAt', { price: inr(result.finalPrice) }) : t('bulk.noDeal', { price: inr(result.finalPrice) })}
       </p>
+      <details className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-inset ring-slate-200">
+        <summary className="cursor-pointer text-sm font-medium text-slate-800">
+          <MessagesSquare aria-hidden className="mr-1.5 inline-block size-4 text-medical" />
+          {t('bulk.chat.title')}
+        </summary>
+        <div className="mt-3 flex justify-end motion-reduce:hidden">
+          <Button type="button" variant="ghost" size="sm" onClick={() => {
+            setReplayStep(replayStep === null ? 0 : null);
+          }}>
+            <Play aria-hidden className="size-3.5" />
+            {replayStep === null ? t('bulk.chat.replay') : t('bulk.chat.showAll')}
+          </Button>
+        </div>
+        <ol className="space-y-2 pt-3" aria-live={replayStep === null ? 'off' : 'polite'}>
+          {turns.slice(0, replayStep === null ? undefined : replayStep + 1).map((turn) => (
+            <li key={`${turn.round}-${turn.speaker}`} className="space-y-2">
+              {turn.opensRound && <p className="pt-1 text-center text-xs font-medium text-slate-500">{t('bulk.round', { n: turn.round })}</p>}
+              <div className={`rounded-xl px-3 py-2 text-sm text-slate-900 ${turn.speaker === 'buyer' ? 'mr-5 bg-medical-tint/70' : 'ml-5 bg-slate-100'}`}>
+                <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                  <Bot aria-hidden className="size-3.5 shrink-0" />
+                  {turn.speaker === 'buyer' ? t('bulk.buyerAgent') : t('bulk.dealerAgent')}
+                </p>
+                <p>{turn.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </details>
     </div>
   );
 }

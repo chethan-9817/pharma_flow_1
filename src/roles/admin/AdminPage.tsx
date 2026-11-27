@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Boxes, CheckCircle2, Droplets, HeartHandshake, Landmark, LayoutDashboard, Network, Package, Recycle, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
+import { Boxes, CheckCircle2, HeartHandshake, Landmark, LayoutDashboard, Network, Package, Recycle, ShieldCheck, Skull, TrendingUp, XCircle } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bulkSummary } from '../../domain/bulk';
@@ -25,8 +25,6 @@ export function AdminPage({ user }: { user: User }) {
   const [tab, setTab] = useState<AdminTab>('overview');
   const pending = Object.values(app.stores).filter((s) => s.kyc === 'PENDING_KYC');
   const recent = [...chain].reverse().slice(0, 10);
-  const bookings = Object.values(app.bloodBookings).reverse();
-  const bookedDonations = bookings.filter((b) => b.status === 'BOOKED');
 
   const verify = async () => {
     const result = await pharma.getState().verifyLedger();
@@ -39,9 +37,6 @@ export function AdminPage({ user }: { user: User }) {
       await dispatch(user.id, { type: 'KYC_DECIDED', storeId, decision }),
       t('admin.decided', { decision: t(decision === 'APPROVED' ? 'admin.approved' : 'admin.rejected') }),
     );
-
-  const confirmBlood = async (bookingId: string) =>
-    report(await dispatch(user.id, { type: 'BLOOD_DONATION_CONFIRMED', bookingId }), t('admin.confirmedToast'));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -62,11 +57,10 @@ export function AdminPage({ user }: { user: User }) {
 
       {tab === 'overview' && (
         <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Stat label={t('admin.deadStock')} value={inr(k.deadStockRecovered)} hint={t('admin.ecoRevenue')} tone="blue" icon={TrendingUp} />
         <Stat label={t('admin.waste')} value={`${k.hazardousKgDiverted} kg`} hint={t('admin.viaCbwtf')} tone="orange" icon={Recycle} />
         <Stat label={t('admin.toNgos')} value={inr(k.ngoMedicineValue)} hint={t('admin.atMrp')} tone="green" icon={HeartHandshake} />
-        <Stat label={t('admin.bloodDonations')} value={`${k.bloodDonationsCompleted}/${k.bloodDonationsBooked}`} hint={t('admin.completedBooked')} tone="red" icon={Droplets} />
       </div>
 
       <Suspense fallback={<Card className="h-72 animate-pulse bg-slate-100" />}>
@@ -104,35 +98,11 @@ export function AdminPage({ user }: { user: User }) {
           <p className="mt-3 flex items-center gap-2 text-xs text-slate-500">
             <Package className="size-3.5" /> {t('admin.ordersDelivered', { count: k.ordersDelivered })}
             <Skull className="ml-2 size-3.5" /> {t('admin.expiredOnlyCbwtf')}
-            <Droplets className="ml-2 size-3.5" /> {t('admin.bloodNoMoney')}
           </p>
         </section>
 
         <NgoFundCard />
 
-        <section>
-          <SectionTitle>{t('admin.bloodBookings')}</SectionTitle>
-          <div className="space-y-3">
-            {bookings.length === 0 && <Card className="text-sm text-slate-500">{t('admin.noBookings')}</Card>}
-            {bookings.map((b) => (
-              <Card key={b.id} className="flex items-center gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-blood">
-                  <Droplets className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-900">{app.users[b.userId]?.name} · {t('admin.group', { group: b.bloodGroup })}</p>
-                  <p className="truncate text-xs text-slate-500">{app.bloodBanks[b.bloodBankId]?.name} · {b.date}</p>
-                </div>
-                {b.status === 'BOOKED' ? (
-                  <Button size="sm" variant="soft" onClick={() => void confirmBlood(b.id)}>{t('admin.confirmDonation')}</Button>
-                ) : (
-                  <Badge tone="green">{t('admin.donated')}</Badge>
-                )}
-              </Card>
-            ))}
-          </div>
-          {bookedDonations.length > 0 && <p className="mt-2 text-xs text-slate-500">{t('admin.confirmNote')}</p>}
-        </section>
         </div>
 
         <section>

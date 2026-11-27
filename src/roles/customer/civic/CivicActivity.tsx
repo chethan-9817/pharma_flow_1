@@ -1,4 +1,4 @@
-import { Award, Download, Droplets, HeartHandshake, Truck } from 'lucide-react';
+import { Award, Download, HeartHandshake, Truck } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { customerSponsorships, type SponsorshipView } from '../../../domain/selectors';
@@ -45,8 +45,7 @@ export function CivicActivity({ user }: { user: User }) {
   const app = useApp();
   const pickups = Object.values(app.pickups).filter((p) => p.sourceUserId === user.id).reverse();
   const sponsorships = customerSponsorships(app, user.id);
-  const bookings = Object.values(app.bloodBookings).filter((b) => b.userId === user.id).reverse();
-  const certificates = app.certificates.filter((c) => c.userId === user.id).reverse();
+  const certificates = app.certificates.filter((c) => c.userId === user.id && c.kind !== 'BLOOD_DONOR').reverse();
 
   const download = async (cert: Certificate) => {
     try {
@@ -109,23 +108,6 @@ export function CivicActivity({ user }: { user: User }) {
         </section>
 
         <section className="space-y-3">
-          <SectionTitle>{t('customer.activity.myBlood')}</SectionTitle>
-          {bookings.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noBlood')}</Card>}
-          {bookings.map((b) => (
-            <Card key={b.id} className="flex items-center gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-blood">
-                <Droplets className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{app.bloodBanks[b.bloodBankId]?.name}</p>
-                <p className="text-xs text-slate-500">{b.date} · {t('admin.group', { group: b.bloodGroup })}</p>
-              </div>
-              <Badge tone={b.status === 'DONATED' ? 'green' : 'amber'}>{b.status === 'DONATED' ? t('customer.activity.donated') : t('customer.activity.bookedBadge')}</Badge>
-            </Card>
-          ))}
-        </section>
-
-        <section className="space-y-3">
           <SectionTitle>{t('customer.activity.myCertificates')}</SectionTitle>
           {certificates.length === 0 && <Card className="text-sm text-slate-500">{t('customer.activity.noCertificates')}</Card>}
           {certificates.map((c) => (
@@ -136,7 +118,6 @@ export function CivicActivity({ user }: { user: User }) {
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
                   <span className="truncate">{t('customer.activity.certificate', { title: t(`customer.activity.certKinds.${c.kind}`) })}</span>
-                  {c.kind === 'BLOOD_DONOR' && <Badge tone="red">{t('customer.activity.lifesaver')}</Badge>}
                 </p>
                 <p className="truncate text-xs text-slate-500">{c.summary} · {t('verify.code').toLowerCase()} {c.verifyCode}</p>
               </div>
