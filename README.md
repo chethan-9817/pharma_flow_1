@@ -1,106 +1,62 @@
-# 💊 PharmaFlow
+# PharmaFlow
 
-**Medicine reverse logistics, near-expiry liquidation and civic health on one platform.**
+**A shared platform for pharmacy inventory, near-expiry sales, medicine returns, and pooled purchasing.**
 
-PharmaFlow turns the one-way "buy → use → throw away" medicine chain into a **closed loop** connecting four roles: **Customers**, **Medical Stores (Chemists)**, **Delivery Riders** and **Admins / NGOs**.
+PharmaFlow is an academic prototype built around a pilot scenario in **Mangaluru, Karnataka**. It connects customers, medical stores, delivery riders, dealers, and administrators in one workflow.
 
-> 🎓 PBL project · Pilot region: **Mangaluru, Karnataka**
-> ✅ All four role apps, server mode, installable PWA and English / ಕನ್ನಡ / हिन्दी are built and tested (284 unit tests, 14 browser tests).
+## The problem
 
-📖 **More docs:** [WORKFLOW.md](WORKFLOW.md) (every flow + demo script) · [ARCHITECTURE.md](ARCHITECTURE.md) (how the code works) · [TODO.md](TODO.md) (what's left)
+Pharmacies need to manage stock before it expires, customers need a convenient way to return unused medicines, and small stores often buy supplies separately. These disconnected workflows make it harder to track inventory, coordinate returns, and compare bulk purchasing offers.
 
----
+## What we are building
 
-## 🔥 The problem
+- **Expiry-aware inventory:** track batches and identify stock approaching expiry.
+- **Eco-Sale:** offer near-expiry stock at discounted prices through the customer storefront.
+- **Medicine returns:** coordinate donation and disposal requests, pickup, pharmacist review, and tracking.
+- **Pooled purchasing:** combine requests from several medical stores into one bulk order.
+- **Agent negotiation:** let PharmaFlow and dealer agents exchange offers, then let an administrator review and award an agreed quote.
+- **Shared visibility:** connect orders, deliveries, inventory updates, and an auditable event history.
 
-- **Chemists lose money.** Legacy ERPs cost ~₹35,000 in year one. Distributors refund only 50% on stock with 6+ months left, as a slow credit note, and **refuse anything under 6 months**, a 100% loss.
-- **Households dump medicines illegally.** ~73% bin them and ~20% flush them, though the Bio-Medical Waste Rules 2016 require incineration at an authorised CBWTF. Antibiotics in soil and water breed **antimicrobial resistance**.
-- **The paradox:** safe, unexpired medicines go to waste while **NGO clinics run short of medicines**.
+## Five connected roles
 
-## 💡 How PharmaFlow fixes it
-
-```mermaid
-flowchart LR
-    C[Chemist] -->|Normal sale| U[Customer]
-    C -->|6 months before expiry: Eco-Sale from 15% off| U
-    U -->|Leftover sealed strips| QA{Pharmacist QA}
-    C -->|Unsellable but safe| QA
-    QA -->|Verified| N[NGO Clinic]
-    QA -->|Rejected| B[CBWTF Incineration]
-    U -->|Expired: Yellow-Bag pickup| B
-    C -->|Expired stock| B
-```
-
-| Role | What it does |
-|---|---|
-| 🛒 **Customer** | Shop 46 items with pictures in six aisles (medicines, skin care, women's hygiene, oral care, baby care, first aid & devices) and a cheaper-generic switch · **Eco-Sale** near-expiry deals · Rx upload with OCR · donate leftovers to NGOs · Yellow-Bag disposal of expired medicines · live order tracker · karma points, scratch cards, PDF certificates |
-| 🏪 **Chemist** | Free ERP (₹0 licence/AMC) · camera barcode scan with GS1 batch + expiry · expiry ledger (Safe / Lockout / Critical / Expired) · **6-month expiry alerts** with the Eco-Sale price split · one-click **Eco-Sale / Donate / Dispose** · Rx review + packing desk · QA desk for returns · write-off receipts with GST ITC reversal |
-| 🏍️ **Rider** | Mission radar (🔵 delivery · 🟢 NGO pickup · 🟠 bio-hazard) · map with route, ETA and call · Accept → Collected → Delivered (OTP) · **backhaul**: pick up returns on the same trip |
-| 🛡️ **Admin** | Pharmacy KYC (drug licence + GSTIN) · impact KPIs and charts · **every store and order** at a glance · NGO fund · **SHA-256 hash-chained audit ledger** with one-click verification |
-| 🏭 **Dealer** | Quotes on **pooled bulk orders** from several stores (e.g. 450 packs of syringes). PharmaFlow and dealer agents exchange offers in up to three rounds. The admin can replay the chat, review the recommendation and award the order. **PharmaFlow pays the dealer**, then **each store pays PharmaFlow its share**. See [WORKFLOW.md](WORKFLOW.md#13-pooled-bulk-orders-and-dealer-negotiation) |
-
-**Demo data:** 6 customers, 7 medical stores (one awaiting KYC), 3 riders and 3 dealers, all with 1-tap logins.
-
-## 🎨 Look and feel
-
-The role screens share a quiet light theme: white cards and headers on a neutral grey canvas, restrained shadows, deep blue primary actions and soft blue active navigation. Stat cards keep their surfaces neutral and use tinted icons for meaning: green for safe stock and Eco-Sale, amber for expiry warnings, orange for hazards, and red for disposal. The rider screen and its map are light too.
-
-- **Design tokens** (colours, radius, shadows) live in `src/index.css`, and the shared Button, Badge, Card and Stat are in `src/components/ui.tsx`. The rules are in [ARCHITECTURE.md → Design system](ARCHITECTURE.md).
-- **Figma:** [PharmaFlow UI - light theme refresh](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd) contains the earlier light-theme design. The current neutral-surface refresh still needs to be synced to that file.
-
-### 💸 How an Eco-Sale is split
-
-Six months before a batch expires, the chemist gets an **expiry alert** and can put it on Eco-Sale in one click. Fresh stock is never discounted.
-
-| ₹200 strip, 6 months before expiry | |
-|---|---|
-| Customer pays (15% off) | **₹170** |
-| PharmaFlow fee (10% of the MRP) | ₹20 |
-| Medical store receives | **₹150** |
-
-Closer to expiry the suggested discount deepens (50% under 90 days, 60% under 45). The demo store stocks 46 items (29 medicines plus sanitary pads, sunscreens, face serums, face washes, toothbrushes, syringes and more), each with a fresh batch, so the shop never runs dry. Details: [WORKFLOW.md → Eco-Sale](WORKFLOW.md#2-eco-sale-rescuing-near-expiry-stock).
-
----
-
-## 📋 Prescription rules (Rx-only drugs)
-
-Some medicines **can't be bought without a valid prescription**. This is enforced in the domain rules, not just the UI.
-
-| Category | Examples | Prescription? | What the app does |
-|---|---|---|---|
-| **OTC** | Dolo 650, Shelcal, Electral, Volini | ❌ No | Straight to checkout |
-| **Schedule H** | Augmentin 625, Azithral 500, Pan-D | ✅ Yes | Upload Rx → **chemist approves** before packing |
-| **Schedule H1** | (rule engine supports it) | ✅ Yes + register | Every sale logged in the H1 register |
-| **Schedule X / NDPS** | — | 🚫 Never | Blocked: can't be sold, donated or listed |
-
-1. An order with an Rx-only item **can't be packed** until the chemist approves the prescription.
-2. **OCR only reads the prescription; the pharmacist decides.**
-3. The Rx must show doctor name, **registration number**, date, patient and drug. Antibiotic prescriptions are valid 30 days and single-use.
-4. **Eco-Sale doesn't skip the rule**: discounted Augmentin still needs a prescription.
-5. Every approval and rejection is written to the audit ledger.
-
-> ⚠️ Drug schedules in the demo data are for demonstration. Verify against current CDSCO lists before real use.
-
----
-
-## 📚 Research behind it
-
-| Source | Finding | Feature in PharmaFlow |
+| Role | Main features | Route |
 |---|---|---|
-| Jose & Surendran (2025) | Incentives and awareness drive medicine returns | Karma, scratch cards, certificates |
-| Wickens et al. (2024) | Returned medicines can be reused if inspected | Pharmacist QA desk + audit trail |
-| Kanyari (2024); IJCMPH | Households dump drugs because pharmacies won't take them back | Free doorstep pickup |
-| Sorensen et al. (2024) | Barcode scanning cuts expiry checks by 59% | GS1 scan-to-ingest + expiry ledger |
-| **Forkan, Rizvi & Chowdhury (2021)**: multi-objective reverse-logistics inventory | Returns have their own demand; when they arrive faster than demand, holding cost rises. Cost, CO₂ and energy must be balanced together | Pace NGO pickups to NGO capacity · show **₹ recovered, kg CO₂, km travelled** for every batch action |
-| **Xue, Dong et al.**: reverse-logistics system for medical waste | Hub sites (K-means), full tracking and cost + risk routing cut working time **58.4%** and cost **20.8%** | **Green Hub** chemists for bulk Yellow-Bag collection · QR + weight check on every bag · routes scored on distance + hazard |
+| Customer | Browse products, search and filter, view Eco-Sale offers, upload prescriptions, track orders, and request medicine returns | `/customer` |
+| Chemist | Manage batches and expiry, review prescriptions, pack orders, review returns, and request bulk stock | `/chemist` |
+| Rider | Accept delivery and pickup missions, view routes, and complete deliveries with OTP | `/rider` |
+| Dealer | Submit bulk quotes with price limits and delivery times, view negotiations, and fulfil awarded orders | `/dealer` |
+| Admin | Review stores, monitor orders, run negotiations, award bulk orders, and verify the audit ledger | `/admin` |
 
-🎥 2-minute explainer of the two papers: [`media/PharmaFlow_Research_Takeaways.mp4`](media/PharmaFlow_Research_Takeaways.mp4)
+The `/presenter` page shows customer, chemist, rider, and admin screens together. Open `/dealer` separately for the negotiation demo.
 
----
+## How agent negotiation works
 
-## 🚀 Run it
+Two agents represent different pricing goals: PharmaFlow seeks a competitive purchase price, while each dealer works within its quoted price range.
 
-Requires **Node.js 22+** and Chrome or Edge.
+1. **Pool demand.** At least two approved stores request the same item.
+2. **Request quotes.** The admin sets a target price and maximum purchase price.
+3. **Dealer quotes.** Dealers enter an asking price, minimum price, and delivery time.
+4. **Exchange offers.** The admin starts negotiation. Each pair of agents responds to previous offers for up to three rounds, respecting the buyer ceiling and dealer floor.
+5. **Compare results.** Agreed quotes are ranked using price, delivery time, and dealer rating. Open **Agent conversation** to inspect or replay the exchange.
+6. **Admin decides.** The admin awards an agreed quote. The dealer delivers each store's allocation, and the app records payment status.
+
+**Implementation:** these are deterministic, rule-based agents running offline. They do not call an LLM or require an AI API key. The recommendation is the best-ranked agreed quote among those submitted, not a guarantee of the lowest market price. An administrator makes the final award.
+
+Payment actions record the prototype's workflow; they do not transfer real money.
+
+## Interface
+
+The customer storefront uses a dark green hero, prominent search, product imagery, and aisle filters. Shared role screens use neutral surfaces, consistent cards, and restrained status colours. Negotiation conversations and payment details can be expanded when needed to keep the main workflow readable.
+
+The returns interface focuses on **medicine donation and disposal**. Blood donation and appointment booking have been removed from the active UI.
+
+- Shared styling: `src/index.css`
+- Shared components: `src/components/ui.tsx`
+- [Figma storefront design](https://www.figma.com/design/h7QSbAidVEjCAneN5kfPyd?node-id=15-10)
+
+## Run locally
+
+Install **Node.js 22 or newer** and npm. Use a recent Chrome or Edge browser.
 
 ```bash
 git clone https://github.com/chethan-9817/pharma_flow_1.git
@@ -109,35 +65,90 @@ npm install
 npm run dev
 ```
 
-Open **`http://localhost:5173/presenter`** to see all four roles side by side, or `/customer`, `/chemist`, `/rider`, `/admin` in separate tabs. Use the **1-tap demo login** buttons.
+Open the local URL printed by Vite, usually `http://localhost:5173`. Choose a role and use a demo login. Keep the terminal running while you use the app.
 
-On Windows you can also double-click **`Start PharmaFlow.cmd`**. For the `pharmaflow` command, server mode, tests and troubleshooting, see [WORKFLOW.md](WORKFLOW.md#developer-workflow).
+For a specific port:
 
-## 🎬 Demo in 60 seconds
+```bash
+npm run dev -- --host 127.0.0.1 --port 5175 --strictPort
+```
 
-1. **Chemist** scans Dolo 650 → **Time-Travel** +5 months → batch turns amber → **Put on Eco-Sale**.
-2. **Customer** sees it instantly at 50% off, adds Augmentin too → checkout locked → uploads Rx.
-3. **Chemist** approves the Rx → **Pack & Summon Rider** → **Rider** delivers with OTP.
-4. **Customer** scratches a reward card, then donates leftovers → rider pickup → chemist QA → NGO → PDF certificate.
-5. **Admin** sees the KPIs move and clicks **Verify Ledger** → ✅ chain intact.
+Then open `http://127.0.0.1:5175/customer`. If the port is occupied, choose another port. Use the same hostname and port in all demo tabs so they share browser data.
 
-Full script with timings: [WORKFLOW.md → Demo script](WORKFLOW.md#demo-script).
+Windows users can also use the included `Start PharmaFlow.cmd` launcher.
 
----
+### Optional server mode
 
-## 🧰 Tech stack
+Run these commands in separate terminals:
 
-**Frontend:** React 18 · TypeScript · Vite · Tailwind + shadcn/ui · Zustand · Dexie (IndexedDB) · Zod · React Router
-**Features:** ZXing (barcode) · Tesseract.js (OCR) · Leaflet + OpenStreetMap · jsPDF + QR · Recharts · canvas scratch cards
-**Design:** calm light theme · Inter (Noto for Kannada and Hindi) · tokens in `src/index.css`; Figma sync pending for the neutral-surface refresh
-**Sync:** event-sourced core, BroadcastChannel across tabs (demo) or WebSocket (server)
-**Server:** Hono · `node:sqlite` · bcrypt + JWT
-**Other:** PWA (Workbox) · react-i18next (en / kn / hi) · Vitest · Playwright
+```bash
+# Terminal 1: API and database
+npm run server
+```
 
-Every action is an event in one hash-chained log. State, live sync, KPIs and the audit trail all come from that log. Details in [ARCHITECTURE.md](ARCHITECTURE.md).
+```bash
+# Terminal 2: frontend with API proxy
+npm run dev:server
+```
 
----
+The API defaults to port `8787`. Server mode uses SQLite persistence and WebSocket updates; browser demo mode uses IndexedDB and cross-tab updates. See [WORKFLOW.md](WORKFLOW.md#developer-workflow) for login and configuration details.
 
-> Academic prototype, not legal or medical advice. MedWallet is closed-loop store credit.
+## Demo for judges
 
-**Author:** Chethan · [@chethan-9817](https://github.com/chethan-9817)
+### Show the customer and inventory experience
+
+1. Open `/customer` and explore search, product categories, and Eco-Sale.
+2. Open `/chemist` to show batch inventory, expiry status, and order handling.
+3. Show **Medicine returns** to explain how pickups and pharmacist review fit into the workflow.
+
+### Show agents negotiating a bulk order
+
+1. Open `/chemist` in two tabs. Sign in as **Ganesh Prabhu** and **Suresh Kamath**.
+2. Request the same item from both stores using **Bulk orders with other stores**.
+3. Open `/admin`, select **Bulk orders**, and choose **Ask dealers for quotes**. Set the target and ceiling.
+4. Open `/dealer`, sign in as **Ramesh Hegde**, and submit an asking price, minimum price, and delivery time.
+5. Return to admin and select **Start agent negotiation**.
+6. Expand **Agent conversation** and use **Replay chat** to show the exchange.
+7. Explain the recommendation and award an agreed quote. If price limits do not overlap, the negotiation may finish without an agreement.
+
+More scenarios: [WORKFLOW.md](WORKFLOW.md).
+
+## Technology
+
+| Layer | Tools |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, React Router |
+| State and browser storage | Zustand, Dexie / IndexedDB, BroadcastChannel |
+| Server | Hono, SQLite through `node:sqlite`, WebSocket, bcrypt, JWT |
+| Validation | Zod and shared domain rules |
+| Barcode and prescription capture | ZXing, Tesseract.js |
+| Maps, charts, and documents | Leaflet, OpenStreetMap, Recharts, jsPDF, QR codes |
+| Languages and installation | react-i18next (English, Kannada, Hindi), PWA / Workbox |
+| Testing | Vitest and Playwright |
+
+Actions are represented as events. Domain rules validate transitions, and a hash-chained event ledger supports replay and integrity checks. See [ARCHITECTURE.md](ARCHITECTURE.md) for implementation details.
+
+## Development checks
+
+```bash
+npm run typecheck       # TypeScript checks
+npm test                # Unit tests
+npm run build           # Type check and production build
+npm run test:e2e         # Browser workflows
+npm run test:e2e:server  # Server-mode browser workflows
+npm run test:e2e:pwa     # PWA browser checks
+```
+
+Browser tests require the browser configured in the Playwright configuration files. For a built preview, run `npm run build` followed by `npm run preview` and open the printed URL.
+
+## Project scope
+
+This is a demonstration prototype, not a production pharmacy service. Product data, prescription rules, financial records, and impact figures are demo models. Prescription OCR assists data capture; pharmacist review remains part of the workflow. Real deployment would require validated operating processes, regulatory review, and integrations for payments and fulfilment.
+
+## Documentation
+
+- [Workflow and demo guide](WORKFLOW.md)
+- [Architecture](ARCHITECTURE.md)
+- [Remaining work](TODO.md)
+
+**Author:** Chethan K S — [@chethan-9817](https://github.com/chethan-9817)
